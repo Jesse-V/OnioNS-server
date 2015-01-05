@@ -8,11 +8,12 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "-g -O3 --std=c++11 -Wall -Wextra -Wdouble-promotion -Wfloat-equal -Wunsafe-loop-optimizations -Wno-unused-parameter")
 endif()
 
-include_directories(. libs)
+include_directories(.)
 
 #organized by importance
 add_executable(EsgalDNS
     main.cpp
 )
 
-target_link_libraries(EsgalDNS pthread)
+SET (LIBSCRYPT_LIB ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt-1.20/libscrypt.so)
+target_link_libraries(EsgalDNS pthread ${LIBSCRYPT_LIB})
