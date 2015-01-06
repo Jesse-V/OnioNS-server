@@ -19,6 +19,7 @@ const uint8_t SCRYPTED_LEN = 16;
 const uint64_t SCR_N = static_cast<uint64_t>(pow(2, 20));
 const uint32_t SCR_R = static_cast<uint32_t>(pow(2, 1));
 const uint32_t SCR_P = static_cast<uint32_t>(pow(2, 0));
+const int DIFFICULTY = 5; //5, chance is ~1/32
 
 uint8_t* const SALT = new uint8_t[SCRYPT_SALT_LEN];
 
@@ -69,12 +70,12 @@ void recursiveMining(uint8_t* nonce, uint8_t depth,
         auto len = signMessageDigest(reinterpret_cast<const unsigned char*>(nonce), IN_SIZE, key, sigBuf);
         //if (len < 0)
             //error
-        if (scrypt(sigBuf, (uint8_t)len, scryptBuf) < 0)
+
+        if (scrypt(sigBuf, len, scryptBuf) < 0)
             std::cout << "Error with scrypt call!" << std::endl;
 
         auto num = arrayToUInt64(scryptBuf, 0) ^ arrayToUInt64(scryptBuf, 4);
-        std::cout << num << std::endl;
-        if (num < UINT64_MAX / (uint8_t)pow(2, 5)) //chance is ~1/32
+        if (num < UINT64_MAX / (uint8_t)pow(2, DIFFICULTY))
         {
             std::cout << "      Found match!" << std::endl;
         }
@@ -104,7 +105,7 @@ int signMessageDigest(const unsigned char* str, std::size_t strLen,
 
 
 
-int scrypt(const uint8_t* input, uint8_t inputLen, uint8_t* output)
+int scrypt(const uint8_t* input, size_t inputLen, uint8_t* output)
 {
     //RAM load = O(N * R)
     //CPU time = O(N * R * P)
