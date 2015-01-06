@@ -13,6 +13,7 @@ include_directories(.)
 #organized by importance
 add_executable(EsgalDNS
     main.cpp
+    libs/base64.cpp
 )
 
 SET (LIBSCRYPT_LIB ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt-1.20/libscrypt.so)
