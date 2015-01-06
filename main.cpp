@@ -15,11 +15,16 @@
 const uint8_t IN_SIZE = 8;
 const uint8_t SCRYPTED_LEN = 16;
 
-//currently takes 256 MB and 1.3 seconds to do a scrypt on Core 2 Quad
+//currently takes 256 MB. 1.3 secs on Core 2 Q9000, 0.7 secs on i7-2600k
 const uint64_t SCR_N = static_cast<uint64_t>(pow(2, 20));
 const uint32_t SCR_R = static_cast<uint32_t>(pow(2, 1));
 const uint32_t SCR_P = static_cast<uint32_t>(pow(2, 0));
-const int DIFFICULTY = 5; //5, chance is ~1/32
+const int DIFFICULTY = 3; //1/2^x chance of success, so order of magnitude
+//difficulty at 17:
+    //4 days on Q9000 @ 1 CPU, 256MB RAM
+    //1 day on Q9000 @ 4 CPUs, 1GB RAM
+    //1 day on i7-2600k @ 1 CPU, 256MB RAM
+    //6 hours on i7-2600k @ 8 CPUs, 2GB RAM
 
 uint8_t* const SALT = new uint8_t[SCRYPT_SALT_LEN];
 
