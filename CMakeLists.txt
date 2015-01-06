@@ -16,5 +16,7 @@ add_executable(EsgalDNS
     libs/base64.cpp
 )
 
+#libssl-dev is a dependency
+
 SET (LIBSCRYPT_LIB ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt-1.20/libscrypt.so)
-target_link_libraries(EsgalDNS pthread ${LIBSCRYPT_LIB})
+target_link_libraries(EsgalDNS pthread ${LIBSCRYPT_LIB} crypto)
