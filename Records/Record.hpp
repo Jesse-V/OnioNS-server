@@ -10,6 +10,7 @@
 class Record
 {
     public:
+        //currently takes 256 MB. 1.3 secs on Core 2 Q9000, 0.7 secs on i7-2600k
         static const uint64_t SCR_N = 1 << 20;
         static const uint32_t SCR_R = 1 << 1;
         static const uint32_t SCR_P = 1 << 0;
