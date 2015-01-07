@@ -13,6 +13,9 @@ include_directories(.)
 #organized by importance
 add_executable(EsgalDNS
     main.cpp
+    Records/Domain.cpp
+    Records/Record.cpp
+    utils.cpp
     libs/base64.cpp
 )
 
