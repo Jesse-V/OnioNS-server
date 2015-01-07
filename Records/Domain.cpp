@@ -41,7 +41,7 @@ void Domain::recursiveMining(uint8_t* nonce, uint8_t depth,
             std::cout << "Error with scrypt call!" << std::endl;
 
         auto num = Utils::arrayToUInt64(scryptBuf, 0) ^ Utils::arrayToUInt64(scryptBuf, 4);
-        if (num < UINT64_MAX / (uint8_t)pow(2, DIFFICULTY))
+        if (num < UINT64_MAX / (1 << DIFFICULTY))
         {
             std::cout << "      Found match!" << std::endl;
         }

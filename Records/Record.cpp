@@ -4,13 +4,6 @@
 #include <cstring>
 
 
-Record::Record()
-{
-    //memset(SALT, 0, SCRYPT_SALT_LEN);
-}
-
-
-
 int Record::signMessageDigest(const unsigned char* str, std::size_t strLen,
     RSA* key, uint8_t* sigOut)
 {
@@ -25,7 +18,14 @@ int Record::signMessageDigest(const unsigned char* str, std::size_t strLen,
 
 int Record::scrypt(const uint8_t* input, size_t inputLen, uint8_t* output)
 {
+    //allocate and prepare static salt
     static uint8_t* const SALT = new uint8_t[SCRYPT_SALT_LEN];
+    static bool saltReady = false;
+    if (!saltReady)
+    {
+        memset(SALT, 0, SCRYPT_SALT_LEN);
+        saltReady = true;
+    }
 
     //RAM load = O(N * R)
     //CPU time = O(N * R * P)
