@@ -18,7 +18,7 @@ int main(int argc, char** argv)
     SHA256((unsigned char*)doc, sizeof(doc), cHash);
 
     auto key = PEM_read_RSAPrivateKey(rsaFile, NULL, NULL, NULL);
-    Domain d("example.tor", cHash, "0xAD97364FC20BEC80", key);
+    Domain d("example.tor", cHash, "AD97364FC20BEC80", key);
     //d.addSubdomain("sub", "example2.tor");
 
     std::cout << d;

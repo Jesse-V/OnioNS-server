@@ -21,9 +21,13 @@
 
 Domain::Domain(const std::string& name, uint8_t* consensusHash,
     const std::string& contact, RSA* key):
-    name_(name), consensusHash_(consensusHash), contact_(contact),
-    signature_(0), signatureLen_(0), timestamp_(time(NULL)), key_(key), valid_(false)
+    consensusHash_(consensusHash), signature_(0), signatureLen_(0),
+    timestamp_(time(NULL)), valid_(false)
 {
+    setName(name);
+    setContact(contact);
+    setKey(key);
+
     nonce_ = new uint8_t[NONCE_LEN];
     memset(nonce_, 0, NONCE_LEN);
 }
@@ -65,7 +69,7 @@ bool Domain::addSubdomain(const std::string& from, const std::string& to)
 
 bool Domain::setContact(const std::string& contactInfo)
 {
-    if (contactInfo.length() > 64)
+    if (!Utils::isPowerOfTwo(contactInfo.length()))
         return false;
 
     contact_ = contactInfo;
@@ -124,18 +128,6 @@ std::string Domain::getOnion() const
 
 
 
-/*
-    std::string name_;
-    std::vector<std::pair<std::string,std::string>> subdomains_;
-    uint8_t* consensusHash_;
-    std::string contact_;
-    uint8_t* signature_;
-    uint signatureLen_;
-    uint8_t* nonce_;
-    long timestamp_;
-    RSA* key_;
-    bool valid_;
-*/
 std::pair<uint8_t*, size_t> Domain::asJSON() const
 {
     std::string str;
@@ -177,7 +169,7 @@ std::ostream& operator<<(std::ostream& os, const Domain& dt)
             os << std::endl << "      " << subd.first << " -> " << subd.second;
     os << std::endl;
 
-    os << "   Contact: " << dt.contact_ << std::endl;
+    os << "   Contact: 0x" << dt.contact_ << std::endl;
     os << "   Time: " << dt.timestamp_ << std::endl;
     os << "   Authentication:" << std::endl;
 

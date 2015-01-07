@@ -10,14 +10,7 @@
 class Domain: public Record
 {
     public:
-        //static const uint8_t IN_SIZE = 8;
         static const int DIFFICULTY = 3; //1/2^x chance of success, so order of magnitude
-        //difficulty at 17:
-            //4 days on Q9000 @ 1 CPU, 256MB RAM
-            //1 day on Q9000 @ 4 CPUs, 1GB RAM
-            //1 day on i7-2600k @ 1 CPU, 256MB RAM
-            //6 hours on i7-2600k @ 8 CPUs, 2GB RAM
-
         static const uint32_t THRESHOLD = INT32_MAX / (1 << DIFFICULTY);
 
         Domain(const std::string&, uint8_t*, const std::string&, RSA*);
