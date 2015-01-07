@@ -24,8 +24,8 @@ Domain::Domain(const std::string& name, uint8_t* consensusHash,
     name_(name), consensusHash_(consensusHash), contact_(contact),
     signature_(0), signatureLen_(0), timestamp_(time(NULL)), key_(key), valid_(false)
 {
-    nonce_ = new uint8_t[IN_SIZE];
-    memset(nonce_, 0, IN_SIZE);
+    nonce_ = new uint8_t[NONCE_LEN];
+    memset(nonce_, 0, NONCE_LEN);
 }
 
 
@@ -102,10 +102,10 @@ bool Domain::makeValid()
 {
     //TODO: if issue with fields other than nonce, return false
 
+    memset(nonce_, 0, NONCE_LEN);
+    signature_ = new unsigned char[1024];
     uint8_t* scryptBuf = new uint8_t[SCRYPTED_LEN];
-    unsigned char* sigBuf = new unsigned char[1024];
-    findNonce(0, scryptBuf, sigBuf);
-    return true; //todo: if successful
+    return findNonce(0, scryptBuf);
 }
 
 
@@ -125,12 +125,39 @@ std::string Domain::getOnion() const
 
 
 /*
-        RSA* key_;
-
-std::pair<uint8_t*, size_t> asBinary()
+    std::string name_;
+    std::vector<std::pair<std::string,std::string>> subdomains_;
+    uint8_t* consensusHash_;
+    std::string contact_;
+    uint8_t* signature_;
+    uint signatureLen_;
+    uint8_t* nonce_;
+    long timestamp_;
+    RSA* key_;
+    bool valid_;
+*/
+std::pair<uint8_t*, size_t> Domain::asJSON() const
 {
+    std::string str;
+    str += "{\"name\":\"" + name_;
 
-}*/
+    str += "\",\"subd\":{";
+    for (auto sub : subdomains_)
+        str += "\"" + sub.first + "\":\"" + sub.second + "\",";
+    if (!subdomains_.empty())
+        str.pop_back(); //remove trailing comma
+
+    str += "},\"cHash\":\"" + base64_encode(consensusHash_, SHA256_DIGEST_LENGTH);
+    str += "\",\"pgp\":\"" + contact_;
+    str += "\",\"sig\":\"" + base64_encode(signature_, signatureLen_);
+    str += "\",\"n\":" + std::to_string(Utils::arrayToUInt32(nonce_, 0));
+    str += ",\"t\":" + std::to_string(timestamp_);
+    str += "}";
+
+    //TODO: include pubkey
+
+    return std::make_pair((unsigned char*)str.c_str(), str.size());
+}
 
 
 
@@ -154,16 +181,18 @@ std::ostream& operator<<(std::ostream& os, const Domain& dt)
 
     os << "      Nonce: ";
     if (dt.isValid())
-        os << Utils::getAsHex(dt.nonce_, dt.NONCE_LEN);
-    os << std::endl;
+        os << Utils::getAsHex(dt.nonce_, dt.NONCE_LEN) << std::endl;
+    else
+        os << "<regeneration required>" << std::endl;
 
     os << "      Day Consensus: " <<
         base64_encode(dt.consensusHash_, SHA256_DIGEST_LENGTH) << std::endl;
 
     os << "      Signature: ";
     if (dt.isValid())
-        os << base64_encode(dt.signature_, dt.signatureLen_);
-    os << std::endl;
+        os << base64_encode(dt.signature_, dt.signatureLen_ / 4) << " ..." << std::endl;
+    else
+        os << "<regeneration required>" << std::endl;
 
     //os << "      PubKey: " << base64_encode(dt.key_.a, 256) << std::endl;
 
@@ -172,40 +201,56 @@ std::ostream& operator<<(std::ostream& os, const Domain& dt)
 
 
 
-void Domain::findNonce(uint8_t depth, uint8_t* scryptBuf, uint8_t* sigBuf)
+bool Domain::findNonce(uint8_t depth, uint8_t* scryptBuf)
 {
-    if (depth < 0 || depth > IN_SIZE)
-        return;
+    if (depth < 0 || depth > NONCE_LEN)
+        return false;
 
-    if (depth == IN_SIZE)
+    if (depth == NONCE_LEN)
     {
         //for (uint8_t n = 0; n < IN_SIZE; n++)
         //    std::cout << (int)nonce[n] << ' ';
         //std::cout << std::endl;
 
-        std::cout << base64_encode(nonce_, IN_SIZE) << std::endl;
+        auto json = asJSON();
+        auto len = signMessageDigest(json.first, json.second, key_, signature_);
+        if (len < 0)
+        {
+            std::cout << "Error with digital signature!" << std::endl;
+            return false;
+        }
 
-        auto len = signMessageDigest(
-            reinterpret_cast<const unsigned char*>(nonce_), IN_SIZE, key_, sigBuf);
-        //if (len < 0)
-            //error
-
-        if (scrypt(sigBuf, len, scryptBuf) < 0)
+        signatureLen_ = static_cast<uint>(len); //this is now safe
+        if (scrypt(signature_, signatureLen_, scryptBuf) < 0)
+        {
             std::cout << "Error with scrypt call!" << std::endl;
+            return false;
+        }
 
-        auto num = Utils::arrayToUInt64(scryptBuf, 0) ^ Utils::arrayToUInt64(scryptBuf, 4);
-        if (num < UINT64_MAX / (1 << DIFFICULTY))
+        auto num = Utils::arrayToUInt32(scryptBuf, 0);
+        std::cout << (int)nonce_[depth - 1] << " -> " << num <<
+            "\t\t(" << (UINT32_MAX / (1 << DIFFICULTY)) << ")" << std::endl;
+
+        if (num < UINT32_MAX / (1 << DIFFICULTY))
         {
             std::cout << "      Found match!" << std::endl;
+            valid_ = true;
+            return true;
         }
     }
 
-    findNonce(depth + 1, scryptBuf, sigBuf);
+    bool found = findNonce(depth + 1, scryptBuf);
+    if (found)
+        return true;
+
     while (nonce_[depth] < UINT8_MAX)
     {
         nonce_[depth]++;
-        findNonce(depth + 1, scryptBuf, sigBuf);
+        found = findNonce(depth + 1, scryptBuf);
+        if (found)
+            return true;
     }
 
     nonce_[depth] = 0;
+    return false;
 }

@@ -20,7 +20,10 @@ int main(int argc, char** argv)
     auto key = PEM_read_RSAPrivateKey(rsaFile, NULL, NULL, NULL);
     Domain d("example.tor", cHash, "0xAD97364FC20BEC80", key);
     d.addSubdomain("sub", "example2.tor");
-    //d.makeValid();
+
+    std::cout << d;
+    d.makeValid();
+    d.asJSON();
     std::cout << d;
 
     return EXIT_SUCCESS;

@@ -7,7 +7,7 @@
 class Utils
 {
     public:
-        static uint64_t arrayToUInt64(const uint8_t*, int32_t);
+        static uint32_t arrayToUInt32(const uint8_t*, int32_t);
         static char* getAsHex(const uint8_t*, int);
 };
 

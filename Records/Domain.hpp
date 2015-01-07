@@ -10,7 +10,7 @@
 class Domain: public Record
 {
     public:
-        static const uint8_t IN_SIZE = 8;
+        //static const uint8_t IN_SIZE = 8;
         static const int DIFFICULTY = 3; //1/2^x chance of success, so order of magnitude
         //difficulty at 17:
             //4 days on Q9000 @ 1 CPU, 256MB RAM
@@ -29,10 +29,11 @@ class Domain: public Record
         bool makeValid();
         bool isValid() const;
         std::string getOnion() const;
+        std::pair<uint8_t*, size_t> asJSON() const;
         friend std::ostream& operator<<(std::ostream&, const Domain&);
 
     private:
-        void findNonce(uint8_t, uint8_t*, uint8_t*);
+        bool findNonce(uint8_t, uint8_t*);
 
         std::string name_;
         std::vector<std::pair<std::string,std::string>> subdomains_;
