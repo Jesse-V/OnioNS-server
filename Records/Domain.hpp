@@ -5,8 +5,9 @@
 #include "Record.hpp"
 #include <vector>
 #include <string>
+#include <ostream>
 
-class Domain
+class Domain: public Record
 {
     public:
         static const uint8_t IN_SIZE = 8;
@@ -18,9 +19,17 @@ class Domain
             //6 hours on i7-2600k @ 8 CPUs, 2GB RAM
 
         Domain(const std::string&, uint8_t*, const std::string&, RSA*);
-        bool addSubdomain(const std::string& from, const std::string& to);
+        ~Domain();
+
+        bool setName(const std::string&);
+        bool addSubdomain(const std::string&, const std::string&);
+        bool setContact(const std::string&);
+        bool setKey(RSA*);
+        bool refresh();
         bool makeValid();
-        bool isValid();
+        bool isValid() const;
+        std::string getOnion() const;
+        friend std::ostream& operator<<(std::ostream&, const Domain&);
 
     private:
         void findNonce(uint8_t, uint8_t*, uint8_t*);
@@ -30,6 +39,7 @@ class Domain
         uint8_t* consensusHash_;
         std::string contact_;
         uint8_t* signature_;
+        uint signatureLen_;
         uint8_t* nonce_;
         long timestamp_;
         RSA* key_;

@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include "Records/Domain.hpp"
 #include <openssl/pem.h>
+#include <iostream>
+#include <ctime>
 
 
 int main(int argc, char** argv)
@@ -11,10 +13,15 @@ int main(int argc, char** argv)
     if (rsaFile == NULL)
         perror("Error opening RSA keyfile");
 
-    auto cHash = "temp";
+    auto doc = "temp";
+    uint8_t cHash[SHA256_DIGEST_LENGTH];
+    SHA256((unsigned char*)doc, sizeof(doc), cHash);
+
     auto key = PEM_read_RSAPrivateKey(rsaFile, NULL, NULL, NULL);
-    Domain d("example.tor", (uint8_t*)cHash, "0xAD97364FC20BEC80", key);
-    d.makeValid();
+    Domain d("example.tor", cHash, "0xAD97364FC20BEC80", key);
+    d.addSubdomain("sub", "example2.tor");
+    //d.makeValid();
+    std::cout << d;
 
     return EXIT_SUCCESS;
 }

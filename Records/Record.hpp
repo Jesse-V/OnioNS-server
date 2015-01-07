@@ -15,6 +15,7 @@ class Record
         static const uint32_t SCR_R = 1 << 1;
         static const uint32_t SCR_P = 1 << 0;
 
+        static const uint8_t NONCE_LEN = 4;
         static const uint8_t SCRYPTED_LEN = 16;
 
         static int signMessageDigest(const unsigned char*, std::size_t, RSA* key, uint8_t*);

@@ -13,13 +13,12 @@ uint64_t Utils::arrayToUInt64(const uint8_t* byteArray, int32_t offset)
 
 
 
-void Utils::printAsHex(const uint8_t* data, int len)
+char* Utils::getAsHex(const uint8_t* data, int len)
 {
-    char* hexStr = new char[len * 2 + 1];
-
+    char* hexStr = new char[len * 2 + 3];
+    hexStr[0] = '0';
+    hexStr[1] = 'x';
     for (int i = 0; i < len; i++)
-        sprintf(&hexStr[i*2], "%02x", data[i]);
-    printf("%s", hexStr);
-
-    delete hexStr;
+        sprintf(&hexStr[i * 2 + 2], "%02x", data[i]);
+    return hexStr;
 }
