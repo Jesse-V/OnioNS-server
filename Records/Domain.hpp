@@ -18,6 +18,8 @@ class Domain: public Record
             //1 day on i7-2600k @ 1 CPU, 256MB RAM
             //6 hours on i7-2600k @ 8 CPUs, 2GB RAM
 
+        static const uint32_t THRESHOLD = INT32_MAX / (1 << DIFFICULTY);
+
         Domain(const std::string&, uint8_t*, const std::string&, RSA*);
         ~Domain();
 

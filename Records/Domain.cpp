@@ -150,11 +150,13 @@ std::pair<uint8_t*, size_t> Domain::asJSON() const
     str += "},\"cHash\":\"" + base64_encode(consensusHash_, SHA256_DIGEST_LENGTH);
     str += "\",\"pgp\":\"" + contact_;
     str += "\",\"sig\":\"" + base64_encode(signature_, signatureLen_);
-    str += "\",\"n\":" + std::to_string(Utils::arrayToUInt32(nonce_, 0));
-    str += ",\"t\":" + std::to_string(timestamp_);
+    str += "\",\"n\":\"" + base64_encode(nonce_, NONCE_LEN);
+    str += "\",\"t\":" + std::to_string(timestamp_);
     str += "}";
 
     //TODO: include pubkey
+
+    //std::cout << str << std::endl;
 
     return std::make_pair((unsigned char*)str.c_str(), str.size());
 }
@@ -164,9 +166,9 @@ std::pair<uint8_t*, size_t> Domain::asJSON() const
 std::ostream& operator<<(std::ostream& os, const Domain& dt)
 {
     os << "Domain Registration: (currently " <<
-        (dt.valid_ ? "valid)" : "invalid)") << std::endl;
+        (dt.valid_ ? "VALID)" : "INVALID)") << std::endl;
     os << "   Name: " << dt.name_ << " -> " << dt.getOnion() << std::endl;
-    os << "   Subdomains:";
+    os << "   Subdomains: ";
 
     if (dt.subdomains_.empty())
         os << "(none)";
@@ -208,10 +210,7 @@ bool Domain::findNonce(uint8_t depth, uint8_t* scryptBuf)
 
     if (depth == NONCE_LEN)
     {
-        //for (uint8_t n = 0; n < IN_SIZE; n++)
-        //    std::cout << (int)nonce[n] << ' ';
-        //std::cout << std::endl;
-
+        //digitally sign (RSA-SHA256) the JSON-encoded record
         auto json = asJSON();
         auto len = signMessageDigest(json.first, json.second, key_, signature_);
         if (len < 0)
@@ -220,6 +219,7 @@ bool Domain::findNonce(uint8_t depth, uint8_t* scryptBuf)
             return false;
         }
 
+        //pass signature through scrypt
         signatureLen_ = static_cast<uint>(len); //this is now safe
         if (scrypt(signature_, signatureLen_, scryptBuf) < 0)
         {
@@ -227,16 +227,17 @@ bool Domain::findNonce(uint8_t depth, uint8_t* scryptBuf)
             return false;
         }
 
+        //interpret scrypt output as number and compare against threshold
         auto num = Utils::arrayToUInt32(scryptBuf, 0);
-        std::cout << (int)nonce_[depth - 1] << " -> " << num <<
-            "\t\t(" << (UINT32_MAX / (1 << DIFFICULTY)) << ")" << std::endl;
-
-        if (num < UINT32_MAX / (1 << DIFFICULTY))
+        std::cout << base64_encode(nonce_, NONCE_LEN) << " -> " << num << std::endl;
+        if (num < THRESHOLD)
         {
-            std::cout << "      Found match!" << std::endl;
             valid_ = true;
             return true;
         }
+
+        signatureLen_ = 0;
+        return false;
     }
 
     bool found = findNonce(depth + 1, scryptBuf);
