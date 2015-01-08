@@ -5,40 +5,26 @@
 #include <cstring>
 #include <iostream>
 
-#define SHA256_DIGEST_LENGTH 32 //todo: remove this
-
-/*
-    std::string name_;
-    std::vector<std::pair<std::string,std::string>> subdomains_;
-    uint8_t* consensusHash_;
-    std::string contact_;
-    uint8_t* signature_;
-    uint signatureLen_;
-    uint8_t* nonce_;
-    long timestamp_;
-    RSA* key_;
-    bool valid_;
-*/
-
-Domain::Domain(const std::string& name, uint8_t* consensusHash,
-    const std::string& contact, Botan::Private_Key* key):
-    consensusHash_(consensusHash), signature_(0), signatureLen_(0),
+Domain::Domain(const std::string& name, uint8_t consensusHash[SHA256_LEN],
+    const std::string& contact, Botan::RSA_PrivateKey* key):
     timestamp_(time(NULL)), valid_(false)
 {
     setName(name);
     setContact(contact);
     setKey(key);
 
-    nonce_ = new uint8_t[NONCE_LEN];
     memset(nonce_, 0, NONCE_LEN);
+
+    memcpy(consensusHash_, consensusHash, SHA256_LEN);
+    memset(signature_, 0, SIGNATURE_LEN);
 }
 
 
 
 Domain::~Domain()
 {
-    delete signature_;
-    delete nonce_;
+    //delete signature_;
+    //delete nonce_;
 }
 
 
@@ -80,7 +66,7 @@ bool Domain::setContact(const std::string& contactInfo)
 
 
 
-bool Domain::setKey(Botan::Private_Key* key)
+bool Domain::setKey(Botan::RSA_PrivateKey* key)
 {
     if (key == NULL)
         return false;
@@ -108,7 +94,7 @@ bool Domain::makeValid()
     //TODO: if issue with fields other than nonce, return false
 
     memset(nonce_, 0, NONCE_LEN);
-    signature_ = new unsigned char[1024];
+    memset(signature_, 0, SIGNATURE_LEN);
     uint8_t* scryptBuf = new uint8_t[SCRYPTED_LEN];
     return findNonce(0, scryptBuf);
 }
@@ -140,12 +126,12 @@ std::pair<uint8_t*, size_t> Domain::asJSON() const
     if (!subdomains_.empty())
         str.pop_back(); //remove trailing comma
 
-    str += "},\"cHash\":\"" + Botan::base64_encode(consensusHash_, SHA256_DIGEST_LENGTH);
+    str += "},\"cHash\":\"" + Botan::base64_encode(consensusHash_, SHA256_LEN);
     str += "\",\"pgp\":\"" + contact_;
 
     str += "\",\"sig\":\"";
-    if (signatureLen_ > 0)
-        str += Botan::base64_encode(signature_, signatureLen_);
+    if (isValid())
+        str += Botan::base64_encode(signature_, SIGNATURE_LEN);
 
     str += "\",\"n\":\"" + Botan::base64_encode(nonce_, NONCE_LEN);
     str += "\",\"t\":" + std::to_string(timestamp_);
@@ -185,11 +171,12 @@ std::ostream& operator<<(std::ostream& os, const Domain& dt)
         os << "<regeneration required>" << std::endl;
 
     os << "      Day Consensus: " <<
-        Botan::base64_encode(dt.consensusHash_, SHA256_DIGEST_LENGTH) << std::endl;
+        Botan::base64_encode(dt.consensusHash_, dt.SHA256_LEN) << std::endl;
 
     os << "      Signature: ";
     if (dt.isValid())
-        os << Botan::base64_encode(dt.signature_, dt.signatureLen_ / 4) << " ..." << std::endl;
+        os << Botan::base64_encode(dt.signature_, dt.SIGNATURE_LEN / 4) <<
+            " ..." << std::endl;
     else
         os << "<regeneration required>" << std::endl;
 
@@ -209,10 +196,10 @@ bool Domain::findNonce(uint8_t depth, uint8_t* scryptBuf)
     {
         //digitally sign (RSA-SHA256) the JSON-encoded record
         auto json = asJSON();
-        signatureLen_ = signMessageDigest(json.first, json.second, key_, signature_);
+        signMessageDigest(json.first, json.second, key_, signature_);
 
         //pass signature through scrypt
-        if (scrypt(signature_, signatureLen_, scryptBuf) < 0)
+        if (scrypt(signature_, SIGNATURE_LEN, scryptBuf) < 0)
         {
             std::cout << "Error with scrypt call!" << std::endl;
             return false;
@@ -227,7 +214,7 @@ bool Domain::findNonce(uint8_t depth, uint8_t* scryptBuf)
             return true;
         }
 
-        signatureLen_ = 0;
+        memset(signature_, 0, SIGNATURE_LEN);
         return false;
     }
 

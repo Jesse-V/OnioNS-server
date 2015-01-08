@@ -3,8 +3,8 @@
 #define RECORD
 
 #include <cstdint>
-//#include "../libs/libscrypt-1.20/b64.h"
 #include <botan-1.10/botan/botan.h>
+#include <botan-1.10/botan/rsa.h>
 
 class Record
 {
@@ -16,6 +16,10 @@ class Record
 
         static const uint8_t NONCE_LEN = 4;
         static const uint8_t SCRYPTED_LEN = 16;
+
+        static const uint32_t KEY_LEN = 2048;
+        static const uint32_t SIGNATURE_LEN = KEY_LEN / 8;
+        static const uint32_t SHA256_LEN = 256 / 8;
 
         static size_t signMessageDigest(const uint8_t*, size_t,
             const Botan::Private_Key*, uint8_t*);

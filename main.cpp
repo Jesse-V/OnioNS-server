@@ -1,12 +1,12 @@
 
 #include "main.hpp"
 #include "Records/Domain.hpp"
-#include <botan-1.10/botan/botan.h>
+//#include <botan-1.10/botan/botan.h>
 #include <botan-1.10/botan/rsa.h>
 #include <botan-1.10/botan/sha2_32.h>
 #include <iostream>
 
-//Botan::LibraryInitializer init;
+Botan::LibraryInitializer init;
 
 
 int main(int argc, char** argv)
@@ -14,19 +14,20 @@ int main(int argc, char** argv)
     try
     {
         Botan::AutoSeeded_RNG rng;
-        auto key = Botan::PKCS8::load_key("/home/jesse/rsa.pem", rng);
-        if (!dynamic_cast<Botan::RSA_PrivateKey*>(key))
+        auto pvtKey = Botan::PKCS8::load_key("/home/jesse/rsa.pem", rng);
+        auto rsaKey = dynamic_cast<Botan::RSA_PrivateKey*>(pvtKey);
+        if (!rsaKey)
             throw std::invalid_argument("The loaded key is not a RSA key!");
 
-        Botan::SHA_256 sha; //todo: confirm this hash is working correctly
-        uint8_t cHash[32];
+        Botan::SHA_256 sha;
         auto hash = sha.process("hello world");
-        hash.copy(cHash, 32);
 
-        Domain d("example.tor", cHash, "AD97364FC20BEC80", key);
+        uint8_t cHash[32];
+        memcpy(cHash, hash, 32);
+
+        Domain d("example.tor", cHash, "AD97364FC20BEC80", rsaKey);
         std::cout << d;
         d.makeValid();
-        d.asJSON();
         std::cout << d;
     }
     catch (Botan::Decoding_Error& de)

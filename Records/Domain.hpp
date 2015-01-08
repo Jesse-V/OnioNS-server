@@ -10,16 +10,17 @@
 class Domain: public Record
 {
     public:
-        static const int DIFFICULTY = 3; //1/2^x chance of success, so order of magnitude
+        static const int DIFFICULTY = 0; //1/2^x chance of success, so order of magnitude
         static const uint32_t THRESHOLD = INT32_MAX / (1 << DIFFICULTY);
 
-        Domain(const std::string&, uint8_t*, const std::string&, Botan::Private_Key*);
+        Domain(const std::string&, uint8_t[SHA256_LEN],
+            const std::string&, Botan::RSA_PrivateKey*);
         ~Domain();
 
         bool setName(const std::string&);
         bool addSubdomain(const std::string&, const std::string&);
         bool setContact(const std::string&);
-        bool setKey(Botan::Private_Key*);
+        bool setKey(Botan::RSA_PrivateKey*);
         bool refresh();
         bool makeValid();
         bool isValid() const;
@@ -32,13 +33,12 @@ class Domain: public Record
 
         std::string name_;
         std::vector<std::pair<std::string,std::string>> subdomains_;
-        uint8_t* consensusHash_;
+        uint8_t consensusHash_[SHA256_LEN];
+        uint8_t signature_[SIGNATURE_LEN];
+        uint8_t nonce_[NONCE_LEN];
         std::string contact_;
-        uint8_t* signature_;
-        uint signatureLen_;
-        uint8_t* nonce_; //uint8_t nonce_[NONCE_LEN];
         long timestamp_;
-        Botan::Private_Key* key_;
+        Botan::RSA_PrivateKey* key_;
         bool valid_;
 };
 
