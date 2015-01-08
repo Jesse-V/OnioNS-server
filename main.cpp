@@ -1,8 +1,9 @@
 
 #include "main.hpp"
+#include "Records/Domain.hpp"
 #include <botan-1.10/botan/botan.h>
 #include <botan-1.10/botan/rsa.h>
-#include "Records/Domain.hpp"
+#include <botan-1.10/botan/sha2_32.h>
 #include <iostream>
 
 //Botan::LibraryInitializer init;
@@ -17,8 +18,12 @@ int main(int argc, char** argv)
         if (!dynamic_cast<Botan::RSA_PrivateKey*>(key))
             throw std::invalid_argument("The loaded key is not a RSA key!");
 
+        Botan::SHA_256 sha; //todo: confirm this hash is working correctly
         uint8_t cHash[32];
-        Domain d("example.tor", cHash, "AD97364FC20BEC80", *key);
+        auto hash = sha.process("hello world");
+        hash.copy(cHash, 32);
+
+        Domain d("example.tor", cHash, "AD97364FC20BEC80", key);
         std::cout << d;
         d.makeValid();
         d.asJSON();

@@ -14,7 +14,7 @@ size_t Record::signMessageDigest(const uint8_t* message, size_t length,
     //http://botan.randombit.net/manual/pubkey.html#signatures
     Botan::PK_Signer signer(*key, "EMSA-PSS(SHA-512)"); //EMSA4, the latest
     auto sig = signer.sign_message(message, length, rng);
-    sig.copy(sigBuf, 1024);
+    memcpy(sigBuf, sig, sig.size());
 
     return sig.size();
 }

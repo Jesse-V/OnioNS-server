@@ -142,7 +142,11 @@ std::pair<uint8_t*, size_t> Domain::asJSON() const
 
     str += "},\"cHash\":\"" + Botan::base64_encode(consensusHash_, SHA256_DIGEST_LENGTH);
     str += "\",\"pgp\":\"" + contact_;
-    str += "\",\"sig\":\"" + Botan::base64_encode(signature_, signatureLen_);
+
+    str += "\",\"sig\":\"";
+    if (signatureLen_ > 0)
+        str += Botan::base64_encode(signature_, signatureLen_);
+
     str += "\",\"n\":\"" + Botan::base64_encode(nonce_, NONCE_LEN);
     str += "\",\"t\":" + std::to_string(timestamp_);
     str += "}";
