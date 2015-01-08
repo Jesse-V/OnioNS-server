@@ -1,18 +1,22 @@
 
 #include "Record.hpp"
-#include <openssl/pem.h>
+#include "../libs/libscrypt-1.20/libscrypt.h"
+#include <botan-1.10/botan/pubkey.h>
 #include <cstring>
 
 
-int Record::signMessageDigest(const unsigned char* str, std::size_t strLen,
-    RSA* key, uint8_t* sigOut)
+size_t Record::signMessageDigest(const uint8_t* message, size_t length,
+    const Botan::Private_Key* key, uint8_t* sigBuf)
 {
-    //generate SHA-256 digest
-    uint8_t digest[SHA256_DIGEST_LENGTH];
-    SHA256(str, strLen, digest);
+    static Botan::AutoSeeded_RNG rng;
 
-    return RSA_private_encrypt(SHA256_DIGEST_LENGTH, digest,
-        sigOut, key, RSA_PKCS1_PADDING);
+    //https://stackoverflow.com/questions/14263346/how-to-perform-asymmetric-encryption-with-botan
+    //http://botan.randombit.net/manual/pubkey.html#signatures
+    Botan::PK_Signer signer(*key, "EMSA-PSS(SHA-512)"); //EMSA4, the latest
+    auto sig = signer.sign_message(message, length, rng);
+    sig.copy(sigBuf, 1024);
+
+    return sig.size();
 }
 
 

@@ -1,10 +1,11 @@
 
 #include "Domain.hpp"
 #include "../utils.hpp"
-#include "../libs/base64.h"
-#include <openssl/sha.h>
+#include <botan/base64.h>
 #include <cstring>
 #include <iostream>
+
+#define SHA256_DIGEST_LENGTH 32 //todo: remove this
 
 /*
     std::string name_;
@@ -20,7 +21,7 @@
 */
 
 Domain::Domain(const std::string& name, uint8_t* consensusHash,
-    const std::string& contact, RSA* key):
+    const std::string& contact, Botan::Private_Key* key):
     consensusHash_(consensusHash), signature_(0), signatureLen_(0),
     timestamp_(time(NULL)), valid_(false)
 {
@@ -79,7 +80,7 @@ bool Domain::setContact(const std::string& contactInfo)
 
 
 
-bool Domain::setKey(RSA* key)
+bool Domain::setKey(Botan::Private_Key* key)
 {
     if (key == NULL)
         return false;
@@ -139,10 +140,10 @@ std::pair<uint8_t*, size_t> Domain::asJSON() const
     if (!subdomains_.empty())
         str.pop_back(); //remove trailing comma
 
-    str += "},\"cHash\":\"" + base64_encode(consensusHash_, SHA256_DIGEST_LENGTH);
+    str += "},\"cHash\":\"" + Botan::base64_encode(consensusHash_, SHA256_DIGEST_LENGTH);
     str += "\",\"pgp\":\"" + contact_;
-    str += "\",\"sig\":\"" + base64_encode(signature_, signatureLen_);
-    str += "\",\"n\":\"" + base64_encode(nonce_, NONCE_LEN);
+    str += "\",\"sig\":\"" + Botan::base64_encode(signature_, signatureLen_);
+    str += "\",\"n\":\"" + Botan::base64_encode(nonce_, NONCE_LEN);
     str += "\",\"t\":" + std::to_string(timestamp_);
     str += "}";
 
@@ -180,15 +181,15 @@ std::ostream& operator<<(std::ostream& os, const Domain& dt)
         os << "<regeneration required>" << std::endl;
 
     os << "      Day Consensus: " <<
-        base64_encode(dt.consensusHash_, SHA256_DIGEST_LENGTH) << std::endl;
+        Botan::base64_encode(dt.consensusHash_, SHA256_DIGEST_LENGTH) << std::endl;
 
     os << "      Signature: ";
     if (dt.isValid())
-        os << base64_encode(dt.signature_, dt.signatureLen_ / 4) << " ..." << std::endl;
+        os << Botan::base64_encode(dt.signature_, dt.signatureLen_ / 4) << " ..." << std::endl;
     else
         os << "<regeneration required>" << std::endl;
 
-    //os << "      PubKey: " << base64_encode(dt.key_.a, 256) << std::endl;
+    //os << "      PubKey: " << Botan::base64_encode(dt.key_.a, 256) << std::endl;
 
     return os;
 }
@@ -197,22 +198,16 @@ std::ostream& operator<<(std::ostream& os, const Domain& dt)
 
 bool Domain::findNonce(uint8_t depth, uint8_t* scryptBuf)
 {
-    if (depth < 0 || depth > NONCE_LEN)
+    if (depth > NONCE_LEN)
         return false;
 
     if (depth == NONCE_LEN)
     {
         //digitally sign (RSA-SHA256) the JSON-encoded record
         auto json = asJSON();
-        auto len = signMessageDigest(json.first, json.second, key_, signature_);
-        if (len < 0)
-        {
-            std::cout << "Error with digital signature!" << std::endl;
-            return false;
-        }
+        signatureLen_ = signMessageDigest(json.first, json.second, key_, signature_);
 
         //pass signature through scrypt
-        signatureLen_ = static_cast<uint>(len); //this is now safe
         if (scrypt(signature_, signatureLen_, scryptBuf) < 0)
         {
             std::cout << "Error with scrypt call!" << std::endl;
@@ -221,7 +216,7 @@ bool Domain::findNonce(uint8_t depth, uint8_t* scryptBuf)
 
         //interpret scrypt output as number and compare against threshold
         auto num = Utils::arrayToUInt32(scryptBuf, 0);
-        std::cout << base64_encode(nonce_, NONCE_LEN) << " -> " << num << std::endl;
+        std::cout << Botan::base64_encode(nonce_, NONCE_LEN) << " -> " << num << std::endl;
         if (num < THRESHOLD)
         {
             valid_ = true;

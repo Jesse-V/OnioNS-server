@@ -2,10 +2,9 @@
 #ifndef RECORD
 #define RECORD
 
-#include <openssl/rsa.h>
 #include <cstdint>
-#include "../libs/libscrypt-1.20/libscrypt.h"
-#include "../libs/libscrypt-1.20/b64.h"
+//#include "../libs/libscrypt-1.20/b64.h"
+#include <botan-1.10/botan/botan.h>
 
 class Record
 {
@@ -18,7 +17,8 @@ class Record
         static const uint8_t NONCE_LEN = 4;
         static const uint8_t SCRYPTED_LEN = 16;
 
-        static int signMessageDigest(const unsigned char*, std::size_t, RSA* key, uint8_t*);
+        static size_t signMessageDigest(const uint8_t*, size_t,
+            const Botan::Private_Key*, uint8_t*);
         static int scrypt(const uint8_t*, size_t, uint8_t*);
 };
 
