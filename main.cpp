@@ -1,7 +1,6 @@
 
 #include "main.hpp"
 #include "Records/Domain.hpp"
-//#include <botan-1.10/botan/botan.h>
 #include <botan-1.10/botan/rsa.h>
 #include <botan-1.10/botan/sha2_32.h>
 #include <iostream>
