@@ -4,6 +4,7 @@
 #include <botan-1.10/botan/sha2_32.h>
 #include <botan/base64.h>
 #include <cstring>
+#include <cassert>
 #include <iostream>
 
 /*
@@ -30,6 +31,8 @@ Domain::Domain(const std::string& name, uint8_t consensusHash[SHA256_LEN],
     const std::string& contact, Botan::RSA_PrivateKey* key):
     timestamp_(time(NULL)), valid_(false)
 {
+    assert(key->get_n().bits() == RSA_LEN);
+
     setName(name);
     setContact(contact);
     setKey(key);
@@ -239,14 +242,23 @@ std::pair<uint8_t*, size_t> Domain::getCentral()
     str += contact_;
     str += std::to_string(timestamp_);
 
+    int index = 0;
     auto pubKey = getPublicKey();
-
     const size_t centralLen = str.length() + SHA256_LEN + NONCE_LEN + pubKey.second;
     uint8_t* central = new uint8_t[centralLen];
-    memcpy(central, str.c_str(), str.size()); //copy string into array
-    memcpy(central, consensusHash_, SHA256_LEN);
-    memcpy(central, nonce_, NONCE_LEN);
-    memcpy(central, pubKey.first, pubKey.second);
+
+    memcpy(central + index, str.c_str(), str.size()); //copy string into array
+    index += str.size();
+
+    memcpy(central + index, consensusHash_, SHA256_LEN);
+    index += SHA256_LEN;
+
+    memcpy(central + index, nonce_, NONCE_LEN);
+    index += NONCE_LEN;
+
+    memcpy(central + index, pubKey.first, pubKey.second);
+
+    //std::cout << Botan::base64_encode(central, centralLen) << std::endl;
 
     return std::make_pair(central, centralLen);
 }

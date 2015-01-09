@@ -10,7 +10,7 @@
 class Domain: public Record
 {
     public:
-        static const int DIFFICULTY = 0; //1/2^x chance of success, so order of magnitude
+        static const int DIFFICULTY = 3; //1/2^x chance of success, so order of magnitude
         static const uint32_t THRESHOLD = UINT32_MAX / (1 << DIFFICULTY);
 
         Domain(const std::string&, uint8_t[SHA256_LEN],
