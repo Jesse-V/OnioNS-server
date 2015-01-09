@@ -25,19 +25,22 @@ class Domain: public Record
         bool makeValid();
         bool isValid() const;
         std::string getOnion() const;
+        std::pair<uint8_t*, size_t> getPublicKey() const;
         std::pair<uint8_t*, size_t> asJSON() const;
         friend std::ostream& operator<<(std::ostream&, const Domain&);
 
     private:
-        bool findNonce(uint8_t, uint8_t*);
+        std::pair<uint8_t*, size_t> getCentral();
+        bool findNonce(uint8_t);
 
         std::string name_;
         std::vector<std::pair<std::string,std::string>> subdomains_;
-        uint8_t consensusHash_[SHA256_LEN];
-        uint8_t signature_[SIGNATURE_LEN];
-        uint8_t nonce_[NONCE_LEN];
         std::string contact_;
         long timestamp_;
+        uint8_t consensusHash_[SHA256_LEN];
+        uint8_t nonce_[NONCE_LEN];
+        uint8_t scrypted_[SCRYPTED_LEN];
+        uint8_t signature_[SIGNATURE_LEN];
         Botan::RSA_PrivateKey* key_;
         bool valid_;
 };

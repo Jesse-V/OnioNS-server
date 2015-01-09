@@ -5,6 +5,8 @@
 #include <botan-1.10/botan/sha2_32.h>
 #include <iostream>
 
+#include "utils.hpp"
+
 Botan::LibraryInitializer init;
 
 

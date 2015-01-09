@@ -1,9 +1,30 @@
 
 #include "Domain.hpp"
 #include "../utils.hpp"
+#include <botan-1.10/botan/sha2_32.h>
 #include <botan/base64.h>
 #include <cstring>
 #include <iostream>
+
+/*
+    let "central" be:
+        std::string name_;
+        std::vector<std::pair<std::string,std::string>> subdomains_;
+        uint8_t consensusHash_[SHA256_LEN];
+        uint8_t nonce_[NONCE_LEN];
+        std::string contact_;
+        long timestamp_;
+        pubKey
+
+    for each nonce, generate:
+        uint8_t scrypted_[SCRYPTED_LEN]; //scrypt output of {central}
+        uint8_t signature_[SIGNATURE_LEN]; //digital sig of {central, scrypted_}
+    registration valid iff SHA384{central, scrypted_, signature_} < THRESHOLD
+    then save as {central, scrypted_, signature_} in JSON format
+
+    computational operator won't know when to stop, since the sig matters
+    must use deterministic sig alg!
+*/
 
 Domain::Domain(const std::string& name, uint8_t consensusHash[SHA256_LEN],
     const std::string& contact, Botan::RSA_PrivateKey* key):
@@ -13,9 +34,9 @@ Domain::Domain(const std::string& name, uint8_t consensusHash[SHA256_LEN],
     setContact(contact);
     setKey(key);
 
-    memset(nonce_, 0, NONCE_LEN);
-
     memcpy(consensusHash_, consensusHash, SHA256_LEN);
+    memset(nonce_, 0, NONCE_LEN);
+    memset(scrypted_, 0, SCRYPTED_LEN);
     memset(signature_, 0, SIGNATURE_LEN);
 }
 
@@ -95,8 +116,7 @@ bool Domain::makeValid()
 
     memset(nonce_, 0, NONCE_LEN);
     memset(signature_, 0, SIGNATURE_LEN);
-    uint8_t* scryptBuf = new uint8_t[SCRYPTED_LEN];
-    return findNonce(0, scryptBuf);
+    return findNonce(0);
 }
 
 
@@ -111,6 +131,18 @@ bool Domain::isValid() const
 std::string Domain::getOnion() const
 {
     return "temp.onion"; //TODO: calculate hash
+}
+
+
+
+std::pair<uint8_t*, size_t> Domain::getPublicKey() const
+{
+    //https://en.wikipedia.org/wiki/X.690#BER_encoding
+    auto bem = Botan::X509::BER_encode(*key_);
+    uint8_t* val = new uint8_t[bem.size()];
+    memcpy(val, bem, bem.size());
+
+    return std::make_pair(val, bem.size());
 }
 
 
@@ -162,16 +194,22 @@ std::ostream& operator<<(std::ostream& os, const Domain& dt)
 
     os << "   Contact: 0x" << dt.contact_ << std::endl;
     os << "   Time: " << dt.timestamp_ << std::endl;
-    os << "   Authentication:" << std::endl;
-
-    os << "      Nonce: ";
-    if (dt.isValid())
-        os << Utils::getAsHex(dt.nonce_, dt.NONCE_LEN) << std::endl;
-    else
-        os << "<regeneration required>" << std::endl;
+    os << "   Validation:" << std::endl;
 
     os << "      Day Consensus: " <<
         Botan::base64_encode(dt.consensusHash_, dt.SHA256_LEN) << std::endl;
+
+    os << "      Nonce: ";
+    if (dt.isValid())
+        os << Botan::base64_encode(dt.nonce_, dt.NONCE_LEN) << std::endl;
+    else
+        os << "<regeneration required>" << std::endl;
+
+    os << "      Proof of Work: ";
+    if (dt.isValid())
+        os << Botan::base64_encode(dt.scrypted_, dt.SCRYPTED_LEN) << std::endl;
+    else
+        os << "<regeneration required>" << std::endl;
 
     os << "      Signature: ";
     if (dt.isValid())
@@ -180,33 +218,74 @@ std::ostream& operator<<(std::ostream& os, const Domain& dt)
     else
         os << "<regeneration required>" << std::endl;
 
-    //os << "      PubKey: " << Botan::base64_encode(dt.key_.a, 256) << std::endl;
+    //std::string header("-----BEGIN PUBLIC KEY-----");
+    auto pem = Botan::X509::PEM_encode(*dt.key_);
+    Utils::stringReplace(pem, "\n", "\n\t");
+    os << "      RSA Public Key: \n\t" << pem << std::endl;
 
     return os;
 }
 
 
+//********************* PRIVATE METHODS ****************************************
 
-bool Domain::findNonce(uint8_t depth, uint8_t* scryptBuf)
+
+std::pair<uint8_t*, size_t> Domain::getCentral()
+{
+    std::string str;
+    str += name_;
+    for (auto subd : subdomains_)
+        str += subd.first + subd.second;
+    str += contact_;
+    str += std::to_string(timestamp_);
+
+    auto pubKey = getPublicKey();
+
+    const size_t centralLen = str.length() + SHA256_LEN + NONCE_LEN + pubKey.second;
+    uint8_t* central = new uint8_t[centralLen];
+    memcpy(central, str.c_str(), str.size()); //copy string into array
+    memcpy(central, consensusHash_, SHA256_LEN);
+    memcpy(central, nonce_, NONCE_LEN);
+    memcpy(central, pubKey.first, pubKey.second);
+
+    return std::make_pair(central, centralLen);
+}
+
+
+
+bool Domain::findNonce(uint8_t depth)
 {
     if (depth > NONCE_LEN)
         return false;
 
     if (depth == NONCE_LEN)
     {
-        //digitally sign (RSA-SHA256) the JSON-encoded record
-        auto json = asJSON();
-        signMessageDigest(json.first, json.second, key_, signature_);
-
-        //pass signature through scrypt
-        if (scrypt(signature_, SIGNATURE_LEN, scryptBuf) < 0)
+        //run central domain info through scrypt, save output to scrypted_
+        auto central = getCentral();
+        if (scrypt(central.first, central.second, scrypted_) < 0)
         {
             std::cout << "Error with scrypt call!" << std::endl;
             return false;
         }
 
-        //interpret scrypt output as number and compare against threshold
-        auto num = Utils::arrayToUInt32(scryptBuf, 0);
+        const auto sigInLen = central.second + SCRYPTED_LEN;
+        const auto totalLen = sigInLen + SIGNATURE_LEN;
+
+        //save {central, scrypted_} with room for signature
+        uint8_t* buffer = new uint8_t[totalLen];
+        memcpy(buffer, central.first, central.second); //import central
+        memcpy(buffer + central.second, scrypted_, SCRYPTED_LEN); //import scrypted_
+
+        //digitally sign (RSA-SHA512) {central, scrypted_}
+        signMessageDigest(buffer, sigInLen, key_, signature_);
+        memcpy(buffer + sigInLen, signature_, SIGNATURE_LEN);
+
+        //hash (SHA-256) {central, scrypted_, signature_}
+        Botan::SHA_256 sha256;
+        auto hash = sha256.process(buffer, totalLen);
+
+        //interpret hash output as number and compare against threshold
+        auto num = Utils::arrayToUInt32(hash, 0);
         std::cout << Botan::base64_encode(nonce_, NONCE_LEN) << " -> " << num << std::endl;
         if (num < THRESHOLD)
         {
@@ -218,14 +297,14 @@ bool Domain::findNonce(uint8_t depth, uint8_t* scryptBuf)
         return false;
     }
 
-    bool found = findNonce(depth + 1, scryptBuf);
+    bool found = findNonce(depth + 1);
     if (found)
         return true;
 
     while (nonce_[depth] < UINT8_MAX)
     {
         nonce_[depth]++;
-        found = findNonce(depth + 1, scryptBuf);
+        found = findNonce(depth + 1);
         if (found)
             return true;
     }

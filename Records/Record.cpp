@@ -12,7 +12,7 @@ size_t Record::signMessageDigest(const uint8_t* message, size_t length,
 
     //https://stackoverflow.com/questions/14263346/how-to-perform-asymmetric-encryption-with-botan
     //http://botan.randombit.net/manual/pubkey.html#signatures
-    Botan::PK_Signer signer(*key, "EMSA-PSS(SHA-512)"); //EMSA4, the latest
+    Botan::PK_Signer signer(*key, "EMSA-PKCS1-v1_5(SHA-512)");
     auto sig = signer.sign_message(message, length, rng);
     memcpy(sigBuf, sig, sig.size());
 

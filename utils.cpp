@@ -28,3 +28,17 @@ bool Utils::isPowerOfTwo(unsigned int x)
 { //glibc method of checking
     return ((x != 0) && !(x & (x - 1)));
 }
+
+
+
+//https://stackoverflow.com/questions/1494399/how-do-i-search-find-and-replace-in-a-standard-string
+void Utils::stringReplace(std::string& str, const std::string& find,
+    const std::string& replace)
+{
+    size_t pos = 0;
+    while ((pos = str.find(find, pos)) != std::string::npos)
+    {
+        str.replace(pos, find.length(), replace);
+        pos += replace.length();
+    }
+}
