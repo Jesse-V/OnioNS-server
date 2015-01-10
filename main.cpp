@@ -2,9 +2,9 @@
 
 #include "Records/Domain.hpp"
 #include "main.hpp"
-#include <botan-1.10/botan/pem.h>
-#include <botan-1.10/botan/ber_dec.h>
-#include <botan-1.10/botan/sha2_32.h>
+#include <botan/pem.h>
+#include <botan/ber_dec.h>
+#include <botan/sha2_32.h>
 #include <json/json.h>
 #include <iostream>
 

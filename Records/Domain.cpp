@@ -1,8 +1,8 @@
 
 #include "Domain.hpp"
 #include "../utils.hpp"
-#include <botan-1.10/botan/sha2_32.h>
-#include <botan-1.10/botan/base64.h>
+#include <botan/sha2_32.h>
+#include <botan/base64.h>
 #include <thread>
 #include <cstring>
 #include <cassert>

@@ -1,7 +1,7 @@
 
 #include "Record.hpp"
 #include "../libs/libscrypt-1.20/libscrypt.h"
-#include <botan-1.10/botan/pubkey.h>
+#include <botan/pubkey.h>
 #include <cstring>
 #include <cassert>
 
