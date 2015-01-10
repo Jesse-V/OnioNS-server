@@ -8,7 +8,11 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "-g -O3 --std=c++11 -Wall -Wextra -Wdouble-promotion -Wfloat-equal -Wunsafe-loop-optimizations -Wno-unused-parameter")
 endif()
 
-include_directories(. /usr/include/botan-1.10)
+#https://stackoverflow.com/questions/13638408/cmake-override-compile-flags-for-single-files
+SET (JSONCPP_CPP libs/jsoncpp-1.1.0/jsoncpp.cpp)
+set_source_files_properties(${JSONCPP_CPP} PROPERTIES COMPILE_FLAGS -w)
+
+include_directories(. libs/jsoncpp-1.1.0 /usr/include/botan-1.10)
 
 #organized by importance
 add_executable(EsgalDNS
@@ -16,6 +20,7 @@ add_executable(EsgalDNS
     Records/Domain.cpp
     Records/Record.cpp
     utils.cpp
+    ${JSONCPP_CPP}
 )
 
 #botan1.10-dev is a dependency
