@@ -3,6 +3,7 @@
 #include "../utils.hpp"
 #include <botan/sha2_32.h>
 #include <botan/base64.h>
+#include <json/json.h>
 #include <thread>
 #include <cstring>
 #include <cassert>
@@ -151,38 +152,35 @@ UInt32Data Domain::getPublicKey() const
 
 std::string Domain::asJSON() const
 {
-    std::string str;
-    str += "{\"name\":\"" + name_;
+    Json::Value obj;
 
-    str += "\",\"subd\":{";
+    //add all static fields
+    obj["name"] = name_;
+    obj["pgp"] = contact_;
+    obj["t"] = std::to_string(timestamp_);
+    obj["cHash"] = Botan::base64_encode(consensusHash_, SHA256_LEN);
+
+    //add any subdomains
     for (auto sub : subdomains_)
-        str += "\"" + sub.first + "\":\"" + sub.second + "\",";
-    if (!subdomains_.empty())
-        str.pop_back(); //remove trailing comma
+        obj["subd"][sub.first] = sub.second;
 
-    str += "},\"pgp\":\"" + contact_;
-    str += "\",\"t\":" + std::to_string(timestamp_);
-    str += ",\"cHash\":\"" + Botan::base64_encode(consensusHash_, SHA256_LEN);
-
-    str += "\",\"n\":\"";
-    if (isValid())
-        str += Botan::base64_encode(nonce_, NONCE_LEN);
-
-    str += "\",\"scrypt\":\"";
-    if (isValid())
-        str += Botan::base64_encode(scrypted_, SCRYPTED_LEN);
-
-    str += "\",\"sig\":\"";
-    if (isValid())
-        str += Botan::base64_encode(signature_, SIGNATURE_LEN);
-
+    //extract and save public key
     auto ber = Botan::X509::BER_encode(*key_);
     uint8_t* berBin = new uint8_t[ber.size()];
     memcpy(berBin, ber, ber.size());
+    obj["pubKey"] = Botan::base64_encode(berBin, ber.size());
 
-    str += "\",\"pubKey\":\"" + Botan::base64_encode(berBin, ber.size()) + "\"";
+    //if the domain is valid, add nonce_, scrypted_, and signature_
+    if (isValid())
+    {
+        obj["n"] = Botan::base64_encode(nonce_, NONCE_LEN);
+        obj["scrypt"] = Botan::base64_encode(scrypted_, SCRYPTED_LEN);
+        obj["sig"] = Botan::base64_encode(signature_, SIGNATURE_LEN);
+    }
 
-    return str + "}";
+    //output in compressed (non-human-friendly) format
+    Json::FastWriter writer;
+    return writer.write(obj);
 }
 
 

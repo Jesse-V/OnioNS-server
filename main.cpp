@@ -5,7 +5,6 @@
 #include <botan/pem.h>
 #include <botan/ber_dec.h>
 #include <botan/sha2_32.h>
-#include <json/json.h>
 #include <iostream>
 
 Botan::LibraryInitializer init("thread_safe");
@@ -29,7 +28,6 @@ int main(int argc, char** argv)
 
         std::cout << std::endl;
         std::cout << "Initial JSON: " << d.asJSON() << std::endl;
-        std::cout << std::endl;
 
         d.makeValid(4);
 
@@ -38,7 +36,7 @@ int main(int argc, char** argv)
         std::cout << d << std::endl;
 
         std::cout << std::endl;
-        std::cout << "Final JSON: " << d.asJSON() << std::endl << std::endl;
+        std::cout << "Final JSON: " << d.asJSON() << std::endl;
     }
     catch (std::exception& e)
     {
