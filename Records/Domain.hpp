@@ -24,7 +24,7 @@ class Domain: public Record
         bool setContact(const std::string&);
         bool setKey(Botan::RSA_PrivateKey*);
         bool refresh();
-        bool makeValid();
+        bool makeValid(uint8_t);
         bool isValid() const;
         std::string getOnion() const;
         UInt32Data getPublicKey() const;
@@ -37,8 +37,8 @@ class Domain: public Record
         };
 
     private:
-        UInt32Data getCentral(uint8_t nonce_[NONCE_LEN]) const;
-        WorkStatus mineParallel(uint);
+        UInt32Data getCentral(uint8_t* nonce) const;
+        WorkStatus mineParallel(uint8_t);
         WorkStatus makeValid(uint8_t, uint8_t, uint8_t*, uint8_t*, uint8_t*);
 
         std::string name_;

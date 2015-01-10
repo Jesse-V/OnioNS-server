@@ -114,11 +114,11 @@ bool Domain::refresh()
 
 
 
-bool Domain::makeValid()
+bool Domain::makeValid(uint8_t nCPUs)
 {
     //TODO: if issue with fields other than nonce, return false
 
-    return mineParallel(4);
+    return mineParallel(nCPUs);
 }
 
 
@@ -271,7 +271,7 @@ UInt32Data Domain::getCentral(uint8_t* nonce) const
 
 
 
-Domain::WorkStatus Domain::mineParallel(uint nInstances)
+Domain::WorkStatus Domain::mineParallel(uint8_t nInstances)
 {
     if (nInstances == 0)
         return WorkStatus::Aborted;
@@ -282,7 +282,7 @@ Domain::WorkStatus Domain::mineParallel(uint nInstances)
 
     //Domain::WorkStatus status = WorkStatus::Success;
     std::vector<std::thread> workers;
-    for (uint n = 0; n < nInstances; n++)
+    for (uint8_t n = 0; n < nInstances; n++)
     {
         workers.push_back(std::thread([n, nInstances, nonces, scryptOuts, sigs, this]()
         {
@@ -340,6 +340,9 @@ Domain::WorkStatus Domain::makeValid(uint8_t depth, uint8_t inc,
             std::cout << "Error with scrypt call!" << std::endl;
             return WorkStatus::Aborted;
         }
+
+        if (isValid())
+            return WorkStatus::Aborted;
 
         const auto sigInLen = central.second + SCRYPTED_LEN;
         const auto totalLen = sigInLen + SIGNATURE_LEN;
