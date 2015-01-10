@@ -27,9 +27,19 @@ int main(int argc, char** argv)
         memcpy(cHash, hash, 32);
 
         Domain d("example.tor", cHash, "AD97364FC20BEC80", rsaKey);
-        std::cout << d;
+
+        std::cout << std::endl;
+        std::cout << "Initial JSON: " << d.asJSON() << std::endl;
+        std::cout << std::endl;
+
         d.makeValid();
-        std::cout << d;
+
+        std::cout << std::endl;
+        std::cout << "Result:" << std::endl;
+        std::cout << d << std::endl;
+
+        std::cout << std::endl;
+        std::cout << "Final JSON: " << d.asJSON() << std::endl << std::endl;
     }
     catch (Botan::Decoding_Error& de)
     {

@@ -7,10 +7,12 @@
 #include <string>
 #include <ostream>
 
+typedef std::pair<uint8_t*, size_t> UInt32Data;
+
 class Domain: public Record
 {
     public:
-        static const int DIFFICULTY = 3; //1/2^x chance of success, so order of magnitude
+        static const int DIFFICULTY = 2; //1/2^x chance of success, so order of magnitude
         static const uint32_t THRESHOLD = UINT32_MAX / (1 << DIFFICULTY);
 
         Domain(const std::string&, uint8_t[SHA256_LEN],
@@ -25,13 +27,19 @@ class Domain: public Record
         bool makeValid();
         bool isValid() const;
         std::string getOnion() const;
-        std::pair<uint8_t*, size_t> getPublicKey() const;
-        std::pair<uint8_t*, size_t> asJSON() const;
+        UInt32Data getPublicKey() const;
+        std::string asJSON() const;
         friend std::ostream& operator<<(std::ostream&, const Domain&);
 
+        enum WorkStatus
+        {
+            Success, NotFound, Aborted
+        };
+
     private:
-        std::pair<uint8_t*, size_t> getCentral();
-        bool findNonce(uint8_t);
+        UInt32Data getCentral(uint8_t nonce_[NONCE_LEN]) const;
+        bool mineParallel(uint);
+        WorkStatus makeValid(uint8_t, uint8_t, uint8_t*, uint8_t*, uint8_t*);
 
         std::string name_;
         std::vector<std::pair<std::string,std::string>> subdomains_;

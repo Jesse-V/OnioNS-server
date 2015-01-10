@@ -3,6 +3,7 @@
 #include "../utils.hpp"
 #include <botan-1.10/botan/sha2_32.h>
 #include <botan/base64.h>
+#include <thread>
 #include <cstring>
 #include <cassert>
 #include <iostream>
@@ -117,9 +118,7 @@ bool Domain::makeValid()
 {
     //TODO: if issue with fields other than nonce, return false
 
-    memset(nonce_, 0, NONCE_LEN);
-    memset(signature_, 0, SIGNATURE_LEN);
-    return findNonce(0);
+    return mineParallel(1);
 }
 
 
@@ -138,7 +137,7 @@ std::string Domain::getOnion() const
 
 
 
-std::pair<uint8_t*, size_t> Domain::getPublicKey() const
+UInt32Data Domain::getPublicKey() const
 {
     //https://en.wikipedia.org/wiki/X.690#BER_encoding
     auto bem = Botan::X509::BER_encode(*key_);
@@ -150,7 +149,7 @@ std::pair<uint8_t*, size_t> Domain::getPublicKey() const
 
 
 
-std::pair<uint8_t*, size_t> Domain::asJSON() const
+std::string Domain::asJSON() const
 {
     std::string str;
     str += "{\"name\":\"" + name_;
@@ -161,22 +160,29 @@ std::pair<uint8_t*, size_t> Domain::asJSON() const
     if (!subdomains_.empty())
         str.pop_back(); //remove trailing comma
 
-    str += "},\"cHash\":\"" + Botan::base64_encode(consensusHash_, SHA256_LEN);
-    str += "\",\"pgp\":\"" + contact_;
+    str += "},\"pgp\":\"" + contact_;
+    str += "\",\"t\":" + std::to_string(timestamp_);
+    str += ",\"cHash\":\"" + Botan::base64_encode(consensusHash_, SHA256_LEN);
+
+    str += "\",\"n\":\"";
+    if (isValid())
+        str += Botan::base64_encode(nonce_, NONCE_LEN);
+
+    str += "\",\"scrypt\":\"";
+    if (isValid())
+        str += Botan::base64_encode(scrypted_, SCRYPTED_LEN);
 
     str += "\",\"sig\":\"";
     if (isValid())
         str += Botan::base64_encode(signature_, SIGNATURE_LEN);
 
-    str += "\",\"n\":\"" + Botan::base64_encode(nonce_, NONCE_LEN);
-    str += "\",\"t\":" + std::to_string(timestamp_);
-    str += "}";
+    auto ber = Botan::X509::BER_encode(*key_);
+    uint8_t* berBin = new uint8_t[ber.size()];
+    memcpy(berBin, ber, ber.size());
 
-    //TODO: include pubkey
+    str += "\",\"pubKey\":\"" + Botan::base64_encode(berBin, ber.size()) + "\"";
 
-    //std::cout << str << std::endl;
-
-    return std::make_pair((unsigned char*)str.c_str(), str.size());
+    return str + "}";
 }
 
 
@@ -221,10 +227,10 @@ std::ostream& operator<<(std::ostream& os, const Domain& dt)
     else
         os << "<regeneration required>" << std::endl;
 
-    //std::string header("-----BEGIN PUBLIC KEY-----");
     auto pem = Botan::X509::PEM_encode(*dt.key_);
+    pem.pop_back(); //delete trailing /n
     Utils::stringReplace(pem, "\n", "\n\t");
-    os << "      RSA Public Key: \n\t" << pem << std::endl;
+    os << "      RSA Public Key: \n\t" << pem;
 
     return os;
 }
@@ -233,7 +239,7 @@ std::ostream& operator<<(std::ostream& os, const Domain& dt)
 //********************* PRIVATE METHODS ****************************************
 
 
-std::pair<uint8_t*, size_t> Domain::getCentral()
+UInt32Data Domain::getCentral(uint8_t* nonce) const
 {
     std::string str;
     str += name_;
@@ -253,7 +259,7 @@ std::pair<uint8_t*, size_t> Domain::getCentral()
     memcpy(central + index, consensusHash_, SHA256_LEN);
     index += SHA256_LEN;
 
-    memcpy(central + index, nonce_, NONCE_LEN);
+    memcpy(central + index, nonce, NONCE_LEN);
     index += NONCE_LEN;
 
     memcpy(central + index, pubKey.first, pubKey.second);
@@ -265,62 +271,117 @@ std::pair<uint8_t*, size_t> Domain::getCentral()
 
 
 
-bool Domain::findNonce(uint8_t depth)
+bool Domain::mineParallel(uint nInstances)
 {
+    if (nInstances == 0)
+        return WorkStatus::Aborted;
+
+    auto nonces = new uint8_t[nInstances][NONCE_LEN];
+    auto scryptOuts = new uint8_t[nInstances][SCRYPTED_LEN];
+    auto sigs = new uint8_t[nInstances][SIGNATURE_LEN];
+
+    //Domain::WorkStatus status = WorkStatus::Success;
+    std::vector<std::thread> workers;
+    for (uint n = 0; n < nInstances; n++)
+    {
+        workers.push_back(std::thread([n, nInstances, nonces, scryptOuts, sigs]()
+        {
+            std::cout << nInstances << std::endl;
+            std::cout << "Spawning worker " << n << " / " << nInstances << std::endl;
+
+            //prepare dynamic variables for this instance
+            memset(nonces[n], 0, NONCE_LEN);
+            memset(scryptOuts[n], 0, SCRYPTED_LEN);
+            memset(sigs[n], 0, SIGNATURE_LEN);
+            nonces[n][NONCE_LEN - 1] = n;
+
+            auto ret = makeValid(0, nInstances, nonces[n], scryptOuts[n], sigs[n]);
+            if (ret == WorkStatus::Success)
+            {
+                memcpy(nonce_, nonces[n], NONCE_LEN);
+                memcpy(scrypted_, scryptOuts[n], SCRYPTED_LEN);
+                memcpy(signature_, sigs[n], SIGNATURE_LEN);
+                //return WorkStatus::Success;
+            }
+        }));
+    }
+
+    std::for_each(workers.begin(), workers.end(), [](std::thread &t)
+    {
+        t.join();
+    });
+
+    //static: getCentral(), pubKey
+    //dynamic: nonce, scrypted_, signature_
+
+    return true; //temp
+}
+
+
+
+Domain::WorkStatus Domain::makeValid(uint8_t depth, uint8_t inc,
+    uint8_t* nonceBuf, uint8_t* scryptedBuf, uint8_t* sigBuf)
+{
+    if (isValid())
+        return WorkStatus::Aborted;
+
     if (depth > NONCE_LEN)
-        return false;
+        return WorkStatus::NotFound;
 
     if (depth == NONCE_LEN)
     {
-        //run central domain info through scrypt, save output to scrypted_
-        auto central = getCentral();
-        if (scrypt(central.first, central.second, scrypted_) < 0)
+        //run central domain info through scrypt, save output to scryptedBuf
+        auto central = getCentral(nonceBuf);
+        if (scrypt(central.first, central.second, scryptedBuf) < 0)
         {
             std::cout << "Error with scrypt call!" << std::endl;
-            return false;
+            return WorkStatus::Aborted;
         }
 
         const auto sigInLen = central.second + SCRYPTED_LEN;
         const auto totalLen = sigInLen + SIGNATURE_LEN;
 
-        //save {central, scrypted_} with room for signature
+        //save {central, scryptedBuf} with room for signature
         uint8_t* buffer = new uint8_t[totalLen];
         memcpy(buffer, central.first, central.second); //import central
-        memcpy(buffer + central.second, scrypted_, SCRYPTED_LEN); //import scrypted_
+        memcpy(buffer + central.second, scryptedBuf, SCRYPTED_LEN); //import scryptedBuf
 
-        //digitally sign (RSA-SHA512) {central, scrypted_}
-        signMessageDigest(buffer, sigInLen, key_, signature_);
-        memcpy(buffer + sigInLen, signature_, SIGNATURE_LEN);
+        //digitally sign (RSA-SHA512) {central, scryptedBuf}
+        signMessageDigest(buffer, sigInLen, key_, sigBuf);
+        memcpy(buffer + sigInLen, sigBuf, SIGNATURE_LEN);
 
-        //hash (SHA-256) {central, scrypted_, signature_}
+        //hash (SHA-256) {central, scryptedBuf, sigBuf}
         Botan::SHA_256 sha256;
         auto hash = sha256.process(buffer, totalLen);
 
         //interpret hash output as number and compare against threshold
         auto num = Utils::arrayToUInt32(hash, 0);
-        std::cout << Botan::base64_encode(nonce_, NONCE_LEN) << " -> " << num << std::endl;
+        std::cout << Botan::base64_encode(nonceBuf, NONCE_LEN) << " -> " << num << std::endl;
+
+        if (isValid())
+            return WorkStatus::Aborted;
+
         if (num < THRESHOLD)
         {
             valid_ = true;
-            return true;
+            return WorkStatus::Success;
         }
 
-        memset(signature_, 0, SIGNATURE_LEN);
-        return false;
+        return WorkStatus::NotFound;
     }
 
-    bool found = findNonce(depth + 1);
-    if (found)
-        return true;
+    WorkStatus ret = makeValid(depth + 1, inc, nonceBuf, scryptedBuf, sigBuf);
+    if (ret == WorkStatus::Success || ret == WorkStatus::Aborted)
+        return ret;
 
-    while (nonce_[depth] < UINT8_MAX)
+    while (nonceBuf[depth] < UINT8_MAX)
     {
-        nonce_[depth]++;
-        found = findNonce(depth + 1);
-        if (found)
-            return true;
+        nonceBuf[depth] += inc;
+        ret = makeValid(depth + 1, inc, nonceBuf, scryptedBuf, sigBuf);
+        if (ret == WorkStatus::Success || ret == WorkStatus::Aborted)
+            return ret;
     }
 
-    nonce_[depth] = 0;
-    return false;
+    nonceBuf[depth] = 0;
+    return WorkStatus::NotFound;
 }

@@ -3,6 +3,7 @@
 #include "../libs/libscrypt-1.20/libscrypt.h"
 #include <botan-1.10/botan/pubkey.h>
 #include <cstring>
+#include <cassert>
 
 
 size_t Record::signMessageDigest(const uint8_t* message, size_t length,
@@ -14,6 +15,8 @@ size_t Record::signMessageDigest(const uint8_t* message, size_t length,
     //http://botan.randombit.net/manual/pubkey.html#signatures
     Botan::PK_Signer signer(*key, "EMSA-PKCS1-v1_5(SHA-512)");
     auto sig = signer.sign_message(message, length, rng);
+
+    assert(sig.size() == SIGNATURE_LEN);
     memcpy(sigBuf, sig, sig.size());
 
     return sig.size();
