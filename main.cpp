@@ -7,7 +7,7 @@
 
 #include "utils.hpp"
 
-Botan::LibraryInitializer init;
+Botan::LibraryInitializer init("thread_safe");
 
 
 int main(int argc, char** argv)

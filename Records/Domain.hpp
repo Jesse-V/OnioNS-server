@@ -12,7 +12,7 @@ typedef std::pair<uint8_t*, size_t> UInt32Data;
 class Domain: public Record
 {
     public:
-        static const int DIFFICULTY = 2; //1/2^x chance of success, so order of magnitude
+        static const int DIFFICULTY = 6; //1/2^x chance of success, so order of magnitude
         static const uint32_t THRESHOLD = UINT32_MAX / (1 << DIFFICULTY);
 
         Domain(const std::string&, uint8_t[SHA256_LEN],
@@ -38,7 +38,7 @@ class Domain: public Record
 
     private:
         UInt32Data getCentral(uint8_t nonce_[NONCE_LEN]) const;
-        bool mineParallel(uint);
+        WorkStatus mineParallel(uint);
         WorkStatus makeValid(uint8_t, uint8_t, uint8_t*, uint8_t*, uint8_t*);
 
         std::string name_;

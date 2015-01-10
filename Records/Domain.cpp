@@ -118,7 +118,7 @@ bool Domain::makeValid()
 {
     //TODO: if issue with fields other than nonce, return false
 
-    return mineParallel(1);
+    return mineParallel(4);
 }
 
 
@@ -271,7 +271,7 @@ UInt32Data Domain::getCentral(uint8_t* nonce) const
 
 
 
-bool Domain::mineParallel(uint nInstances)
+Domain::WorkStatus Domain::mineParallel(uint nInstances)
 {
     if (nInstances == 0)
         return WorkStatus::Aborted;
@@ -284,10 +284,12 @@ bool Domain::mineParallel(uint nInstances)
     std::vector<std::thread> workers;
     for (uint n = 0; n < nInstances; n++)
     {
-        workers.push_back(std::thread([n, nInstances, nonces, scryptOuts, sigs]()
+        workers.push_back(std::thread([n, nInstances, nonces, scryptOuts, sigs, this]()
         {
-            std::cout << nInstances << std::endl;
-            std::cout << "Spawning worker " << n << " / " << nInstances << std::endl;
+            std::string name("worker ");
+            name += std::to_string(n+1) + "/" + std::to_string(nInstances);
+
+            std::cout << "Starting " << name << std::endl;
 
             //prepare dynamic variables for this instance
             memset(nonces[n], 0, NONCE_LEN);
@@ -298,11 +300,15 @@ bool Domain::mineParallel(uint nInstances)
             auto ret = makeValid(0, nInstances, nonces[n], scryptOuts[n], sigs[n]);
             if (ret == WorkStatus::Success)
             {
+                std::cout << "Success from " << name << std::endl;
+
+                //save successful answer
                 memcpy(nonce_, nonces[n], NONCE_LEN);
                 memcpy(scrypted_, scryptOuts[n], SCRYPTED_LEN);
                 memcpy(signature_, sigs[n], SIGNATURE_LEN);
-                //return WorkStatus::Success;
             }
+
+            std::cout << "Shutting down " << name << std::endl;
         }));
     }
 
@@ -311,10 +317,7 @@ bool Domain::mineParallel(uint nInstances)
         t.join();
     });
 
-    //static: getCentral(), pubKey
-    //dynamic: nonce, scrypted_, signature_
-
-    return true; //temp
+    return WorkStatus::Success;
 }
 
 
