@@ -81,6 +81,13 @@ bool Registration::makeValid(uint8_t nCPUs)
 
 
 
+uint32_t Registration::getDifficulty() const
+{
+    return 4; // 1/2^x chance of success, so order of magnitude
+}
+
+
+
 std::string Registration::asJSON() const
 {
     Json::Value obj;

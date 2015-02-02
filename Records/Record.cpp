@@ -204,7 +204,7 @@ Record::WorkStatus Record::makeValid(uint8_t depth, uint8_t inc,
         if (isValid())
             return WorkStatus::Aborted;
 
-        if (num < THRESHOLD)
+        if (num < UINT32_MAX / (1 << getDifficulty()))
         {
             valid_ = true;
             return WorkStatus::Success;

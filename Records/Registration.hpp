@@ -18,6 +18,7 @@ class Registration: public Record
         virtual bool makeValid(uint8_t);
 
         virtual std::string asJSON() const;
+        virtual uint32_t getDifficulty() const;
         friend std::ostream& operator<<(std::ostream&, const Registration&);
 
     private:

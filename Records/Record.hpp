@@ -11,13 +11,8 @@ typedef std::pair<uint8_t*, size_t> UInt32Data;
 class Record
 {
     public:
-        static const int DIFFICULTY = 4; //1/2^x chance of success, so order of magnitude
-        static const uint32_t THRESHOLD = UINT32_MAX / (1 << DIFFICULTY);
-
-        static const uint64_t SCR_N = 1 << 20;
-        static const uint32_t SCR_P = 1 << 0;
-            //RAM load = O(SCR_N)
-            //CPU time = O(SCR_N * SCR_P)
+        static const uint64_t SCR_N = 1 << 20;  //RAM load = O(SCR_N)
+        static const uint32_t SCR_P = 1 << 0;   //CPU time = O(SCR_N * SCR_P)
 
         static const uint8_t NONCE_LEN = 4;
         static const uint8_t SCRYPTED_LEN = 16;
@@ -30,6 +25,7 @@ class Record
         bool setKey(Botan::RSA_PrivateKey*);
         UInt32Data getPublicKey() const;
         std::string getOnion() const;
+        virtual uint32_t getDifficulty() const = 0;
 
         bool refresh();
         virtual bool makeValid(uint8_t) = 0;
