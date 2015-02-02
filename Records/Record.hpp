@@ -1,6 +1,6 @@
 
-#ifndef RECORD
-#define RECORD
+#ifndef RECORD_HPP
+#define RECORD_HPP
 
 #include <cstdint>
 #include <botan-1.10/botan/botan.h>

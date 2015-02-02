@@ -1,6 +1,6 @@
 
-#ifndef REGISTRATION
-#define REGISTRATION
+#ifndef REGISTRATION_HPP
+#define REGISTRATION_HPP
 
 #include "Record.hpp"
 #include <vector>

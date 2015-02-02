@@ -17,8 +17,13 @@ include_directories(. libs/jsoncpp-1.1.0 /usr/include/botan-1.10 libs/CyoEncode-
 #organized by importance
 add_executable(EsgalDNS
     main.cpp
-    Records/Registration.cpp
     Records/Record.cpp
+    Records/Registration.cpp
+    Records/Renewal.cpp
+    Records/Update.cpp
+    Records/Transfer.cpp
+    Records/Deletion.cpp
+
     utils.cpp
     ${JSONCPP_CPP}
 
