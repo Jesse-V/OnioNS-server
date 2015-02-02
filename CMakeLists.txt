@@ -12,7 +12,7 @@ endif()
 SET (JSONCPP_CPP libs/jsoncpp-1.1.0/jsoncpp.cpp)
 set_source_files_properties(${JSONCPP_CPP} PROPERTIES COMPILE_FLAGS -w)
 
-include_directories(. libs/jsoncpp-1.1.0 /usr/include/botan-1.10)
+include_directories(. libs/jsoncpp-1.1.0 /usr/include/botan-1.10 libs/CyoEncode-1.1.1)
 
 #organized by importance
 add_executable(EsgalDNS
@@ -21,6 +21,9 @@ add_executable(EsgalDNS
     Records/Record.cpp
     utils.cpp
     ${JSONCPP_CPP}
+
+    libs/CyoEncode-1.1.1/CyoDecode.c
+    libs/CyoEncode-1.1.1/CyoEncode.c
 )
 
 #botan1.10-dev is a dependency

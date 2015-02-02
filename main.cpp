@@ -14,7 +14,7 @@ int main(int argc, char** argv)
     try
     {
         Botan::AutoSeeded_RNG rng;
-        Botan::RSA_PrivateKey* rsaKey = loadKey("/home/jesse/rsa2048.key", rng);
+        Botan::RSA_PrivateKey* rsaKey = loadKey("/home/jesse/sampleOnionKey.key", rng);
         if (rsaKey != NULL)
             std::cout << "RSA private key loaded successfully!" << std::endl;
 

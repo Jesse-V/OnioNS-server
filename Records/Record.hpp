@@ -17,9 +17,10 @@ class Record
         static const uint8_t NONCE_LEN = 4;
         static const uint8_t SCRYPTED_LEN = 16;
 
-        static const uint32_t RSA_LEN = 2048;
+        static const uint32_t RSA_LEN = 1024;
         static const uint32_t SIGNATURE_LEN = RSA_LEN / 8;
         static const uint32_t SHA256_LEN = 256 / 8;
+        static const uint32_t SHA1_LEN = 160 / 8;
 
         static size_t signMessageDigest(const uint8_t*, size_t,
             const Botan::Private_Key*, uint8_t*);

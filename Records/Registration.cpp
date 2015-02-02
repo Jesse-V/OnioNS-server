@@ -1,9 +1,13 @@
 
 #include "Registration.hpp"
+
 #include "../utils.hpp"
 #include <botan/sha2_32.h>
+#include <botan/sha160.h>
 #include <botan/base64.h>
 #include <json/json.h>
+#include <CyoEncode.hpp>
+
 #include <thread>
 #include <cstring>
 #include <cassert>
@@ -133,7 +137,28 @@ bool Registration::isValid() const
 
 std::string Registration::getOnion() const
 {
-    return "temp.onion"; //TODO: calculate hash
+    //https://gitweb.torproject.org/torspec.git/tree/tor-spec.txt :
+        // When we refer to "the hash of a public key", we mean the SHA-1 hash of the DER encoding of an ASN.1 RSA public key (as specified in PKCS.1).
+
+    //get DER encoding of RSA key
+    auto x509Key = key_->x509_subject_public_key();
+    char* derEncoded = new char[x509Key.size()];
+    memcpy(derEncoded, x509Key, x509Key.size());
+
+    //perform SHA-1
+    Botan::SHA_160 sha1;
+    uint8_t onionHash[SHA1_LEN];
+    memcpy(onionHash, sha1.process(std::string(derEncoded, x509Key.size())), SHA1_LEN);
+    delete derEncoded;
+
+    //perform base32 encoding
+    char onionB32[SHA1_LEN * 4];
+    CyoEncode::Base32::Encode(onionB32, onionHash, SHA1_LEN);
+
+    //truncate, make lowercase, and return result
+    auto addr = std::string(onionB32, 16);
+    std::transform(addr.begin(), addr.end(), addr.begin(), ::tolower);
+    return addr + ".onion";
 }
 
 
