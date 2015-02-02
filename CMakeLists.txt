@@ -17,6 +17,10 @@ include_directories(. libs/jsoncpp-1.1.0 /usr/include/botan-1.10 libs/CyoEncode-
 #organized by importance
 add_executable(EsgalDNS
     main.cpp
+
+    Database/Page.cpp
+    Database/Snapshot.cpp
+
     Records/Record.cpp
     Records/Registration.cpp
     Records/Renewal.cpp
@@ -30,8 +34,6 @@ add_executable(EsgalDNS
     libs/CyoEncode-1.1.1/CyoDecode.c
     libs/CyoEncode-1.1.1/CyoEncode.c
 )
-
-#botan1.10-dev is a dependency
 
 SET (LIBSCRYPT_LIB ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt-1.20/libscrypt.so)
 target_link_libraries(EsgalDNS pthread ${LIBSCRYPT_LIB} botan-1.10)
