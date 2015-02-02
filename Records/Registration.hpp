@@ -1,6 +1,6 @@
 
-#ifndef DOMAIN
-#define DOMAIN
+#ifndef REGISTRATION
+#define REGISTRATION
 
 #include "Record.hpp"
 #include <vector>
@@ -9,15 +9,15 @@
 
 typedef std::pair<uint8_t*, size_t> UInt32Data;
 
-class Domain: public Record
+class Registration: public Record
 {
     public:
-        static const int DIFFICULTY = 6; //1/2^x chance of success, so order of magnitude
+        static const int DIFFICULTY = 4; //1/2^x chance of success, so order of magnitude
         static const uint32_t THRESHOLD = UINT32_MAX / (1 << DIFFICULTY);
 
-        Domain(const std::string&, uint8_t[SHA256_LEN],
+        Registration(const std::string&, uint8_t[SHA256_LEN],
             const std::string&, Botan::RSA_PrivateKey*);
-        ~Domain();
+        ~Registration();
 
         bool setName(const std::string&);
         bool addSubdomain(const std::string&, const std::string&);
@@ -29,7 +29,7 @@ class Domain: public Record
         std::string getOnion() const;
         UInt32Data getPublicKey() const;
         std::string asJSON() const;
-        friend std::ostream& operator<<(std::ostream&, const Domain&);
+        friend std::ostream& operator<<(std::ostream&, const Registration&);
 
         enum WorkStatus
         {

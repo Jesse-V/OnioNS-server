@@ -1,6 +1,6 @@
 
 
-#include "Records/Domain.hpp"
+#include "Records/Registration.hpp"
 #include "main.hpp"
 #include <botan/pem.h>
 #include <botan/ber_dec.h>
@@ -24,7 +24,7 @@ int main(int argc, char** argv)
         uint8_t cHash[32];
         memcpy(cHash, hash, 32);
 
-        Domain d("example.tor", cHash, "AD97364FC20BEC80", rsaKey);
+        Registration d("example.tor", cHash, "AD97364FC20BEC80", rsaKey);
 
         std::cout << std::endl;
         std::cout << "Initial JSON: " << d.asJSON() << std::endl;

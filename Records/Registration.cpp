@@ -1,5 +1,5 @@
 
-#include "Domain.hpp"
+#include "Registration.hpp"
 #include "../utils.hpp"
 #include <botan/sha2_32.h>
 #include <botan/base64.h>
@@ -29,7 +29,7 @@
     must use deterministic sig alg!
 */
 
-Domain::Domain(const std::string& name, uint8_t consensusHash[SHA256_LEN],
+Registration::Registration(const std::string& name, uint8_t consensusHash[SHA256_LEN],
     const std::string& contact, Botan::RSA_PrivateKey* key):
     timestamp_(time(NULL)), valid_(false)
 {
@@ -47,7 +47,7 @@ Domain::Domain(const std::string& name, uint8_t consensusHash[SHA256_LEN],
 
 
 
-Domain::~Domain()
+Registration::~Registration()
 {
     //delete signature_;
     //delete nonce_;
@@ -55,7 +55,7 @@ Domain::~Domain()
 
 
 
-bool Domain::setName(const std::string& newName)
+bool Registration::setName(const std::string& newName)
 {
     if (newName.empty() || newName.length() > 32)
         return false;
@@ -67,7 +67,7 @@ bool Domain::setName(const std::string& newName)
 
 
 
-bool Domain::addSubdomain(const std::string& from, const std::string& to)
+bool Registration::addSubdomain(const std::string& from, const std::string& to)
 {
     if (subdomains_.size() >= 16 || from.size() > 32 || to.size() > 32)
         return false;
@@ -80,7 +80,7 @@ bool Domain::addSubdomain(const std::string& from, const std::string& to)
 
 
 
-bool Domain::setContact(const std::string& contactInfo)
+bool Registration::setContact(const std::string& contactInfo)
 {
     if (!Utils::isPowerOfTwo(contactInfo.length()))
         return false;
@@ -92,7 +92,7 @@ bool Domain::setContact(const std::string& contactInfo)
 
 
 
-bool Domain::setKey(Botan::RSA_PrivateKey* key)
+bool Registration::setKey(Botan::RSA_PrivateKey* key)
 {
     if (key == NULL)
         return false;
@@ -104,7 +104,7 @@ bool Domain::setKey(Botan::RSA_PrivateKey* key)
 
 
 
-bool Domain::refresh()
+bool Registration::refresh()
 {
     timestamp_ = time(NULL);
     //consensusHash_ = //TODO
@@ -115,7 +115,7 @@ bool Domain::refresh()
 
 
 
-bool Domain::makeValid(uint8_t nCPUs)
+bool Registration::makeValid(uint8_t nCPUs)
 {
     //TODO: if issue with fields other than nonce, return false
 
@@ -124,21 +124,21 @@ bool Domain::makeValid(uint8_t nCPUs)
 
 
 
-bool Domain::isValid() const
+bool Registration::isValid() const
 {
     return valid_;
 }
 
 
 
-std::string Domain::getOnion() const
+std::string Registration::getOnion() const
 {
     return "temp.onion"; //TODO: calculate hash
 }
 
 
 
-UInt32Data Domain::getPublicKey() const
+UInt32Data Registration::getPublicKey() const
 {
     //https://en.wikipedia.org/wiki/X.690#BER_encoding
     auto bem = Botan::X509::BER_encode(*key_);
@@ -150,7 +150,7 @@ UInt32Data Domain::getPublicKey() const
 
 
 
-std::string Domain::asJSON() const
+std::string Registration::asJSON() const
 {
     Json::Value obj;
 
@@ -185,7 +185,7 @@ std::string Domain::asJSON() const
 
 
 
-std::ostream& operator<<(std::ostream& os, const Domain& dt)
+std::ostream& operator<<(std::ostream& os, const Registration& dt)
 {
     os << "Domain Registration: (currently " <<
         (dt.valid_ ? "VALID)" : "INVALID)") << std::endl;
@@ -237,7 +237,7 @@ std::ostream& operator<<(std::ostream& os, const Domain& dt)
 //********************* PRIVATE METHODS ****************************************
 
 
-UInt32Data Domain::getCentral(uint8_t* nonce) const
+UInt32Data Registration::getCentral(uint8_t* nonce) const
 {
     std::string str;
     str += name_;
@@ -269,7 +269,7 @@ UInt32Data Domain::getCentral(uint8_t* nonce) const
 
 
 
-Domain::WorkStatus Domain::mineParallel(uint8_t nInstances)
+Registration::WorkStatus Registration::mineParallel(uint8_t nInstances)
 {
     if (nInstances == 0)
         return WorkStatus::Aborted;
@@ -278,7 +278,7 @@ Domain::WorkStatus Domain::mineParallel(uint8_t nInstances)
     auto scryptOuts = new uint8_t[nInstances][SCRYPTED_LEN];
     auto sigs = new uint8_t[nInstances][SIGNATURE_LEN];
 
-    //Domain::WorkStatus status = WorkStatus::Success;
+    //Registration::WorkStatus status = WorkStatus::Success;
     std::vector<std::thread> workers;
     for (uint8_t n = 0; n < nInstances; n++)
     {
@@ -320,7 +320,7 @@ Domain::WorkStatus Domain::mineParallel(uint8_t nInstances)
 
 
 
-Domain::WorkStatus Domain::makeValid(uint8_t depth, uint8_t inc,
+Registration::WorkStatus Registration::makeValid(uint8_t depth, uint8_t inc,
     uint8_t* nonceBuf, uint8_t* scryptedBuf, uint8_t* sigBuf)
 {
     if (isValid())
@@ -361,6 +361,7 @@ Domain::WorkStatus Domain::makeValid(uint8_t depth, uint8_t inc,
         //interpret hash output as number and compare against threshold
         auto num = Utils::arrayToUInt32(hash, 0);
         std::cout << Botan::base64_encode(nonceBuf, NONCE_LEN) << " -> " << num << std::endl;
+        std::cout.flush();
 
         if (isValid())
             return WorkStatus::Aborted;

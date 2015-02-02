@@ -17,7 +17,7 @@ include_directories(. libs/jsoncpp-1.1.0 /usr/include/botan-1.10)
 #organized by importance
 add_executable(EsgalDNS
     main.cpp
-    Records/Domain.cpp
+    Records/Registration.cpp
     Records/Record.cpp
     utils.cpp
     ${JSONCPP_CPP}
