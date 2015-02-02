@@ -14,7 +14,7 @@ int main(int argc, char** argv)
     try
     {
         Botan::AutoSeeded_RNG rng;
-        Botan::RSA_PrivateKey* rsaKey = loadKey("/home/jesse/sampleOnionKey.key", rng);
+        Botan::RSA_PrivateKey* rsaKey = loadKey("assets/example.key", rng);
         if (rsaKey != NULL)
             std::cout << "RSA private key loaded successfully!" << std::endl;
 
@@ -24,7 +24,7 @@ int main(int argc, char** argv)
         uint8_t cHash[32];
         memcpy(cHash, hash, 32);
 
-        Registration d("example.tor", cHash, "AD97364FC20BEC80", rsaKey);
+        Registration d(rsaKey, cHash, "example.tor", "AD97364FC20BEC80");
 
         std::cout << std::endl;
         std::cout << "Initial JSON: " << d.asJSON() << std::endl;
