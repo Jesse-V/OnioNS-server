@@ -1,0 +1,45 @@
+.\" Manpage for OnioNS
+.\" Visit github.com/Jesse-V/OnioNS to report bugs, errors, or typos.
+.TH man 8 "4 October 2015" "0.1.0.1" "OnioNS man page"
+
+.SH NAME
+OnioNS \- Tor-powered Distributed DNS for Tor Hidden Services
+
+.SH SYNOPSIS
+    \OnioNS\fR [\fB--help\fR|\fB--license\fR|\fB--version\fR]
+
+.SH DESCRIPTION
+
+Tor a third-generation onion router that acts as anonymizing communication service. Users choose a source-routed path through a set of nodes, and negotiate a "virtual circuit" through the network, in which each node knows its predecessor and successor, but no others. Traffic flowing down the circuit is unwrapped by a symmetric key at each node, which reveals the downstream node.
+
+Tor also supports hidden services, anonymous servers that intentionally hide their IP address through Tor circuits. Hidden services are traditionally contacted by an .onion domain name, an algorithmically-generated address. This introduces severe usability problems because of the disassiation between a service's purpose and its domain name. OnioNS is a Tor-powered distributed DNS that associates human-meaningful .tor domains with .onion hidden service addresses.
+
+.SH OPTIONS
+
+OnioNS is primarily a command-line utility.
+
+The following options can be specified on the command line using the following syntax:
+    --<option>=<value>
+  or when marking boolean values true:
+    --<option>
+
+\fB -h \fR or \fB --help \fR
+        Prints usage format and available flags, and then quits.
+
+\fB -l \fR or \fB --license \fR
+        Prints license information and quit.
+
+\fB -v \fR or \fB --verbose \fR
+        Verbose printing to stdout. Useful when debugging.
+
+\fB --version \fR
+        Print version and quit.
+
+.\"  .SH SEE ALSO
+
+.SH BUGS
+Please visit https://github.com/Jesse-V/OnioNS/issues for the list
+of known bugs. Github users are welcome to report bugs there.
+
+.SH AUTHOR
+Jesse Victors (jvictors@jessevictors.com, PGP 0xC20BEC80)

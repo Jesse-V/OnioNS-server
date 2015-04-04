@@ -1,0 +1,17 @@
+Source: OnioNS
+Section: internet
+Priority: optional
+Maintainer: Jesse Victors <jvictors@jessevictors.com>
+Build-Depends: debhelper (>= 8.0.0), botan1.10-dev, g++, cmake, build-essential
+Standards-Version: 3.9.3
+Homepage: https://jesse-v.github.io/OnioNS/
+Bugs: https://github.com/Jesse-V/OnioNS/issues
+Vcs-Git: git@github.com:Jesse-V/OnioNS.git
+
+Package: OnioNS
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A Tor-powered distributed DNS for Tor hidden services. OnioNS
+ enables hidden service operators to construct strong associations between a
+ human-meaningful .tor domain name and their .onion hidden service address, and
+ then enables Tor clients to query on those domains easily and securely.
