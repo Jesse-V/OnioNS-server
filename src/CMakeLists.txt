@@ -52,3 +52,8 @@ target_link_libraries(OnioNS pthread ${LIBSCRYPT_LIB} botan-1.10)
 message("CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
 set_target_properties(OnioNS PROPERTIES DEBUG_POSTFIX "_d")
 #set_target_properties(OnioNS PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR})
+
+#installation of files
+set(DEB_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/debian/extra_includes")
+install(TARGETS OnioNS            DESTINATION /usr/bin)
+install(FILES ${DEB_FOLDER}/OnioNS.1.gz DESTINATION /usr/share/man/man1)

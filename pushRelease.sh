@@ -4,7 +4,7 @@
 
 ./clean.sh
 
-name="tor-onions_0.1.0.3" #major.minor.patch.build
+name="tor-onions_0.1.1.1" #major.minor.patch.build
 
 tar -czf ${name}.orig.tar.gz src/ #http://xkcd.com/1168/
 echo "Tarball creation step complete."
