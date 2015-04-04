@@ -1,5 +1,5 @@
-OnioNS (0.1.0.1) trusty; urgency=medium
+onions (0.1.0.1) trusty; urgency=medium
 
   * Initial build.
 
- -- Jesse Victors <jvictors@jessevictors.com>  Mon, 04 Mar 2015 11:35:00 -0600
+ -- Jesse Victors <jvictors@jessevictors.com>  Mon, 04 Mar 2015 12:35:00 -0600

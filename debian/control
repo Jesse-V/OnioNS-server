@@ -1,8 +1,8 @@
-Source: OnioNS
+Source: onions
 Section: internet
 Priority: optional
 Maintainer: Jesse Victors <jvictors@jessevictors.com>
-Build-Depends: debhelper (>= 8.0.0), botan1.10-dev, g++, cmake, build-essential
+Build-Depends: debhelper (>= 8.0.0), libbotan1.10-dev, g++, cmake, build-essential
 Standards-Version: 3.9.3
 Homepage: https://jesse-v.github.io/OnioNS/
 Bugs: https://github.com/Jesse-V/OnioNS/issues
