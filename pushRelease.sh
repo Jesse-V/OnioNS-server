@@ -1,31 +1,32 @@
 #!/bin/sh
 
+# dependencies: dput
+
 ./clean.sh
 
-name="onions_0.1.0.1" #major.minor.patch.build
+name="tor-onions_0.1.0.3" #major.minor.patch.build
 
 tar -czf ${name}.orig.tar.gz src/ #http://xkcd.com/1168/
-echo "Successfully made tarball."
+echo "Tarball creation step complete."
 
 #http://www.cyberciti.biz/faq/linux-unix-creating-a-manpage/
 myManPath="debian/extra_includes"
 gzip --best -c ${myManPath}/manpage > ${myManPath}/OnioNS.1.gz
-echo "Successfully made manpage."
+echo "Manpage creation step complete."
 
 cd src/
-ln -s ../debian debian
-dpkg-buildpackage -S -sa -k80FAAD97364FC20BEC80
-echo "Successfully made signed Debian package."
-
-#cd ..
-#dput ppa:jvictors/testing ${name}_source.changes
-
-rm -f debian
+cp -rl ../debian debian # this cannot be a symlink
+dpkg-buildpackage -S -sa -kAD97364FC20BEC80
 cd ..
-rm -f ${name}.orig.tar.gz ${name}.debian.tar.gz
-#rm -f ${name}.dsc ${name}.dsc ${name}_source.changes
-#rm -f ${name}_source.ppa.upload
-#rm -f debian/extra_includes/OnioNS.1.gz
-echo "Successfully cleaned package build files and folders."
+echo "Debian packaging step complete."
 
-#echo "Done pushing packages. Check email for Launchpad build reports."
+dput ppa:jvictors/testing ${name}_source.changes
+
+rm -rf src/debian/
+rm -f ${name}.orig.tar.gz ${name}.debian.tar.gz
+rm -f ${name}.dsc ${name}.dsc ${name}_source.changes
+rm -f ${name}_source.ppa.upload
+rm -f debian/extra_includes/OnioNS.1.gz
+echo "Cleanup complete."
+
+echo "Done pushing packages. Check email for Launchpad build reports."

@@ -1,5 +1,18 @@
-onions (0.1.0.1) trusty; urgency=medium
+tor-onions (0.1.0.3) trusty; urgency=medium
 
+  * Corrected package name.
+
+ -- Jesse Victors <jvictors@jessevictors.com>  Mon, 04 Mar 2015 13:17:00 -0600
+
+tor-onions (0.1.0.2) trusty; urgency=medium
+
+  * Fixed section field in debian control.
+
+ -- Jesse Victors <jvictors@jessevictors.com>  Mon, 04 Mar 2015 13:11:00 -0600
+
+tor-onions (0.1.0.1) trusty; urgency=medium
+
+  * Domain Registration protocol.
   * Initial build.
 
  -- Jesse Victors <jvictors@jessevictors.com>  Mon, 04 Mar 2015 12:35:00 -0600
