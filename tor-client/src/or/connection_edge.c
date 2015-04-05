@@ -1262,6 +1262,10 @@ connection_ap_handshake_rewrite_and_attach(entry_connection_t *conn,
        implies no. */
   }
 
+  /* Note that .tor domains are resolved in parse_extended_hostname, so
+    they are interpreted as ONION_HOSTNAMEs here. It's a bit easier that way,
+    especially since addresstype is const */
+
   /* Now, handle everything that isn't a .onion address. */
   if (addresstype != ONION_HOSTNAME) {
     /* Not a hidden-service request.  It's either a hostname or an IP,
@@ -3214,7 +3218,7 @@ connection_ap_can_use_exit(const entry_connection_t *conn, const node_t *exit)
  *     Put a NUL after y and return EXIT_HOSTNAME.
  *
  * If address is of the form "*.tor":
- *     Put a NUL after the TLD and return TOR_HOSTNAME.
+ *     Resolve and replace with final .onion address, return ONION_HOSTNAME.
  *
  * Otherwise:
  *     Return NORMAL_HOSTNAME and change nothing.
@@ -3233,13 +3237,26 @@ parse_extended_hostname(char *address)
       *s = 0; /* NUL-terminate it */
       return EXIT_HOSTNAME; /* .exit */
     }
-    if (!strcmp(s+1,"tor")) { //TLD is a .tor, so it needs handling by OnioNS
-      //*s = 0; /* NUL-terminate it */
-      char* sub = "2v7ibl5u4pbemwiz.onion\0";
-      memcpy(address, sub, strlen(sub)+1);
-      log_notice(LD_APP, "OnioNS address \"%s\", redirecting to %s", address, sub);
-      return ONION_HOSTNAME; /* TOR_HOSTNAME */ /* .tor */
+
+    if (!strcmp(s+1,"tor")) { /* TLD is a .tor, resolve through OnioNS */
+
+      /* todo: discover why this is called 3 times */
+
+      /* announce capture of .tor TLD */
+      log_notice(LD_APP, "Domain name \"%s\" captured for OnioNS.", address);
+
+      /* resolve .tor -> .onion */
+      char* resolution = "2v7ibl5u4pbemwiz\0";
+
+      /* announce resolution */
+      log_notice(LD_APP, "OnioNS resolved domain to "
+        "HS \"%s\".onion address.", resolution);
+
+      /* modify in-place and return */
+      memcpy(address, resolution, strlen(resolution)+1);
+      return ONION_HOSTNAME; /* now handle as final .onion address */
     }
+
     if (strcmp(s+1,"onion"))
       return NORMAL_HOSTNAME; /* neither .exit nor .onion, thus normal */
 
