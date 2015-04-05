@@ -1,8 +1,12 @@
 #!/bin/sh
 
-mkdir -p build/
-cd build
-cmake ../src -DCMAKE_BUILD_TYPE=Debug
-
 cpus=$(grep -c ^processor /proc/cpuinfo)
+
+cp -r tor-client tor-client-orig
+
+cd tor-client
+./configure
 make -j $cpus
+
+cp src/or/tor ../
+
