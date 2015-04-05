@@ -6,4 +6,4 @@ cmake ../src -DCMAKE_BUILD_TYPE=Debug
 
 cpus=$(grep -c ^processor /proc/cpuinfo)
 make -j $cpus
-cp OnioNS* ../
+cp tor-onions* ../

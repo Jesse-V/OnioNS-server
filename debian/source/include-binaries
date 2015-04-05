@@ -1,1 +1,2 @@
-debian/extra_includes/OnioNS.1.gz
+debian/extra_includes/tor-onions.1.gz
+debian/extra_includes/tor-client
