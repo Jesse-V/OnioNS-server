@@ -481,6 +481,9 @@ test_rend_fns(void *arg)
   char address5[] = "foo.abcdefghijklmnop.onion";
   char address6[] = "foo.bar.abcdefghijklmnop.onion";
   char address7[] = ".abcdefghijklmnop.onion";
+  char address8[] = "foo.bar.example.tor";
+  char address9[] = ".foo.bar.example.tor";
+  char address10[] = "..tor";
 
   (void)arg;
   tt_assert(BAD_HOSTNAME == parse_extended_hostname(address1));
@@ -493,6 +496,9 @@ test_rend_fns(void *arg)
   tt_assert(ONION_HOSTNAME == parse_extended_hostname(address6));
   tt_str_op(address6,OP_EQ, "abcdefghijklmnop");
   tt_assert(BAD_HOSTNAME == parse_extended_hostname(address7));
+  tt_assert(TOR_HOSTNAME == parse_extended_hostname(address8));
+  tt_assert(BAD_HOSTNAME == parse_extended_hostname(address9));
+  tt_assert(BAD_HOSTNAME == parse_extended_hostname(address10));
 
   pk1 = pk_generate(0);
   pk2 = pk_generate(1);

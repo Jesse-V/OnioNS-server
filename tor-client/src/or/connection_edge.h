@@ -84,7 +84,7 @@ int connection_ap_handshake_rewrite_and_attach(entry_connection_t *conn,
 
 /** Possible return values for parse_extended_hostname. */
 typedef enum hostname_type_t {
-  NORMAL_HOSTNAME, ONION_HOSTNAME, EXIT_HOSTNAME, BAD_HOSTNAME
+  NORMAL_HOSTNAME, ONION_HOSTNAME, EXIT_HOSTNAME, BAD_HOSTNAME, TOR_HOSTNAME
 } hostname_type_t;
 hostname_type_t parse_extended_hostname(char *address);
 

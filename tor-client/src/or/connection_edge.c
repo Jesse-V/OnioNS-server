@@ -3213,6 +3213,9 @@ connection_ap_can_use_exit(const entry_connection_t *conn, const node_t *exit)
  * If address is of the form "y.exit":
  *     Put a NUL after y and return EXIT_HOSTNAME.
  *
+ * If address is of the form "*.tor":
+ *     Put a NUL after the TLD and return TOR_HOSTNAME.
+ *
  * Otherwise:
  *     Return NORMAL_HOSTNAME and change nothing.
  */
@@ -3229,6 +3232,13 @@ parse_extended_hostname(char *address)
     if (!strcmp(s+1,"exit")) {
       *s = 0; /* NUL-terminate it */
       return EXIT_HOSTNAME; /* .exit */
+    }
+    if (!strcmp(s+1,"tor")) { //TLD is a .tor, so it needs handling by OnioNS
+      //*s = 0; /* NUL-terminate it */
+      log_notice(LD_APP, "OnioNS address \"%s\" detected!", address);
+      char* sub = "3g2upl4pq6kufc4m.onion\0";
+      memcpy(address, sub, strlen(sub)+1);
+      return ONION_HOSTNAME; /* TOR_HOSTNAME */ /* .tor */
     }
     if (strcmp(s+1,"onion"))
       return NORMAL_HOSTNAME; /* neither .exit nor .onion, thus normal */

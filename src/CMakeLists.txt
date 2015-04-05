@@ -48,10 +48,7 @@ add_dependencies(OnioNS libscrypt)
 SET (LIBSCRYPT_LIB ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt-1.20/libscrypt.so.0)
 target_link_libraries(OnioNS pthread ${LIBSCRYPT_LIB} botan-1.10)
 
-#custom handling of output binary
-message("CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
-message("CMAKE SRC DIR is ${CMAKE_CURRENT_SOURCE_DIR}")
-message("CMAKE BUILD DIR is ${CMAKE_CURRENT_BUILD_DIR}")
+#custom handling of output debug binary
 set_target_properties(OnioNS PROPERTIES DEBUG_POSTFIX "_d")
 
 #installation of files
