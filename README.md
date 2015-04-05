@@ -11,7 +11,7 @@ There are several methods to install the OnioNS software. The method of choice d
 
 Note that my code is written in C++11, so you have to update GCC or change "--std=c++11" to --std=c++0x" in src/CMakeLists.txt before compiling if you are on an older system such as Debian Wheezy or Ubuntu Precise.
 
-I do not support Windows nor do I have plans of doing so. You probably shouldn't be running Tor infrastructure on Windows anyway. I am willing to provide upstream support to anyone who wishes to provide and maintain a port to OS-X.
+I do not support Windows at the moment, though the client edition will land there eventually. I do not have any plans of porting nor supporting the server edition on Windows; you probably shouldn't be running Tor relays on Windows anyway. I am willing to provide upstream support to anyone who wishes to port the client edition to OS-X. My current primary focus is developing the Linux edition.
 
 * **Install from PPA**
 
