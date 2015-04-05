@@ -9,10 +9,7 @@ rm -rf build/
 #clean up built binaries
 rm tor OnioNS_d
 
-# if tor-client backup exists, restore from it
-if [ -d "tor-client-orig" ]; then
-    rm -rf tor-client
-    mv tor-client-orig tor-client
-fi
+cd tor-client
+make distclean
 
 echo "Successfully removed the build directory."

@@ -3246,7 +3246,9 @@ parse_extended_hostname(char *address)
       log_notice(LD_APP, "Domain name \"%s\" captured for OnioNS.", address);
 
       /* resolve .tor -> .onion */
-      char* resolution = "2v7ibl5u4pbemwiz\0";
+      char* resolution = "blkbook3fxhcsn3u\0";
+      //"uhwikih256ynt57t\0";
+  //  "2v7ibl5u4pbemwiz\0";
 
       /* announce resolution */
       log_notice(LD_APP, "OnioNS resolved domain to "
