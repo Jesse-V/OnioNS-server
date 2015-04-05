@@ -31,7 +31,7 @@ This software can then be updated like any other Linux package, since my PPA is 
 > 2. **./buildClient.sh**
 > 3. **./buildServer.sh**
 
-    I have included build scripts for Clang if you, as I do, prefer that compiler. Please let me know if you encounter any issues, I can update these instructions so that it's easier for everyone going forward.
+I have included build scripts for Clang if you, as I do, prefer that compiler. Please let me know if you encounter any issues, I can update these instructions so that it's easier for everyone going forward.
 
 ### Usage
 

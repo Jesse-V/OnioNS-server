@@ -1,4 +1,11 @@
-tor-onions (0.1.2.5~trusty) trusty; urgency=medium
+tor-onions (0.1.3.5~trusty) trusty; urgency=medium
+
+  * Added named pipes for Tor-OnioNS IPC.
+  * Main binary called from helper script.
+
+ -- Jesse Victors <jvictors@jessevictors.com>  Sun, 05 Apr 2015 14:57:00 -0600
+
+tor-onions (0.1.2.6~trusty) trusty; urgency=medium
 
   * Include amd64 tor-client binary in build.
   * Lowercased binary in accordance with conventions.

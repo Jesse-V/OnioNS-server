@@ -7,7 +7,7 @@ rm -rf build/
 ((cd src/libs/libscrypt-1.20/ && make clean))
 
 #clean up built binaries
-rm tor-client tor-onions_d
+rm tor-client OnioNS_d
 
 cd tor-client-src
 make distclean

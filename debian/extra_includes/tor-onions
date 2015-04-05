@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# launch script for OnioNS. Constructs named pipes, then launches OnioNS.
+# OnioNS uses the named pipes for Tor-OnioNS resolve-response IPC.
+
+echo -n "Initializing environment... "
+mkfifo /tmp/tor-onions-in
+mkfifo /tmp/tor-onions-out
+echo "done."
+
+/usr/bin/OnioNS/OnioNS
+
+echo -n "Cleaning environment... "
+rm -f /tmp/tor-onions-in
+rm -f /tmp/tor-onions-out
+echo "done. Application complete."

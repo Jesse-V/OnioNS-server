@@ -23,7 +23,7 @@ add_custom_target(libscrypt
    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt-1.20/
 )
 
-add_executable(tor-onions
+add_executable(OnioNS
     main.cpp
 
     Database/Page.cpp
@@ -44,16 +44,17 @@ add_executable(tor-onions
 )
 
 #link against built and existing dependencies
-add_dependencies(tor-onions libscrypt)
+add_dependencies(OnioNS libscrypt)
 SET (LIBSCRYPT_LIB ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt-1.20/libscrypt.so.0)
-target_link_libraries(tor-onions pthread ${LIBSCRYPT_LIB} botan-1.10)
+target_link_libraries(OnioNS pthread ${LIBSCRYPT_LIB} botan-1.10)
 
 #custom handling of output debug binary
-set_target_properties(tor-onions PROPERTIES DEBUG_POSTFIX "_d")
+set_target_properties(OnioNS PROPERTIES DEBUG_POSTFIX "_d")
 
-#installation of files
+#installation of files, tor-onions script makes named pipes and launches OnioNS
 set(DEB_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/debian/extra_includes")
-install(TARGETS tor-onions                   DESTINATION /usr/bin/)
+install(TARGETS OnioNS                       DESTINATION /usr/bin/OnioNS/)
+install(FILES ${DEB_FOLDER}/tor-onions       DESTINATION /usr/bin/)
+install(FILES ${DEB_FOLDER}/tor-client       DESTINATION /usr/bin/)
 install(FILES ${LIBSCRYPT_LIB}               DESTINATION /usr/lib/)
 install(FILES ${DEB_FOLDER}/tor-onions.1.gz  DESTINATION /usr/share/man/man1)
-install(FILES ${DEB_FOLDER}/tor-client       DESTINATION /usr/bin/)

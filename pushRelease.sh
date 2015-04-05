@@ -3,11 +3,11 @@
 # dependencies: dput
 
 ./ClangBuildClient.sh
-mv tor-client debian/extra_includes/tor-client
+mv tor-client debian/extra_includes/tor-client #prep Tor for packaging
 
 ./clean.sh
 
-name="tor-onions_0.1.2.5~trusty" #major.minor.patch.build
+name="tor-onions_0.1.3.5~trusty" #major.minor.patch.build~[trusty | utopic | vivid]
 
 tar -czf ${name}.orig.tar.gz src/ #http://xkcd.com/1168/
 echo "Tarball creation step complete."
