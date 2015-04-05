@@ -1,4 +1,4 @@
-EsgalDNS
+OnioNS
 ========
 
 OnioNS (alpha) - Tor-Powered Distributed DNS for Anonymous Servers
@@ -20,7 +20,6 @@ OnioNS (alpha) - Tor-Powered Distributed DNS for Anonymous Servers
 > 1. **sudo apt-get install botan1.10-dev g++ cmake build-essential**
 > 2. **./buildClient.sh**
 > 3. **./buildServer.sh**
-> 4. **mv build/OnioNS* .**
 > 5. **cd tor-client**
 > 6. **sudo make install**
 

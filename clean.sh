@@ -7,7 +7,8 @@ rm -rf build/
 ((cd src/libs/libscrypt-1.20/ && make clean))
 
 #clean up tor-client
-mv -f tor-client-orig tor-client
-rm tor
+rm -rf tor-client
+mv tor-client-orig tor-client
+rm tor OnioNS_d
 
 echo "Successfully removed the build directory."
