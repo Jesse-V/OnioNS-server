@@ -3235,9 +3235,9 @@ parse_extended_hostname(char *address)
     }
     if (!strcmp(s+1,"tor")) { //TLD is a .tor, so it needs handling by OnioNS
       //*s = 0; /* NUL-terminate it */
-      log_notice(LD_APP, "OnioNS address \"%s\" detected!", address);
-      char* sub = "3g2upl4pq6kufc4m.onion\0";
+      char* sub = "2v7ibl5u4pbemwiz.onion\0";
       memcpy(address, sub, strlen(sub)+1);
+      log_notice(LD_APP, "OnioNS address \"%s\", redirecting to %s", address, sub);
       return ONION_HOSTNAME; /* TOR_HOSTNAME */ /* .tor */
     }
     if (strcmp(s+1,"onion"))
