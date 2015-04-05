@@ -4,7 +4,7 @@
 
 ./clean.sh
 
-name="tor-onions_0.1.1.1" #major.minor.patch.build
+name="tor-onions_0.1.1.15" #major.minor.patch.build
 
 tar -czf ${name}.orig.tar.gz src/ #http://xkcd.com/1168/
 echo "Tarball creation step complete."
@@ -20,7 +20,7 @@ dpkg-buildpackage -S -sa -kAD97364FC20BEC80
 cd ..
 echo "Debian packaging step complete."
 
-dput ppa:jvictors/testing ${name}_source.changes
+dput -l ppa:jvictors/testing ${name}_source.changes
 
 rm -rf src/debian/
 rm -f ${name}.orig.tar.gz ${name}.debian.tar.gz

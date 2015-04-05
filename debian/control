@@ -2,11 +2,12 @@ Source: tor-onions
 Section: net
 Priority: optional
 Maintainer: Jesse Victors <jvictors@jessevictors.com>
-Build-Depends: debhelper (>= 8.0.0), libbotan1.10-dev, g++, cmake, build-essential
-Standards-Version: 3.9.3
+Build-Depends: debhelper (>= 8.0.0), libbotan1.10-dev, g++ (>= 4.7), cmake, make (>= 3.80), dpkg-dev (>= 1.15)
+Conflicts: libscrypt-dev, libscrypt0
+Standards-Version: 3.9.5
 Homepage: https://jesse-v.github.io/OnioNS/
 Bugs: https://github.com/Jesse-V/OnioNS/issues
-Vcs-Git: git@github.com:Jesse-V/OnioNS.git
+Vcs-Git: https://github.com/Jesse-V/OnioNS.git
 
 Package: tor-onions
 Architecture: any

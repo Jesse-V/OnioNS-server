@@ -1,24 +1,37 @@
+tor-onions (0.1.1.15) trusty; urgency=medium
+
+  * Noted conflict with libscrypt0, which also provides an older libscrypt.so.0
+
+ -- Jesse Victors <jvictors@jessevictors.com>  Sat, 04 Apr 2015 17:48:00 -0600
+
+tor-onions (0.1.1.14) trusty; urgency=medium
+
+  * Installation of libscrypt shared object.
+  * Fixed lintian warnings and errors.
+
+ -- Jesse Victors <jvictors@jessevictors.com>  Sat, 04 Apr 2015 15:45:00 -0600
+
 tor-onions (0.1.1.1) trusty; urgency=medium
 
   * Installation of binary and manpage.
 
- -- Jesse Victors <jvictors@jessevictors.com>  Mon, 04 Mar 2015 13:52:00 -0600
+ -- Jesse Victors <jvictors@jessevictors.com>  Sat, 04 Apr 2015 13:52:00 -0600
 
 tor-onions (0.1.0.3) trusty; urgency=medium
 
   * Corrected package name.
 
- -- Jesse Victors <jvictors@jessevictors.com>  Mon, 04 Mar 2015 13:17:00 -0600
+ -- Jesse Victors <jvictors@jessevictors.com>  Sat, 04 Apr 2015 13:17:00 -0600
 
 tor-onions (0.1.0.2) trusty; urgency=medium
 
-  * Fixed section field in debian control.
+  * Fixed section field in Debian control.
 
- -- Jesse Victors <jvictors@jessevictors.com>  Mon, 04 Mar 2015 13:11:00 -0600
+ -- Jesse Victors <jvictors@jessevictors.com>  Sat, 04 Apr 2015 13:11:00 -0600
 
 tor-onions (0.1.0.1) trusty; urgency=medium
 
   * Domain Registration protocol.
   * Initial build.
 
- -- Jesse Victors <jvictors@jessevictors.com>  Mon, 04 Mar 2015 12:35:00 -0600
+ -- Jesse Victors <jvictors@jessevictors.com>  Sat, 04 Apr 2015 12:35:00 -0600
