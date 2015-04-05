@@ -18,7 +18,14 @@ OnioNS (alpha) - Tor-Powered Distributed DNS for Anonymous Servers
 * **Install from source**
 
 > 1. **sudo apt-get install botan1.10-dev g++ cmake build-essential**
-> 2. **./build.sh**
+> 2. **./buildClient.sh**
+> 2. **./buildServer.sh**
 > 2. **mv build/OnioNS* .**
+> 2. **mv tor-client/tor* .**
 
-    Use the ./ClangBuild.sh script if you prefer compiling with Clang.
+    I have included build scripts for Clang if you, as I do, prefer that compiler.
+
+### Usage
+
+> 1. Run the Tor client and point the Tor Browser at it.
+> 2. Query for "example.tor"
