@@ -1,14 +1,11 @@
 #OnioNS - the Onion Name Service
 ### Tor-Powered Distributed DNS for Tor Hidden Services
-========
 
 The Onion Name Service (OnioNS) is a distributed DNS that allows hidden service operator to construct strong associations between a human-meaningful .tor domain name and their .onion hidden service address. The system is powered by the Tor network and relies on a distributed database. It also enables Tor clients to query against OnioNS resolvers in an easy and secure fashion.
 
 ### Installation
 
 There are several methods to install the OnioNS software. The method of choice depends on your system. If you are on Ubuntu or an Ubuntu-based system (*Ubuntu, Mint) please use the PPA method. If you are running Debian or prefer not to use my PPA, please use the .deb method. Otherwise, for all other distributions and any other architecture other than amd64, please install from source.
-
-Note that my code is written in C++11, so you have to update GCC or change "--std=c++11" to --std=c++0x" in src/CMakeLists.txt before compiling if you are on an older system such as Debian Wheezy or Ubuntu Precise.
 
 I do not support Windows at the moment, though the client edition will land there eventually. I do not have any plans of porting nor supporting the server edition on Windows; you probably shouldn't be running Tor relays on Windows anyway. I am willing to provide upstream support to anyone who wishes to port the client edition to OS-X. My current primary focus is developing the Linux edition.
 
@@ -31,6 +28,8 @@ Please see the [Releases section](https://github.com/Jesse-V/OnioNS/releases) at
 > 3. **./buildServer.sh**
 
 I have included build scripts for Clang if you, as I do, prefer that compiler. Please let me know if you encounter any issues, I can update these instructions so that it's easier for everyone going forward.
+
+If you are on an older system such as Debian Wheezy or Ubuntu Precise, note that my code is written in C++11, so you may have to update GCC or change "--std=c++11" to --std=c++0x" in src/CMakeLists.txt before compiling.
 
 ### Usage
 
