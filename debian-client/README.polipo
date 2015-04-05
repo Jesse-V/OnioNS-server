@@ -1,0 +1,10 @@
+Polipo is a http proxy that makes it easer to use Tor with a browser.
+
+In order to make polipo use Tor, add the following to /etc/polipo/config:
+    socksParentProxy = localhost:9050
+    socksProxyType = socks5
+You should then point your browser at localhost:8123 .
+
+If you are concerned about cached data remaining on your disk, you
+should also add
+    diskCacheRoot=

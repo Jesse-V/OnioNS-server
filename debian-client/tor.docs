@@ -1,0 +1,4 @@
+debian/README.Debian
+debian/README.polipo
+debian/README.privoxy
+contrib/operator-tools/tor-exit-notice.html

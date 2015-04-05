@@ -1,0 +1,16 @@
+This is the Debian package for Tor, The Onion Router.
+
+If Tor is started by the init script, it loads the configuration
+snippets from /usr/share/tor/tor-service-defaults-torrc before
+consulting /etc/tor/torrc.
+
+The tor-service-defaults-torrc file tells Tor to run as daemon, create
+pidfile, sets its data directory and configures cookie authentication.
+
+If Tor is started not from the init script, then it will behave like
+upstream's Tor.
+
+-- 
+Peter Palfrader, Mon, 24 Jul 2006 05:20:30 +0200
+                 Sat, 23 Feb 2008 13:44:40 +0100
+                 Wed, 11 Jan 2012 21:31:44 +0100

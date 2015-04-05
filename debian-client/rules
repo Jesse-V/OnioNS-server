@@ -1,0 +1,62 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+DH_VERBOSE ?= 1
+
+# allow building against libdmalloc4 - it better be installed
+ifneq (,$(findstring with-dmalloc,$(DEB_BUILD_OPTIONS)))
+	confflags += --with-dmalloc
+endif
+# allow building with --enable-openbsd-malloc
+ifneq (,$(findstring enable-openbsd-malloc,$(DEB_BUILD_OPTIONS)))
+	confflags += --enable-openbsd-malloc
+endif
+
+%:
+	dh \
+		$@ \
+		--with quilt \
+		--builddirectory=build \
+		--parallel
+
+override_dh_auto_configure:
+	! [ -e debian/micro-revision.i ] || cp debian/micro-revision.i src/or/micro-revision.i
+	dh_auto_configure -- \
+		$(confflags) \
+		--prefix=/usr \
+		--mandir=\$${prefix}/share/man \
+		--infodir=\$${prefix}/share/info \
+		--localstatedir=/var \
+		--sysconfdir=/etc \
+		--disable-silent-rules \
+		--enable-gcc-warnings-advisory
+
+override_dh_clean:
+	! [ -e debian/micro-revision.i ] || rm -f src/or/micro-revision.i
+
+	# Normally the .deb wouldn't ship with a ../.git, but if we do, include the revision number
+	if [ -d .git ] && which git >/dev/null; then \
+		echo "\"`git rev-parse --short=16 HEAD`\"" > "debian/micro-revision.i" ; \
+	fi
+
+	# these get autobuilt from the .txt files, some of which we also patch
+	rm -vf doc/*.in
+
+	dh_clean
+
+override_dh_install:
+	dh_install --fail-missing
+
+	mv debian/tor/etc/tor/torrc.sample debian/tor/etc/tor/torrc
+
+	cp debian/tor.apparmor-profile             debian/tor/etc/apparmor.d/system_tor
+	cp debian/tor.apparmor-profile.abstraction debian/tor/etc/apparmor.d/abstractions/tor
+	dh_apparmor --profile-name=system_tor -ptor
+
+override_dh_installdocs:
+	dh_installdocs -ptor-dbg --link-doc=tor
+	dh_installdocs
+override_dh_strip:
+	dh_strip --dbg-package=tor-dbg
+override_dh_installinit:
+	dh_installinit --error-handler=tor_error_init
