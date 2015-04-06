@@ -26,17 +26,23 @@ add_custom_target(libscrypt
 add_executable(OnioNS
     main.cpp
 
-    Database/Page.cpp
-    Database/Snapshot.cpp
+    client/ClientProtocols.cpp
 
-    Records/Record.cpp
-    Records/Registration.cpp
-    Records/Renewal.cpp
-    Records/Update.cpp
-    Records/Transfer.cpp
-    Records/Deletion.cpp
+    server/ServerProtocols.cpp
+    server/Snapshot.cpp
 
-    utils.cpp
+    common/records/Record.cpp
+    common/records/Registration.cpp
+    common/records/Renewal.cpp
+    common/records/Transfer.cpp
+    common/records/Update.cpp
+    common/records/Deletion.cpp
+
+    common/Environment.cpp
+    common/Page.cpp
+    common/Quorum.cpp
+    common/utils.cpp
+
     ${JSONCPP_CPP}
 
     libs/CyoEncode-1.1.1/CyoDecode.c
