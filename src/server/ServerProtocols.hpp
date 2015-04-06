@@ -9,7 +9,7 @@
 class ServerProtocols
 {
    public:
-      static ServerProtocols& get();
+      static std::shared_ptr<ServerProtocols> get();
 
       void initializeDatabase();
       void validatePagechain();
@@ -24,7 +24,7 @@ class ServerProtocols
       void flood();
 
    private:
-      static ServerProtocols* singleton_;
+      static std::shared_ptr<ServerProtocols> singleton_;
 };
 
 #endif
