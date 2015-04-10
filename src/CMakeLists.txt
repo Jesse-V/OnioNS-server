@@ -54,7 +54,7 @@ add_executable(tor-onions
 #link against built and existing dependencies
 add_dependencies(tor-onions libscrypt)
 SET (LIBSCRYPT_LIB ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt/libscrypt.so.0)
-target_link_libraries(tor-onions pthread ${LIBSCRYPT_LIB} botan-1.10)
+target_link_libraries(tor-onions pthread ${LIBSCRYPT_LIB} botan-1.10 /usr/lib/x86_64-linux-gnu/libboost_system.so.1.54.0)
 
 #custom handling of output debug binary
 set_target_properties(tor-onions PROPERTIES DEBUG_POSTFIX "_d")
