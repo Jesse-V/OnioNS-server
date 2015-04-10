@@ -12,8 +12,8 @@ int main(int argc, char** argv)
 {
    //initialize environment
    auto env = Environment::get();
-   env->setReadPipe("/tmp/tor-onions-in");
-   env->setWritePipe("/tmp/tor-onions-out");
+   env->setQueryPipe("/tmp/tor-onions-query");
+   env->setResponsePipe("/tmp/tor-onions-response");
 
    //begin functionality
    auto clientProto = ClientProtocols::get();

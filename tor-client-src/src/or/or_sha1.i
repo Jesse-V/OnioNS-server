@@ -14,7 +14,7 @@
 "a62c99c09b6422963a476a081b99302bef9ee3fd  src/or/config.c\n"
 "e647847e7ff8ae6ab5d4265231db84850681e27e  src/or/confparse.c\n"
 "398ed9822fe86794639b59873843d4551450741e  src/or/connection.c\n"
-"4e669d7fb5534c3e4b46e7f7e8bb509246676972  src/or/connection_edge.c\n"
+"984f3b4d5a1746efbb1f1236c190d31d96f74be9  src/or/connection_edge.c\n"
 "2fc1742f4221783eafec251ab298c1c87d78cfea  src/or/connection_or.c\n"
 "8fbce30454f2ee687f440fd9db7fff65adf367db  src/or/control.c\n"
 "dd2db709c1801c11a348cb93584b624b73aa750b  src/or/cpuworker.c\n"

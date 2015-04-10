@@ -20,8 +20,6 @@ class ClientProtocols
       void broadcastRecord(const std::shared_ptr<Record>&);
 
    private:
-      void createNamedPipes();
-      void pipeListen();
       std::string resolveByProxy(const std::string&);
 
       static std::shared_ptr<ClientProtocols> singleton_;

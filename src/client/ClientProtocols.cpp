@@ -4,9 +4,16 @@
 #include "../common/Environment.hpp"
 #include "../common/utils.hpp"
 #include <botan/sha2_32.h>
-#include <thread>
 #include <sys/stat.h>
-#include <fstream>
+#include <thread>
+
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include <iostream>
 
 
@@ -24,8 +31,68 @@ std::shared_ptr<ClientProtocols> ClientProtocols::get()
 
 void ClientProtocols::listenForDomains()
 {
-   createNamedPipes();
-   pipeListen();
+   //const auto PIPE_CHECK = std::chrono::milliseconds(500);
+   auto env = Environment::get();
+   const auto QUERY_PATH    = env->getQueryPipe();
+   const auto RESPONSE_PATH = env->getResponsePipe();
+   const auto POLL_DELAY = std::chrono::milliseconds(500);
+   const int MAX_LEN = 256;
+
+   //create named pipes that we will use for Tor-OnioNS IPC
+   std::cout << "Initializing IPC... ";
+   mkfifo(QUERY_PATH.c_str(),    0777);
+   mkfifo(RESPONSE_PATH.c_str(), 0777);
+   std::cout << "done." << std::endl;
+
+   //named pipes are best dealt with C-style
+   //each side has to open for reading before the other can open for writing
+   std::cout << "Waiting for Tor connection... 1 ";
+   std::cout.flush();
+   int responsePipe = open(RESPONSE_PATH.c_str(), O_WRONLY);
+   std::cout << "2 ";
+   std::cout.flush();
+   int queryPipe    = open(QUERY_PATH.c_str(),    O_RDONLY);
+   std::cout << "done. " << std::endl;
+
+   std::cout << "Listening on pipe \"" << QUERY_PATH  << "\" ..." << std::endl;
+   std::cout << "Resolving to pipe \"" << RESPONSE_PATH << "\" ..." << std::endl;
+
+   //prepare reading buffer
+   char* buffer = new char[MAX_LEN + 1];
+   memset(buffer, 0, MAX_LEN);
+
+   while (true)
+   {
+      int readLength = read(queryPipe, (void*)buffer, MAX_LEN);
+      if (readLength < 0)
+      {
+         std::cerr << "Read error from IPC named pipe!" << std::endl;
+      }
+      else if (readLength > 0)
+      {
+         //terminate buffer
+         buffer[readLength] = '\0';
+
+         //convert read to string
+         std::string domainIn(buffer, readLength - 1);
+
+         //resolve
+         std::cout << "Proxying \"" << domainIn << "\" to resolver..." << std::endl;
+         auto onionOut = resolveByProxy(domainIn);
+         std::cout << "Resolved \"" << domainIn << "\" to " << onionOut << std::endl;
+
+         //flush result to Tor Browser
+         //outPipe << onionOut << std::endl;
+         //outPipe.flush();
+      }
+
+      //delay before polling pipe again
+      std::this_thread::sleep_for(POLL_DELAY);
+   }
+
+   //tear down file descriptors
+   close(queryPipe);
+   close(responsePipe);
 }
 
 
@@ -73,79 +140,6 @@ std::shared_ptr<Record> generateRecord()
 
 
 // *********************** PRIVATE METHODS: *********************
-
-
-
-void ClientProtocols::createNamedPipes()
-{
-   auto env  = Environment::get();
-
-   std::cout << "Initializing IPC... ";
-   mkfifo(env->getReadPipe().c_str(),  0777);
-   mkfifo(env->getWritePipe().c_str(), 0777);
-   std::cout << "done." << std::endl;
-}
-
-
-
-void ClientProtocols::pipeListen()
-{
-   auto env  = Environment::get();
-   const auto IN_PATH  = env->getReadPipe();
-   const auto OUT_PATH = env->getWritePipe();
-
-   std::cout << "Listening on pipe \"" << IN_PATH  << "\" ..." << std::endl;
-   std::cout << "Resolving to pipe \"" << OUT_PATH << "\" ..." << std::endl;
-
-   const auto POLL_DELAY = std::chrono::milliseconds(50);
-   const int MAX_LEN = 256;
-
-   //open pipes on this end
-   std::ofstream outPipe(OUT_PATH);
-   FILE* inPipe = fopen(IN_PATH.c_str(), "r"); //open named pipe
-
-   //prepare reading buffer
-   char* buffer = new char[MAX_LEN];
-   memset(buffer, 0, MAX_LEN);
-
-   while (true)
-   {
-      //read in a single line
-      int index = 0;
-      for (char c = getc(inPipe); c != '\n' && c != EOF && index < MAX_LEN;
-         c = getc(inPipe))
-      {
-         buffer[index] = c;
-         index++;
-      }
-
-      //process if something was read in
-      if (index > 0)
-      {
-         //convert read to string
-         std::string domainIn(buffer, index);
-
-         //resolve
-         std::cout << "Proxying \"" << domainIn << "\" to resolver..." << std::endl;
-         auto onionOut = resolveByProxy(domainIn);
-         std::cout << "Resolved \"" << domainIn << "\" to " << onionOut << std::endl;
-
-         //return to Tor Browser
-         outPipe << onionOut << std::endl;
-         outPipe.flush();
-
-         //reset read buffer
-         memset(buffer, 0, MAX_LEN);
-      }
-
-      //delay before polling pipe again
-      std::this_thread::sleep_for(POLL_DELAY);
-   }
-
-   //tear down file descriptors
-   fclose(inPipe);
-   outPipe.close();
-}
 
 
 

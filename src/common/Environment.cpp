@@ -15,28 +15,28 @@ std::shared_ptr<Environment> Environment::get()
 
 
 
-void Environment::setReadPipe(const std::string& pipePath)
+void Environment::setQueryPipe(const std::string& pipePath)
 {
-   readPipe_ = pipePath;
+   queryPath_ = pipePath;
 }
 
 
 
-std::string Environment::getReadPipe()
+std::string Environment::getQueryPipe()
 {
-   return readPipe_;
+   return queryPath_;
 }
 
 
 
-void Environment::setWritePipe(const std::string& pipePath)
+void Environment::setResponsePipe(const std::string& pipePath)
 {
-   writePipe_ = pipePath;
+   responsePath_ = pipePath;
 }
 
 
 
-std::string Environment::getWritePipe()
+std::string Environment::getResponsePipe()
 {
-   return writePipe_;
+   return responsePath_;
 }
