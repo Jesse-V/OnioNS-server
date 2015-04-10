@@ -11,3 +11,10 @@ std::shared_ptr<ServerProtocols> ServerProtocols::get()
    singleton_ = std::shared_ptr<ServerProtocols>();
    return singleton_;
 }
+
+
+
+void ServerProtocols::listenForDomains()
+{
+
+}

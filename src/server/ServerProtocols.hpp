@@ -15,7 +15,7 @@ class ServerProtocols
       void validatePagechain();
       void buildCache();
 
-      std::string resolveDomain(const std::string&);
+      void listenForDomains();
       void receiveNewRecord(const std::shared_ptr<Record>&);
       void uploadPagechain();
       void synchronizePagechain();
@@ -24,6 +24,8 @@ class ServerProtocols
       void flood();
 
    private:
+      std::string resolveDomain(const std::string&);
+
       static std::shared_ptr<ServerProtocols> singleton_;
 };
 

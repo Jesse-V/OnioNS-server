@@ -11,20 +11,22 @@ endif()
 
 #JSONCPP needs special compile flags
 #https://stackoverflow.com/questions/13638408/cmake-override-compile-flags-for-single-files
-SET (JSONCPP_CPP libs/jsoncpp-1.1.0/jsoncpp.cpp)
+SET (JSONCPP_CPP libs/jsoncpp/jsoncpp.cpp)
 set_source_files_properties(${JSONCPP_CPP} PROPERTIES COMPILE_FLAGS -w)
 
 #include headers to satisfy dependencies
-include_directories(. libs/jsoncpp-1.1.0 /usr/include/botan-1.10 libs/CyoEncode-1.1.1)
+#libs/CyoEncode libs/jsoncpp
+include_directories(. libs libs/jsoncpp /usr/include/botan-1.10)
 
 #libscrypt needs to be compiled into .so
 add_custom_target(libscrypt
    COMMAND make
-   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt-1.20/
+   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt/
 )
 
 add_executable(tor-onions
     main.cpp
+    Flags.cpp
 
     client/ClientProtocols.cpp
 
@@ -45,13 +47,13 @@ add_executable(tor-onions
 
     ${JSONCPP_CPP}
 
-    libs/CyoEncode-1.1.1/CyoDecode.c
-    libs/CyoEncode-1.1.1/CyoEncode.c
+    libs/CyoEncode/CyoDecode.c
+    libs/CyoEncode/CyoEncode.c
 )
 
 #link against built and existing dependencies
 add_dependencies(tor-onions libscrypt)
-SET (LIBSCRYPT_LIB ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt-1.20/libscrypt.so.0)
+SET (LIBSCRYPT_LIB ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt/libscrypt.so.0)
 target_link_libraries(tor-onions pthread ${LIBSCRYPT_LIB} botan-1.10)
 
 #custom handling of output debug binary

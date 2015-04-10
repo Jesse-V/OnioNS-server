@@ -2,12 +2,12 @@
 #include "Record.hpp"
 #include "../utils.hpp"
 
-#include "../../libs/libscrypt-1.20/libscrypt.h"
+#include "libs/libscrypt/libscrypt.h"
 #include <botan/pubkey.h>
 #include <botan/sha160.h>
 #include <botan/sha2_32.h>
 #include <botan/base64.h>
-#include <CyoEncode.hpp>
+#include <libs/CyoEncode/CyoEncode.hpp>
 
 #include <thread>
 #include <cassert>

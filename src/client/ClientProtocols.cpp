@@ -5,15 +5,9 @@
 #include "../common/utils.hpp"
 #include <botan/sha2_32.h>
 #include <sys/stat.h>
-#include <thread>
-
 #include <fcntl.h>
 #include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
+#include <thread>
 #include <iostream>
 
 
@@ -68,10 +62,8 @@ void ClientProtocols::listenForDomains()
       }
       else if (readLength > 0)
       {
-         //terminate buffer
+         //terminate buffer, convert read to string
          buffer[readLength] = '\0';
-
-         //convert read to string
          std::string domainIn(buffer, readLength - 1);
 
          //resolve
