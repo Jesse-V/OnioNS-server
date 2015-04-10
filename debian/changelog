@@ -1,3 +1,11 @@
+tor-onions (0.1.4.1~trusty) trusty; urgency=medium
+
+  * Working Tor-OnioNS IPC.
+  * Cleaner setup of named pipes.
+  * Removed helper script.
+
+ -- Jesse Victors <jvictors@jessevictors.com>  Fri, 10 Apr 2015 10:06:00 -0600
+
 tor-onions (0.1.3.5~trusty) trusty; urgency=medium
 
   * Added named pipes for Tor-OnioNS IPC.
