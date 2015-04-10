@@ -15,12 +15,14 @@ class ClientProtocols
          Accepts requests for .tor domains, resolves them, and write a .onion.
          Listens on an incoming named pipe, and writes to an outgoing named pipe.
       */
-      void proxyResolveListen();
+      void listenForDomains();
       std::shared_ptr<Record> generateRecord();
       void broadcastRecord(const std::shared_ptr<Record>&);
 
    private:
-      std::string proxyDomainResolves(const std::string&);
+      void createNamedPipes();
+      void pipeListen();
+      std::string resolveByProxy(const std::string&);
 
       static std::shared_ptr<ClientProtocols> singleton_;
 };

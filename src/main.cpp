@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 
    //begin functionality
    auto clientProto = ClientProtocols::get();
-   clientProto->proxyResolveListen();
+   clientProto->listenForDomains();
 
    return EXIT_SUCCESS;
 }
