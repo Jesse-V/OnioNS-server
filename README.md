@@ -31,7 +31,7 @@ I have included build scripts for Clang if you, as I do, prefer that compiler. P
 
 If you are on an older system such as Debian Wheezy or Ubuntu Precise, note that my code is written in C++11, so you may have to update GCC or change "--std=c++11" to --std=c++0x" in src/CMakeLists.txt before compiling.
 
-### Usage
+### Initialization
 
 > 1. Download the Tor Brower from torproject.org
 > 2. Open it up, and right-click on the Tor Button in the upper-left corner.
@@ -39,7 +39,13 @@ If you are on an older system such as Debian Wheezy or Ubuntu Precise, note that
 > 4. Click "Use Custom Proxy Settings"
 > 5. Change port to 9050 and hit OK.
 > 6. Close the Tor Browser.
-> 7. In the Terminal, run the generated binary with **./tor-client**
-> 8. Open the Tor Browser and just ignore the Tor warning.
-> 9. Type "example.tor" into the URL field.
-> 10. In a moment, you should arrive at a hidden service.
+
+### Usage
+
+> 1. Open two terminals, A and B.
+> 2. In Terminal A, run **./tor-onions**
+> 3. In Terminal B, run **./tor-client**
+> 4. Open the Tor Browser and just ignore the Tor warning.
+> 5. Type "example.tor" into the URL field.
+> 6. In a moment, you should arrive at a hidden service.
+> 7. Note the debug output in both Terminals.

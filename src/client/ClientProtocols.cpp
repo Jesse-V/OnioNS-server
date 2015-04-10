@@ -46,11 +46,9 @@ void ClientProtocols::listenForDomains()
 
    //named pipes are best dealt with C-style
    //each side has to open for reading before the other can open for writing
-   std::cout << "Waiting for Tor connection... 1 ";
+   std::cout << "Waiting for Tor connection... ";
    std::cout.flush();
    int responsePipe = open(RESPONSE_PATH.c_str(), O_WRONLY);
-   std::cout << "2 ";
-   std::cout.flush();
    int queryPipe    = open(QUERY_PATH.c_str(),    O_RDONLY);
    std::cout << "done. " << std::endl;
 
@@ -82,8 +80,7 @@ void ClientProtocols::listenForDomains()
          std::cout << "Resolved \"" << domainIn << "\" to " << onionOut << std::endl;
 
          //flush result to Tor Browser
-         //outPipe << onionOut << std::endl;
-         //outPipe.flush();
+         write(responsePipe, (onionOut+"\0").c_str(), onionOut.length() + 1);
       }
 
       //delay before polling pipe again
@@ -147,7 +144,12 @@ std::string ClientProtocols::resolveByProxy(const std::string& domain)
 {
    //while loop here
 
-   auto resolution = "2v7ibl5u4pbemwiz.onion";
+   auto resolution = "2v7ibl5u4pbemwiz\0";
+   /* resolve .tor -> .onion */
+      //char* resolution = "2v7ibl5u4pbemwiz\0";
+      //"blkbook3fxhcsn3u\0";
+      //"uhwikih256ynt57t\0";
+      //"2v7ibl5u4pbemwiz\0";
    std::cout << "   \"" << domain << "\" -> " << resolution << std::endl;
 
    //end while

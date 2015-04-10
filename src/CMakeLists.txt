@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(OnioNS)
+project(tor-onions)
 
 #compiler options for Clang and GCC/G++
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -23,7 +23,7 @@ add_custom_target(libscrypt
    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt-1.20/
 )
 
-add_executable(OnioNS
+add_executable(tor-onions
     main.cpp
 
     client/ClientProtocols.cpp
@@ -50,17 +50,16 @@ add_executable(OnioNS
 )
 
 #link against built and existing dependencies
-add_dependencies(OnioNS libscrypt)
+add_dependencies(tor-onions libscrypt)
 SET (LIBSCRYPT_LIB ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt-1.20/libscrypt.so.0)
-target_link_libraries(OnioNS pthread ${LIBSCRYPT_LIB} botan-1.10)
+target_link_libraries(tor-onions pthread ${LIBSCRYPT_LIB} botan-1.10)
 
 #custom handling of output debug binary
-set_target_properties(OnioNS PROPERTIES DEBUG_POSTFIX "_d")
+set_target_properties(tor-onions PROPERTIES DEBUG_POSTFIX "_d")
 
-#installation of files, tor-onions script makes named pipes and launches OnioNS
+#installation of files
 set(DEB_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/debian/extra_includes")
-install(TARGETS OnioNS                       DESTINATION /usr/bin/OnioNS/)
-install(FILES ${DEB_FOLDER}/tor-onions       DESTINATION /usr/bin/)
+install(TARGETS tor-onions                   DESTINATION /usr/bin/)
 install(FILES ${DEB_FOLDER}/tor-client       DESTINATION /usr/bin/)
 install(FILES ${LIBSCRYPT_LIB}               DESTINATION /usr/lib/)
 install(FILES ${DEB_FOLDER}/tor-onions.1.gz  DESTINATION /usr/share/man/man1)

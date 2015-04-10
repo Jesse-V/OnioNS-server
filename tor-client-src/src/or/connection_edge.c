@@ -3242,7 +3242,7 @@ parse_extended_hostname(char *address)
     if (!strcmp(s+1,"tor")) { /* TLD is a .tor, resolve through OnioNS */
 
       /* announce capture of .tor TLD */
-      log_notice(LD_APP, "Domain name \"%s\" captured.", address);
+      log_notice(LD_APP, "Domain name \"%s\" captured. Connecting...", address);
 
       //fast existence test for the IPC named pipes
       //http://stackoverflow.com/questions/12774207/
@@ -3257,27 +3257,27 @@ parse_extended_hostname(char *address)
 
       //open named pipe descriptors for resolve-response IPC
       //reads ends MUST be opened before write ends!
-      log_notice(LD_APP, "1");
+      //log_notice(LD_APP, "1");
       int responsePipe = open("/tmp/tor-onions-response", O_RDONLY);
-      log_notice(LD_APP, "2");
+      //log_notice(LD_APP, "2");
       int queryPipe    = open("/tmp/tor-onions-query",    O_WRONLY);
 
-      log_notice(LD_APP, "Tor-OnioNS IPC established!");
+      log_notice(LD_APP, "Tor-OnioNS IPC established! Resolving...");
 
-      /* resolve .tor -> .onion */
-      char* resolution = "2v7ibl5u4pbemwiz\0";
-      //"blkbook3fxhcsn3u\0";
-      //"uhwikih256ynt57t\0";
-      //"2v7ibl5u4pbemwiz\0";
+      int response[256];
+      write(queryPipe, address, strlen(address) + 1);
+      read(responsePipe, response, 256);
 
       /* announce resolution */
-      log_notice(LD_APP, "OnioNS resolved domain to \"%s.onion\"", resolution);
+      log_notice(LD_APP, "OnioNS resolved domain to \"%s.onion\"", response);
 
       close(responsePipe);
       close(queryPipe);
 
       /* modify in-place and return */
-      memcpy(address, resolution, strlen(resolution)+1);
+      memcpy(address, response, strlen(response)+1);
+      //free(response);
+
       return ONION_HOSTNAME; /* now handle as final .onion address */
     }
 
