@@ -12,9 +12,9 @@ ServerProtocols::ServerProtocols()
 
 void ServerProtocols::listenForDomains()
 {
-   auto service = std::make_shared<boost::asio::io_service>();
-   Server s(*service, 5678);
-   service->run();
+   boost::asio::io_service ios;
+   Server s(ios, 5678);
+   ios.run();
 }
 
 

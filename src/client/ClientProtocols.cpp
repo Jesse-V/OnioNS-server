@@ -3,12 +3,15 @@
 #include "../common/records/Registration.hpp"
 #include "../common/Environment.hpp"
 #include "../common/utils.hpp"
+#include <boost/asio.hpp>
 #include <botan/sha2_32.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <thread>
 #include <iostream>
+
+#include "tcp/SocksClient.hpp"
 
 
 std::shared_ptr<ClientProtocols> ClientProtocols::singleton_ = 0;
@@ -25,6 +28,11 @@ std::shared_ptr<ClientProtocols> ClientProtocols::get()
 
 void ClientProtocols::listenForDomains()
 {
+   boost::asio::io_service ios;
+   SocksClient client("localhost", 9050, ios);
+   client.connectTo("www.jessevictors.com", 80);
+   std::cout << client.sendReceive("hi there") << std::endl;
+
    //const auto PIPE_CHECK = std::chrono::milliseconds(500);
    auto env = Environment::get();
    const auto QUERY_PATH    = env->getQueryPipe();

@@ -30,6 +30,10 @@ add_executable(tor-onions
 
     client/ClientProtocols.cpp
 
+    client/tcp/SocksClient.cpp
+    client/tcp/SocksRequest.cpp
+    client/tcp/SocksReply.cpp
+
     server/ServerProtocols.cpp
     server/Snapshot.cpp
     server/tcp/Server.cpp
