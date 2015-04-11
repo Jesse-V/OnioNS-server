@@ -12,9 +12,11 @@ using boost::asio::ip::tcp;
 class ServerProtocols
 {
    public:
-      static std::shared_ptr<ServerProtocols> get();
-
-      ServerProtocols();
+      static ServerProtocols& get()
+      { //http://stackoverflow.com/questions/1008019/
+         static ServerProtocols instance;
+         return instance;
+      }
 
       void initializeDatabase();
       void validatePagechain();
@@ -29,6 +31,10 @@ class ServerProtocols
       void flood();
 
    private:
+      ServerProtocols(); //http://stackoverflow.com/questions/270947/
+      ServerProtocols(ServerProtocols const&) = delete;
+      void operator=(ServerProtocols const&) = delete;
+
       std::shared_ptr<boost::asio::io_service> service_;
       std::shared_ptr<tcp::acceptor> acceptor_;
 
@@ -37,6 +43,7 @@ class ServerProtocols
       void accept();
       void handleAccept(std::shared_ptr<tcp::socket> pSocket);
       void serve(std::shared_ptr<tcp::socket> pSocket);
+      void resolve();
       std::string resolveDomain(const std::string&);
 
       static std::shared_ptr<ServerProtocols> singleton_;

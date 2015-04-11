@@ -37,8 +37,7 @@ int main(int argc, char** argv)
 
    if (Flags::get()->getMode() == Flags::OperationMode::SERVER)
    {
-      auto serverProto = ServerProtocols::get();
-      serverProto->listenForDomains();
+      ServerProtocols::get().listenForDomains();
    }
 
    return EXIT_SUCCESS;
