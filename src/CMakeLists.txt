@@ -32,6 +32,13 @@ add_executable(tor-onions
 
     server/ServerProtocols.cpp
     server/Snapshot.cpp
+    server/tcp/Server.cpp
+    server/tcp/Session.cpp
+
+    common/Environment.cpp
+    common/Page.cpp
+    common/Quorum.cpp
+    common/utils.cpp
 
     common/records/Record.cpp
     common/records/Registration.cpp
@@ -39,11 +46,6 @@ add_executable(tor-onions
     common/records/Transfer.cpp
     common/records/Update.cpp
     common/records/Deletion.cpp
-
-    common/Environment.cpp
-    common/Page.cpp
-    common/Quorum.cpp
-    common/utils.cpp
 
     ${JSONCPP_CPP}
 
