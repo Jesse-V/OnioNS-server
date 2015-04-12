@@ -14,6 +14,7 @@ class Utils
       static bool isPowerOfTwo(unsigned int);
       static void stringReplace(std::string&, const std::string&,
          const std::string&);
+      static bool strEndsWith(const std::string& str, const std::string& ending);
 
       static Botan::RSA_PrivateKey* loadKey(const char*, Botan::RandomNumberGenerator&);
       static Botan::RSA_PrivateKey* loadOpenSSLRSA(const char*, Botan::RandomNumberGenerator&);

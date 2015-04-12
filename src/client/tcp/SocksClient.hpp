@@ -5,22 +5,22 @@
 #include <string>
 #include <boost/asio.hpp>
 
-using boost::asio::ip::tcp;
-
 class SocksClient
 {
    public:
-      SocksClient(const std::string&, short, boost::asio::io_service&);
+      SocksClient(const std::string&, short);
       void connectTo(const std::string&, short);
       std::string sendReceive(const std::string& send);
 
    private:
-      boost::asio::io_service& ios_;
+      bool checkSOCKS();
+
+      std::shared_ptr<boost::asio::io_service> ios_;
       std::string socksIP_;
       short socksPort_;
-      tcp::endpoint endpoint_;
-      tcp::socket socket_;
-      tcp::resolver resolver_;
+      boost::asio::ip::tcp::endpoint endpoint_;
+      boost::asio::ip::tcp::socket socket_;
+      boost::asio::ip::tcp::resolver resolver_;
 };
 
 #endif

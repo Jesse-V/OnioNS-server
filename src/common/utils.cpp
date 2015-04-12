@@ -46,6 +46,17 @@ void Utils::stringReplace(std::string& str, const std::string& find,
 
 
 
+//https://stackoverflow.com/questions/874134/
+bool Utils::strEndsWith(const std::string& str, const std::string& ending)
+{
+   if (str.length() >= ending.length())
+      return (0 == str.compare (str.length() - ending.length(), ending.length(), ending));
+   else
+      return false;
+}
+
+
+
 Botan::RSA_PrivateKey* Utils::loadKey(const char* filename, Botan::RandomNumberGenerator& rng)
 {
    try

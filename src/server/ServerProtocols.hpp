@@ -19,7 +19,7 @@ class ServerProtocols
       void validatePagechain();
       void buildCache();
 
-      void listenForDomains();
+      void startServer();
       void receiveNewRecord(const std::shared_ptr<Record>&);
       void uploadPagechain();
       void synchronizePagechain();

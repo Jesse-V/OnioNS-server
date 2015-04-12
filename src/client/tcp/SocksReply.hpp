@@ -4,6 +4,7 @@
 
 #include <boost/asio.hpp>
 
+//adapted from Boost's 1.53 socks4 sync_client.cpp example
 class SocksReply
 {
    public:
