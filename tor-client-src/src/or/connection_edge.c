@@ -1269,6 +1269,7 @@ connection_ap_handshake_rewrite_and_attach(entry_connection_t *conn,
     tor_onions_query(tor_libevent_get_base(), socks->address, conn, circ, cpath);
     //the libevent callback will call this function with a .onion address
     ENTRY_TO_CONN(conn)->state = AP_CONN_STATE_CIRCUIT_WAIT;
+    return 0;
   }
 
   /* Now, handle everything that isn't a .onion address. */
@@ -1579,20 +1580,22 @@ void tor_onions_query(struct event_base * evbase, const char * path,
     //open named pipe descriptors for resolve-response IPC
     //reads ends MUST be opened before write ends!
     q            = calloc(1, sizeof(struct OnioNS_Query));
-    q->r_pipe    = open("/tmp/tor-onions-response", O_RDONLY | O_NONBLOCK);
-    q->q_pipe    = open("/tmp/tor-onions-query", O_WRONLY | O_NONBLOCK);
+    q->r_pipe    = open("/tmp/tor-onions-response", O_RDONLY);
+    q->q_pipe    = open("/tmp/tor-onions-query", O_WRONLY);
     q->r_pipe_ev = event_new(evbase, q->r_pipe, EV_READ | EV_PERSIST, tor_onions_response, q);
 
     q->conn = conn;
     q->circ = circ;
     q->cpath = cpath;
 
-    log_notice(LD_APP, "Tor-OnioNS IPC established! Creating callback...");
+    log_notice(LD_APP, "Tor-OnioNS IPC established!");
 
     /* in reality we need to make this another event if we get a -1 and an errno that
      * is retry-able.
      */
-    write(q->q_pipe, path, strlen(path) + 1);
+    int len = write(q->q_pipe, path, strlen(path) + 1);
+
+    log_notice(LD_APP, "Wrote %d, creating callback...", len);
 
     /* now we add the event for reading the response and return. the function tor_onions_response
      * will execute once data is ready.
@@ -1628,9 +1631,14 @@ void tor_onions_response(int sock, short events, void * arg) {
      */
 
     q->response[nread] = '\0';
-    log_notice(LD_APP, "OnioNS resolved domain to \"%s.onion\"", q->response);
+    log_notice(LD_APP, "OnioNS resolved domain to \"%s\"", q->response);
+
+    memcpy(q->conn->socks_request->address, q->response, nread + 1);
+    connection_ap_handshake_rewrite_and_attach(q->conn, q->circ, q->cpath);
 
 done:
+    log_notice(LD_APP, "IPC cleanup.");
+
     //cleanup
     close(q->r_pipe);
     close(q->q_pipe);

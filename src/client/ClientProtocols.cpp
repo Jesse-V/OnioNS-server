@@ -29,7 +29,8 @@ void ClientProtocols::listenForDomains()
    const int MAX_LEN = 256;
 
    //establish connection with remote resolver over Tor
-   connectToResolver();
+   if (!connectToResolver())
+      return;
 
    //enable/get named pipes for Tor-OnioNS IPC
    auto pipes = establishIPC();
@@ -39,23 +40,29 @@ void ClientProtocols::listenForDomains()
    char* buffer = new char[MAX_LEN + 1];
    memset(buffer, 0, MAX_LEN);
 
+   std::cout << "Reading... " << std::endl;
+
    while (true)
    {
       //read .tor domain from Tor Browser
       int readLength = read(queryPipe, (void*)buffer, MAX_LEN);
       if (readLength < 0)
       {
-         std::cerr << "Read error from IPC named pipe!" << std::endl;
+         //std::cerr << "Read error from IPC named pipe!" << std::endl;
       }
       else if (readLength > 0)
       {
+         std::cout << "Read " << readLength << " bytes from Tor." << std::endl;
+
          //terminate buffer, convert read to string
          buffer[readLength] = '\0';
          std::string domainIn(buffer, readLength - 1);
 
          //resolve and flush result to Tor Browser
          auto onionOut = remotelyResolve(domainIn);
-         write(responsePipe, (onionOut+"\0").c_str(), onionOut.length() + 1);
+         std::cout << "Writing \"" << onionOut << "\" to Tor... ";
+         int ret = write(responsePipe, (onionOut+"\0").c_str(), onionOut.length() + 1);
+         std::cout << "done, " << ret << std::endl;
       }
 
       //delay before polling pipe again
@@ -65,7 +72,6 @@ void ClientProtocols::listenForDomains()
    //tear down file descriptors
    close(queryPipe);
    close(responsePipe);
-
 }
 
 
@@ -108,6 +114,29 @@ std::shared_ptr<Record> ClientProtocols::generateRecord()
    }
 
    return NULL;
+
+/*
+      const int IN  = 512;
+      const int OUT = IN * 16;
+
+      uint8_t arr[OUT];
+      memset(arr, 0, OUT);
+      for (int j = 0; j < IN; j++)
+      {
+         Botan::SHA_256 sha256;
+         uint8_t hashBin[32];
+         auto hashRaw = sha256.process(std::to_string(j));
+         memcpy(hashBin, hashRaw, 32);
+
+         auto dst = Utils::arrayToUInt32(hashBin);
+         arr[dst % OUT]++;
+      }
+
+      for (int j = 0; j < OUT; j++)
+         if ((int)arr[j] > 1)
+             std::cout << (int)arr[j] << ",";
+      std::cout << std::endl;
+*/
 }
 
 
@@ -156,7 +185,7 @@ std::pair<int, int> ClientProtocols::establishIPC()
    std::cout << "Waiting for Tor connection... ";
    std::cout.flush();
    int responsePipe = open(RESPONSE_PATH.c_str(), O_WRONLY);
-   int queryPipe    = open(QUERY_PATH.c_str(),    O_RDONLY);
+   int queryPipe    = open(QUERY_PATH.c_str(),    O_RDONLY); //O_NONBLOCK
    std::cout << "done. " << std::endl;
 
    std::cout << "Listening on pipe \"" << QUERY_PATH  << "\" ..." << std::endl;

@@ -21,7 +21,7 @@ SocksClient::SocksClient(const std::string& socksIP, short socksPort):
 
 void SocksClient::connectTo(const std::string& host, short port)
 {
-   std::cout << "Connecting to remove host..." << std::endl;
+   std::cout << "Resolving address of remote host..." << std::endl;
    tcp::resolver::query query(tcp::v4(), host, std::to_string(port));
    endpoint_ = *resolver_.resolve(query);
 }
@@ -52,7 +52,7 @@ std::string SocksClient::sendReceive(const std::string& sendStr)
 
 bool SocksClient::checkSOCKS()
 {
-   std::cout << "Checking SOCKS..." << std::endl;
+   std::cout << "Connecting via Tor..." << std::endl;
 
    SocksRequest sreq(SocksRequest::connect, endpoint_, "OnioNS");
    boost::asio::write(socket_, sreq.buffers());
