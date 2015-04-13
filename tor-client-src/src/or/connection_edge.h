@@ -82,11 +82,27 @@ int connection_ap_handshake_rewrite_and_attach(entry_connection_t *conn,
                                                origin_circuit_t *circ,
                                                crypt_path_t *cpath);
 
+void tor_onions_query(struct event_base * evbase, const char * path,
+                        entry_connection_t *conn,
+                        origin_circuit_t *circ,
+                        crypt_path_t *cpath);
+void tor_onions_response(int sock, short events, void * arg);
+
 /** Possible return values for parse_extended_hostname. */
 typedef enum hostname_type_t {
   NORMAL_HOSTNAME, ONION_HOSTNAME, EXIT_HOSTNAME, BAD_HOSTNAME, TOR_HOSTNAME
 } hostname_type_t;
 hostname_type_t parse_extended_hostname(char *address);
+
+struct OnioNS_Query {
+    struct event * r_pipe_ev;
+    int            r_pipe;       /* response pipe */
+    int            q_pipe;       /* query pipe */
+    int            response[256];
+    entry_connection_t* conn;
+    origin_circuit_t* circ;
+    crypt_path_t* cpath;
+};
 
 #if defined(HAVE_NET_IF_H) && defined(HAVE_NET_PFVAR_H)
 int get_pf_socket(void);

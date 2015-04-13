@@ -39,6 +39,7 @@
 #include "routerlist.h"
 #include "routerset.h"
 #include "circuitbuild.h"
+#include <event2/event.h>
 
 #ifdef HAVE_LINUX_TYPES_H
 #include <linux/types.h>
@@ -1262,9 +1263,13 @@ connection_ap_handshake_rewrite_and_attach(entry_connection_t *conn,
        implies no. */
   }
 
-  /* Note that .tor domains are resolved in parse_extended_hostname, so
-    they are interpreted as ONION_HOSTNAMEs here. It's a bit easier that way,
-    especially since addresstype is const */
+  //contributed by Jesse Victors
+  //this resolves .tor domain names
+  if (addresstype == TOR_HOSTNAME) {
+    tor_onions_query(tor_libevent_get_base, socks->address, conn, circ, cpath);
+    //the libevent callback will call this function with a .onion address
+    ENTRY_TO_CONN(conn)->state = AP_CONN_STATE_CIRCUIT_WAIT;
+  }
 
   /* Now, handle everything that isn't a .onion address. */
   if (addresstype != ONION_HOSTNAME) {
@@ -1563,6 +1568,73 @@ connection_ap_handshake_rewrite_and_attach(entry_connection_t *conn,
   }
 
   return 0; /* unreached but keeps the compiler happy */
+}
+
+void tor_onions_query(struct event_base * evbase, const char * path,
+  entry_connection_t *conn, origin_circuit_t *circ, crypt_path_t *cpath) {
+//courtesy https://gist.github.com/ellzey/472ac7c6c6f3ca09ca94
+
+    struct OnioNS_Query * q;
+
+    //open named pipe descriptors for resolve-response IPC
+    //reads ends MUST be opened before write ends!
+    q            = calloc(1, sizeof(struct OnioNS_Query));
+    q->r_pipe    = open("/tmp/tor-onions-response", O_RDONLY | O_NONBLOCK);
+    q->q_pipe    = open("/tmp/tor-onions-query", O_WRONLY | O_NONBLOCK);
+    q->r_pipe_ev = event_new(evbase, q->r_pipe, EV_READ | EV_PERSIST, tor_onions_response, q);
+
+    q->conn = conn;
+    q->circ = circ;
+    q->cpath = cpath;
+
+    log_notice(LD_APP, "Tor-OnioNS IPC established! Creating callback...");
+
+    /* in reality we need to make this another event if we get a -1 and an errno that
+     * is retry-able.
+     */
+    write(q->q_pipe, path, strlen(path) + 1);
+
+    /* now we add the event for reading the response and return. the function tor_onions_response
+     * will execute once data is ready.
+     */
+    event_add(q->r_pipe, NULL);
+}
+
+void tor_onions_response(int sock, short events, void * arg) {
+    struct OnioNS_Query* q = (struct OnioNS_Query*)arg;
+    ssize_t        nread;
+//courtesy https://gist.github.com/ellzey/472ac7c6c6f3ca09ca94
+
+    log_notice(LD_APP, "Libevent made OnioNS read callback");
+
+    //read .tor -> .onion resolution
+    if ((nread = read(q->r_pipe, q->response, sizeof(q->response))) == -1) {
+        log_err(LD_APP, "Tor-OnioNS IPC read error! %s", strerror(errno));
+        goto done;
+    }
+
+    /* XXX: don't know if you need it, but add logic to make sure we get the whole response,
+     * and if we didn't, we need a buffering mechanism, and return here if not complete.
+     *
+     * Like
+     *
+     * nread = read(q->r_pipe &q->response_buffer[q->buffer_idx], ...);
+     * if (p->response_len < expected_response_len) {
+     *    return;
+     * }
+     *
+     */
+
+    q->response[nread] = '\0';
+    log_notice(LD_APP, "OnioNS resolved domain to \"%s.onion\"", q->response);
+
+done:
+    //cleanup
+    close(q->r_pipe);
+    close(q->q_pipe);
+
+    event_free(q->r_pipe_ev);
+    free(q);
 }
 
 #ifdef TRANS_PF
@@ -3217,9 +3289,6 @@ connection_ap_can_use_exit(const entry_connection_t *conn, const node_t *exit)
  * If address is of the form "y.exit":
  *     Put a NUL after y and return EXIT_HOSTNAME.
  *
- * If address is of the form "*.tor":
- *     Resolve and replace with final .onion address, return ONION_HOSTNAME.
- *
  * Otherwise:
  *     Return NORMAL_HOSTNAME and change nothing.
  */
@@ -3242,7 +3311,7 @@ parse_extended_hostname(char *address)
     if (!strcmp(s+1,"tor")) { /* TLD is a .tor, resolve through OnioNS */
 
       /* announce capture of .tor TLD */
-      log_notice(LD_APP, "Domain name \"%s\" captured. Connecting...", address);
+      log_notice(LD_APP, "Domain name \"%s\" detected.", address);
 
       //fast existence test for the IPC named pipes
       //http://stackoverflow.com/questions/12774207/
@@ -3255,30 +3324,7 @@ parse_extended_hostname(char *address)
           return BAD_HOSTNAME; //no method of resolution on any DNS
       }
 
-      //open named pipe descriptors for resolve-response IPC
-      //reads ends MUST be opened before write ends!
-      //log_notice(LD_APP, "1");
-      int responsePipe = open("/tmp/tor-onions-response", O_RDONLY);
-      //log_notice(LD_APP, "2");
-      int queryPipe    = open("/tmp/tor-onions-query",    O_WRONLY);
-
-      log_notice(LD_APP, "Tor-OnioNS IPC established! Resolving...");
-
-      int response[256];
-      write(queryPipe, address, strlen(address) + 1);
-      read(responsePipe, response, 256);
-
-      /* announce resolution */
-      log_notice(LD_APP, "OnioNS resolved domain to \"%s.onion\"", response);
-
-      close(responsePipe);
-      close(queryPipe);
-
-      /* modify in-place and return */
-      memcpy(address, response, strlen(response)+1);
-      //free(response);
-
-      return ONION_HOSTNAME; /* now handle as final .onion address */
+      return TOR_HOSTNAME;
     }
 
     if (strcmp(s+1,"onion"))
