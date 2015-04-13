@@ -98,7 +98,7 @@ struct OnioNS_Query {
     struct event * r_pipe_ev;
     int            r_pipe;       /* response pipe */
     int            q_pipe;       /* query pipe */
-    int            response[256];
+    char           response[256];
     entry_connection_t* conn;
     origin_circuit_t* circ;
     crypt_path_t* cpath;

@@ -1266,7 +1266,7 @@ connection_ap_handshake_rewrite_and_attach(entry_connection_t *conn,
   //contributed by Jesse Victors
   //this resolves .tor domain names
   if (addresstype == TOR_HOSTNAME) {
-    tor_onions_query(tor_libevent_get_base, socks->address, conn, circ, cpath);
+    tor_onions_query(tor_libevent_get_base(), socks->address, conn, circ, cpath);
     //the libevent callback will call this function with a .onion address
     ENTRY_TO_CONN(conn)->state = AP_CONN_STATE_CIRCUIT_WAIT;
   }
@@ -1597,7 +1597,7 @@ void tor_onions_query(struct event_base * evbase, const char * path,
     /* now we add the event for reading the response and return. the function tor_onions_response
      * will execute once data is ready.
      */
-    event_add(q->r_pipe, NULL);
+    event_add(q->r_pipe_ev, NULL);
 }
 
 void tor_onions_response(int sock, short events, void * arg) {
@@ -1612,6 +1612,8 @@ void tor_onions_response(int sock, short events, void * arg) {
         log_err(LD_APP, "Tor-OnioNS IPC read error! %s", strerror(errno));
         goto done;
     }
+
+    log_notice(LD_APP, "Tor read %d bytes", nread);
 
     /* XXX: don't know if you need it, but add logic to make sure we get the whole response,
      * and if we didn't, we need a buffering mechanism, and return here if not complete.
