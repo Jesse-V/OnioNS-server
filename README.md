@@ -43,8 +43,8 @@ If you are on an older system such as Debian Wheezy or Ubuntu Precise, note that
 ### Usage
 
 > 1. Open two terminals, A and B.
-> 2. In Terminal A, run **./tor-onions --mode=client --verbose**
-> 3. In Terminal B, run **./tor-client**
+> 3. In Terminal A, run **./tor-client**
+> 2. In Terminal B, run **./tor-onions --mode=client --verbose**
 > 4. Open the Tor Browser and just ignore the Tor warning.
 > 5. Type "example.tor" into the URL field.
 > 6. In a moment, you should arrive at a hidden service.

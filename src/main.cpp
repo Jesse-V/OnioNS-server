@@ -34,8 +34,7 @@ int main(int argc, char** argv)
       auto clientProto = ClientProtocols::get();
       clientProto->listenForDomains();
    }
-
-   if (Flags::get()->getMode() == Flags::OperationMode::SERVER)
+   else if (Flags::get()->getMode() == Flags::OperationMode::SERVER)
    {
       ServerProtocols::get().startServer();
    }

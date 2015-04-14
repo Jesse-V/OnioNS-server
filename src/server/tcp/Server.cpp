@@ -4,7 +4,7 @@
 
 using boost::asio::ip::tcp;
 
-Server::Server(short port):
+Server::Server(ushort port):
    ios_(std::make_shared<boost::asio::io_service>()),
    acceptor_(*ios_, tcp::endpoint(tcp::v4(), port))
 {

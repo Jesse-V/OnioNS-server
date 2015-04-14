@@ -153,7 +153,7 @@ bool ClientProtocols::connectToResolver()
 
       //connect over Tor to remote resolver
       remoteResolver_ = std::make_shared<SocksClient>("localhost", 9050);
-      remoteResolver_->connectTo("129.123.7.39", 14321);
+      remoteResolver_->connectTo("129.123.7.8", 15678);
    }
    catch (boost::system::system_error const& ex)
    {

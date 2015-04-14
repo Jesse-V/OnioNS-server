@@ -11,7 +11,7 @@ typedef boost::shared_ptr<Session> SessionPtr;
 class Server
 {
    public:
-      Server(short);
+      Server(ushort);
       ~Server();
       void start();
       void stop();
