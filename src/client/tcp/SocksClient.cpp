@@ -33,10 +33,10 @@ std::string SocksClient::sendReceive(const std::string& sendStr)
    if (!checkSOCKS())
       throw std::runtime_error("Remote host refused connection.");
 
-   std::cout << "Writing \"" << sendStr << "\" ..." << std::endl;
+   std::cout << "Writing... ";
    boost::asio::write(socket_, boost::asio::buffer(sendStr));
 
-   std::cout << "Reading response line..." << std::endl;
+   std::cout << "done. Reading response... " << std::endl;
 
    boost::asio::streambuf response;
    boost::asio::read_until(socket_, response, "\n");
@@ -45,7 +45,7 @@ std::string SocksClient::sendReceive(const std::string& sendStr)
    std::istream is(&response);
    is >> s;
 
-   std::cout << "Remote host returned \"" << s << "\"" << std::endl;
+   std::cout << "done, \"" << s << "\"" << std::endl;
    return s;
 }
 

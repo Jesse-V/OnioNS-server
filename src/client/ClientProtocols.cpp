@@ -54,12 +54,9 @@ void ClientProtocols::listenForDomains()
       {
          std::cout << "Read " << readLength << " bytes from Tor." << std::endl;
 
-         //terminate buffer, convert read to string
-         buffer[readLength] = '\0';
-         std::string domainIn(buffer, readLength - 1);
-
          //resolve and flush result to Tor Browser
-         auto onionOut = remotelyResolve(domainIn);
+         auto onionOut = remotelyResolve(std::string(buffer, readLength - 1));
+
          std::cout << "Writing \"" << onionOut << "\" to Tor... ";
          int ret = write(responsePipe, (onionOut+"\0").c_str(), onionOut.length() + 1);
          std::cout << "done, " << ret << std::endl;
@@ -198,12 +195,15 @@ std::pair<int, int> ClientProtocols::establishIPC()
 
 std::string ClientProtocols::remotelyResolve(const std::string& domain)
 {
+   std::cout << "\"" << domain << "\" " << domain.size() << std::endl;
+
    std::string response = domain;
    while (Utils::strEndsWith(response, ".tor"))
    {
       std::cout << "Sending \"" << response << "\" to resolver..." << std::endl;
-      response = remoteResolver_->sendReceive(response);
+      response = remoteResolver_->sendReceive(response + "\r\n");
       std::cout << "Resolved to \"" << response << "\"" << std::endl;
    }
-   return response;
+
+   return response == domain ? "" : response;
 }
