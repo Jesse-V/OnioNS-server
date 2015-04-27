@@ -25,7 +25,7 @@ char* Utils::getAsHex(const uint8_t* data, int len)
 
 
 
-bool Utils::isPowerOfTwo(unsigned int x)
+bool Utils::isPowerOfTwo(std::size_t x)
 { //glibc method of checking
    return ((x != 0) && !(x & (x - 1)));
 }

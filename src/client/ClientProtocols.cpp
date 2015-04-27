@@ -30,7 +30,7 @@ void ClientProtocols::listenForDomains()
    while (true)
    {
       //read .tor domain from Tor Browser
-      int readLength = read(queryPipe, (void*)buffer, MAX_LEN);
+      ssize_t readLength = read(queryPipe, (void*)buffer, MAX_LEN);
       if (readLength < 0)
       {
          //std::cerr << "Read error from IPC named pipe!" << std::endl;
@@ -43,7 +43,7 @@ void ClientProtocols::listenForDomains()
          auto onionOut = remotelyResolve(std::string(buffer, readLength - 1));
 
          std::cout << "Writing \"" << onionOut << "\" to Tor... ";
-         int ret = write(responsePipe, (onionOut+"\0").c_str(), onionOut.length() + 1);
+         ssize_t ret = write(responsePipe, onionOut.c_str(), onionOut.length() + 1);
          std::cout << "done, " << ret << std::endl;
       }
 
@@ -76,6 +76,11 @@ bool ClientProtocols::connectToResolver()
    {
       std::cerr << ex.what() << std::endl;
       std::cerr << "Tor does not appear to be running! Aborting." << std::endl;
+      return false;
+   }
+   catch (std::exception& ex)
+   {
+      std::cerr << ex.what() << std::endl;
       return false;
    }
 
@@ -115,13 +120,21 @@ std::pair<int, int> ClientProtocols::establishIPC()
 std::string ClientProtocols::remotelyResolve(const std::string& domain)
 {
    std::cout << "\"" << domain << "\" " << domain.size() << std::endl;
-
    std::string response = domain;
-   while (Utils::strEndsWith(response, ".tor"))
+
+   try
    {
-      std::cout << "Sending \"" << response << "\" to resolver..." << std::endl;
-      response = remoteResolver_->sendReceive(response + "\r\n");
-      std::cout << "Resolved to \"" << response << "\"" << std::endl;
+      while (Utils::strEndsWith(response, ".tor"))
+      {
+         std::cout << "Sending \"" << response << "\" to resolver..." << std::endl;
+         response = remoteResolver_->sendReceive(response + "\r\n");
+         std::cout << "Resolved to \"" << response << "\"" << std::endl;
+      }
+   }
+   catch (std::runtime_error& re)
+   {
+      std::cerr << "Err: " << re.what() << std::endl;
+      return "<OnioNS_READFAIL>";
    }
 
    return response == domain ? "" : response;

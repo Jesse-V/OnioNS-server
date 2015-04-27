@@ -52,6 +52,7 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
    std::size_t end = std::min(domainIn.find('\r'), domainIn.find('\n'));
    if (end == std::string::npos)
    {
+      std::cout << "    *" << domain << "*" << std::endl;
       std::cerr << "No newline found!" << std::endl;
       return;
    }

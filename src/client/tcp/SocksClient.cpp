@@ -9,7 +9,7 @@ using boost::asio::ip::tcp;
 
 SocksClient::SocksClient(const std::string& socksIP, short socksPort):
    ios_(std::make_shared<boost::asio::io_service>()),
-   socksIP_(socksIP), socksPort_(socksPort), socket_(*ios_), resolver_(*ios_)
+   socket_(*ios_), resolver_(*ios_)
 {
    std::cout << "Creating SOCKS connection..." << std::endl;
    tcp::resolver::query socks_query(socksIP, std::to_string(socksPort));
@@ -62,8 +62,7 @@ bool SocksClient::checkSOCKS()
 
    if (!srep.success())
    {
-      std::cout << "Connection failed.\n";
-      std::cout << "status = 0x" << std::hex << srep.status();
+      std::cerr << "Connection failed." << srep.status() << std::endl;
       return false;
    }
 

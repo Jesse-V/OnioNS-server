@@ -4,9 +4,9 @@ project(tor-onions)
 
 #compiler options for Clang and GCC/G++
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS "-g -O3 --std=c++11 -Wno-c++98-compat-pedantic -pedantic -Weverything -Wno-unused-parameter -Wno-global-constructors -Wno-exit-time-destructors -Wno-non-virtual-dtor -Wno-weak-vtables -Wno-padded -Wno-cast-align -Wno-gnu -Wno-nested-anon-types -Wno-documentation -Wno-documentation-unknown-command -Wno-unknown-pragmas")
+    set(CMAKE_CXX_FLAGS "-g -O3 --std=c++0x -Wno-c++98-compat-pedantic -pedantic -Weverything -Wno-unused-parameter -Wno-global-constructors -Wno-exit-time-destructors -Wno-non-virtual-dtor -Wno-weak-vtables -Wno-padded -Wno-cast-align -Wno-gnu -Wno-nested-anon-types -Wno-documentation -Wno-documentation-unknown-command -Wno-unknown-pragmas")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set(CMAKE_CXX_FLAGS "-g -O3 --std=c++11 -Wall -Wextra -Wdouble-promotion -Wfloat-equal -Wunsafe-loop-optimizations -Wno-unused-parameter")
+    set(CMAKE_CXX_FLAGS "-g -O3 --std=c++0x -Wall -Wextra -Wdouble-promotion -Wfloat-equal -Wunsafe-loop-optimizations -Wno-unused-parameter")
 endif()
 
 #JSONCPP needs special compile flags
@@ -16,7 +16,7 @@ set_source_files_properties(${JSONCPP_CPP} PROPERTIES COMPILE_FLAGS -w)
 
 #include headers to satisfy dependencies
 #libs/CyoEncode libs/jsoncpp
-include_directories(. libs libs/jsoncpp /usr/include/botan-1.10)
+include_directories(libs libs/jsoncpp /usr/include/botan-1.10)
 
 #libscrypt needs to be compiled into .so
 add_custom_target(libscrypt

@@ -16,8 +16,6 @@ class SocksClient
       bool checkSOCKS();
 
       std::shared_ptr<boost::asio::io_service> ios_;
-      std::string socksIP_;
-      short socksPort_;
       boost::asio::ip::tcp::endpoint endpoint_;
       boost::asio::ip::tcp::socket socket_;
       boost::asio::ip::tcp::resolver resolver_;

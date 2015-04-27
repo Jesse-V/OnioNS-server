@@ -1,12 +1,12 @@
 
 #include "Flags.hpp"
-#include <libs/tclap/CmdLine.h>
+#include <tclap/CmdLine.h>
 #include <stdexcept>
 
 
 bool Flags::parse(int argc, char** argv)
 {
-   if (argc <= 2)
+   if (argc <= 1)
       return false;
 
    std::string mode(argv[1]);

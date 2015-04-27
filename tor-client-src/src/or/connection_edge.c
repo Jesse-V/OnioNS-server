@@ -1612,6 +1612,8 @@ void tor_onions_response(int sock, short events, void * arg) {
 
     //read .tor -> .onion resolution
     ssize_t nread = read(q->r_pipe, q->response, sizeof(q->response));
+    log_notice(LD_APP, "Tor read %d bytes", nread);
+
     if (nread == -1) {
       log_err(LD_APP, "Tor-OnioNS IPC read error! %s", strerror(errno));
       close(q->r_pipe);
@@ -1622,11 +1624,9 @@ void tor_onions_response(int sock, short events, void * arg) {
     else if (nread == 0) {
       close(q->r_pipe);
       close(q->q_pipe);
-      event_free(q->r_pipe_ev);
+      //event_free(q->r_pipe_ev);
       return;
     }
-
-    log_notice(LD_APP, "Tor read %d bytes", nread);
 
     /* XXX: don't know if you need it, but add logic to make sure we get the whole response,
      * and if we didn't, we need a buffering mechanism, and return here if not complete.
