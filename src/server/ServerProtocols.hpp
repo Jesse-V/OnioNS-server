@@ -28,10 +28,9 @@ class ServerProtocols
       void flood();
 
    private:
-      ServerProtocols(); //http://stackoverflow.com/questions/270947/
+      ServerProtocols() {} //http://stackoverflow.com/questions/270947/
       ServerProtocols(ServerProtocols const&) = delete;
       void operator=(ServerProtocols const&) = delete;
-
       static std::shared_ptr<ServerProtocols> singleton_;
 };
 

@@ -4,23 +4,24 @@
 #include <stdexcept>
 
 
-std::shared_ptr<Flags> Flags::singleton_ = 0;
-std::shared_ptr<Flags> Flags::get()
-{
-   if (singleton_)
-      return singleton_;
-
-   singleton_ = std::make_shared<Flags>();
-   return singleton_;
-}
-
-
-
 bool Flags::parse(int argc, char** argv)
 {
-   TCLAP::ValueArg<std::string> modeFlag("m", "mode",
-      "Specifies the mode, a local client or a remote server.", false,
-      "blah blah", "mode");
+   if (argc <= 2)
+      return false;
+
+   std::string mode(argv[1]);
+   if (mode == "client")
+      mode_ = OperationMode::CLIENT;
+   else if (mode == "server")
+      mode_ = OperationMode::SERVER;
+   else if (mode == "hs")
+      mode_ = OperationMode::HIDDEN_SERVICE;
+   else
+   {
+      std::cerr << "Unknown mode of operation! Exiting." << std::endl;
+      std::cout << "Command not in the form \"tor-onions <mode> <flags>\" \n";
+      return false;
+   }
 
    TCLAP::SwitchArg verboseFlag("v", "verbose",
       "Verbose printing to stdout.", false);
@@ -29,33 +30,19 @@ bool Flags::parse(int argc, char** argv)
       "Prints license information and exits.", false);
 
    TCLAP::CmdLine cmd(R".(Examples:
-      tor-onions --mode=client
-      tor-onions --mode=server
+      tor-onions client
+      tor-onions server
       ).", '=', "<unknown>");
 
-   cmd.add(modeFlag);
    cmd.add(verboseFlag);
    cmd.add(licenseFlag);
 
-   cmd.parse(argc, argv);
+   cmd.parse(argc - 1, argv + 1);
 
    if (licenseFlag.isSet())
    {
       std::cout << "Modified/New BSD License" << std::endl;
       return false;
-   }
-
-   if (modeFlag.isSet())
-   {
-      if (modeFlag.getValue() == "client")
-         mode_ = OperationMode::CLIENT;
-      else if (modeFlag.getValue() == "server")
-         mode_ = OperationMode::SERVER;
-      else
-      {
-         std::cerr << "Unknown mode! Exiting." << std::endl;
-         return false;
-      }
    }
 
    verbosity_ = verboseFlag.isSet();

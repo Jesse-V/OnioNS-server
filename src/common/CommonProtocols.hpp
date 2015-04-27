@@ -9,12 +9,19 @@
 class CommonProtocols
 {
    public:
-      static std::shared_ptr<CommonProtocols> get();
+      static CommonProtocols& get()
+      {
+         static CommonProtocols instance;
+         return instance;
+      }
 
       bool isRecordValid(const std::shared_ptr<Record>&);
       std::shared_ptr<Quorum> deriveQuorum();
 
    private:
+      CommonProtocols();
+      CommonProtocols(CommonProtocols const&) = delete;
+      void operator=(CommonProtocols const&) = delete;
       static std::shared_ptr<CommonProtocols> singleton_;
 };
 

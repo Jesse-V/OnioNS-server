@@ -39,6 +39,8 @@ add_executable(tor-onions
     server/tcp/Server.cpp
     server/tcp/Session.cpp
 
+    hs/HSProtocols.cpp
+
     common/Environment.cpp
     common/Page.cpp
     common/Quorum.cpp

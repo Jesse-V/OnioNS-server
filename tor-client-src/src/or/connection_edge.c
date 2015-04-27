@@ -1605,15 +1605,25 @@ void tor_onions_query(struct event_base * evbase, const char * path,
 
 void tor_onions_response(int sock, short events, void * arg) {
     struct OnioNS_Query* q = (struct OnioNS_Query*)arg;
-    ssize_t        nread;
+
 //courtesy https://gist.github.com/ellzey/472ac7c6c6f3ca09ca94
 
     log_notice(LD_APP, "Libevent made OnioNS read callback");
 
     //read .tor -> .onion resolution
-    if ((nread = read(q->r_pipe, q->response, sizeof(q->response))) == -1) {
-        log_err(LD_APP, "Tor-OnioNS IPC read error! %s", strerror(errno));
-        goto done;
+    ssize_t nread = read(q->r_pipe, q->response, sizeof(q->response));
+    if (nread == -1) {
+      log_err(LD_APP, "Tor-OnioNS IPC read error! %s", strerror(errno));
+      close(q->r_pipe);
+      close(q->q_pipe);
+      event_free(q->r_pipe_ev);
+      return;
+    }
+    else if (nread == 0) {
+      close(q->r_pipe);
+      close(q->q_pipe);
+      event_free(q->r_pipe_ev);
+      return;
     }
 
     log_notice(LD_APP, "Tor read %d bytes", nread);
@@ -1636,10 +1646,8 @@ void tor_onions_response(int sock, short events, void * arg) {
     memcpy(q->conn->socks_request->address, q->response, nread + 1);
     connection_ap_handshake_rewrite_and_attach(q->conn, q->circ, q->cpath);
 
-done:
     log_notice(LD_APP, "IPC cleanup.");
 
-    //cleanup
     close(q->r_pipe);
     close(q->q_pipe);
 

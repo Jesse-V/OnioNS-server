@@ -8,11 +8,15 @@
 class Flags
 {
    public:
-      static std::shared_ptr<Flags> get();
+      static Flags& get()
+      {
+         static Flags instance;
+         return instance;
+      }
 
       enum OperationMode
       {
-         CLIENT, SERVER
+         CLIENT, SERVER, HIDDEN_SERVICE
       };
 
       bool parse(int argc, char** argv);
@@ -20,6 +24,9 @@ class Flags
       bool verbosityEnabled();
 
    private:
+      Flags() {}
+      Flags(Flags const&) = delete;
+      void operator=(Flags const&) = delete;
       static std::shared_ptr<Flags> singleton_;
 
       OperationMode mode_;

@@ -4,11 +4,6 @@
 #include <iostream>
 
 
-ServerProtocols::ServerProtocols()
-{}
-
-
-
 void ServerProtocols::startServer()
 {
    Server s(15678);

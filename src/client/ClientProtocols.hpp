@@ -10,22 +10,28 @@
 class ClientProtocols
 {
    public:
-      static std::shared_ptr<ClientProtocols> get();
+      static ClientProtocols& get()
+      {
+         static ClientProtocols instance;
+         return instance;
+      }
 
       /*
          Accepts requests for .tor domains, resolves them, and write a .onion.
          Listens on an incoming named pipe, and writes to an outgoing named pipe.
       */
       void listenForDomains();
-      std::shared_ptr<Record> generateRecord();
       void broadcastRecord(const std::shared_ptr<Record>&);
 
    private:
+      ClientProtocols() {}
+      ClientProtocols(ClientProtocols const&) = delete;
+      void operator=(ClientProtocols const&) = delete;
+      static std::shared_ptr<ClientProtocols> singleton_;
+
       std::string remotelyResolve(const std::string&);
       std::pair<int, int> establishIPC();
       bool connectToResolver();
-
-      static std::shared_ptr<ClientProtocols> singleton_;
       std::shared_ptr<SocksClient> remoteResolver_;
 };
 
