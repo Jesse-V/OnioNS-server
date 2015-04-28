@@ -1,6 +1,5 @@
 
 #include "ClientProtocols.hpp"
-#include "../common/records/Registration.hpp"
 #include "../common/Environment.hpp"
 #include "../common/utils.hpp"
 #include <sys/stat.h>

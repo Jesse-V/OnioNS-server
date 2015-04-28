@@ -19,8 +19,14 @@ class Flags
          CLIENT, SERVER, HIDDEN_SERVICE
       };
 
+      enum Command
+      {
+         CREATE_RECORD
+      };
+
       bool parse(int argc, char** argv);
       OperationMode getMode();
+      Command getCommand();
       bool verbosityEnabled();
 
    private:
@@ -30,6 +36,7 @@ class Flags
       static std::shared_ptr<Flags> singleton_;
 
       OperationMode mode_;
+      Command command_;
       bool verbosity_;
 };
 

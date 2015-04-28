@@ -1,12 +1,12 @@
 
 #include "HSProtocols.hpp"
-#include "../common/records/Registration.hpp"
+#include "../common/records/CreateR.hpp"
 #include "../common/utils.hpp"
 #include <botan/sha2_32.h>
 #include <iostream>
 
 
-std::shared_ptr<Record> HSProtocols::generateRecord()
+std::shared_ptr<Record> HSProtocols::createRecord()
 {
    try
    {
@@ -21,7 +21,7 @@ std::shared_ptr<Record> HSProtocols::generateRecord()
       uint8_t cHash[32];
       memcpy(cHash, hash, 32);
 
-      auto r = std::make_shared<Registration>(rsaKey, cHash,
+      auto r = std::make_shared<CreateR>(rsaKey, cHash,
          "example.tor", "AD97364FC20BEC80");
 
       std::cout << std::endl;

@@ -47,11 +47,11 @@ add_executable(tor-onions
     common/utils.cpp
 
     common/records/Record.cpp
-    common/records/Registration.cpp
-    common/records/Renewal.cpp
-    common/records/Transfer.cpp
-    common/records/Update.cpp
-    common/records/Deletion.cpp
+    common/records/CreateR.cpp
+    common/records/RenewR.cpp
+    common/records/MoveR.cpp
+    common/records/UpdateR.cpp
+    common/records/DeleteR.cpp
 
     ${JSONCPP_CPP}
 

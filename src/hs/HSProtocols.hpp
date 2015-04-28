@@ -14,10 +14,10 @@ class HSProtocols
          return instance;
       }
 
-      std::shared_ptr<Record> generateRecord();
+      std::shared_ptr<Record> createRecord();
 
    private:
-      HSProtocols();
+      HSProtocols() {}
       HSProtocols(HSProtocols const&) = delete;
       void operator=(HSProtocols const&) = delete;
       static std::shared_ptr<HSProtocols> singleton_;

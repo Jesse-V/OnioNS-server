@@ -1,11 +1,11 @@
 
-#ifndef TRANSFER_HPP
-#define TRANSFER_HPP
+#ifndef MOVE_R_HPP
+#define MOVE_R_HPP
 
 #include "Record.hpp"
 #include <string>
 
-class Transfer: public Record
+class MoveR: public Record
 {
    public:
       virtual bool makeValid(uint8_t);

@@ -23,6 +23,9 @@ bool Flags::parse(int argc, char** argv)
       return false;
    }
 
+   TCLAP::SwitchArg createRecordFlag("c", "create",
+      "Register a domain name via a Create Record.", false);
+
    TCLAP::SwitchArg verboseFlag("v", "verbose",
       "Verbose printing to stdout.", false);
 
@@ -34,10 +37,14 @@ bool Flags::parse(int argc, char** argv)
       tor-onions server
       ).", '=', "<unknown>");
 
+   cmd.add(createRecordFlag);
    cmd.add(verboseFlag);
    cmd.add(licenseFlag);
 
    cmd.parse(argc - 1, argv + 1);
+
+   if (createRecordFlag.isSet())
+      command_ = Command::CREATE_RECORD;
 
    if (licenseFlag.isSet())
    {
@@ -55,6 +62,13 @@ bool Flags::parse(int argc, char** argv)
 Flags::OperationMode Flags::getMode()
 {
    return mode_;
+}
+
+
+
+Flags::Command Flags::getCommand()
+{
+   return command_;
 }
 
 

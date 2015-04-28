@@ -1,11 +1,11 @@
 
-#ifndef DELETION_HPP
-#define DELETION_HPP
+#ifndef DELETE_R_HPP
+#define DELETE_R_HPP
 
 #include "Record.hpp"
 #include <string>
 
-class Deletion: public Record
+class DeleteR: public Record
 {
    public:
       virtual bool makeValid(uint8_t);

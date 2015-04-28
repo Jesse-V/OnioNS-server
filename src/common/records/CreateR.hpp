@@ -1,16 +1,16 @@
 
-#ifndef REGISTRATION_HPP
-#define REGISTRATION_HPP
+#ifndef CREATE_R_HPP
+#define CREATE_R_HPP
 
 #include "Record.hpp"
 #include <vector>
 #include <string>
 #include <ostream>
 
-class Registration: public Record
+class CreateR: public Record
 {
    public:
-      Registration(Botan::RSA_PrivateKey*, uint8_t*, const std::string&, const std::string&);
+      CreateR(Botan::RSA_PrivateKey*, uint8_t*, const std::string&, const std::string&);
 
       bool setName(const std::string&);
       bool addSubdomain(const std::string&, const std::string&);
@@ -19,7 +19,7 @@ class Registration: public Record
 
       virtual std::string asJSON() const;
       virtual uint32_t getDifficulty() const;
-      friend std::ostream& operator<<(std::ostream&, const Registration&);
+      friend std::ostream& operator<<(std::ostream&, const CreateR&);
 
    private:
       virtual UInt32Data getCentral(uint8_t* nonce) const;

@@ -1,6 +1,5 @@
 
-#include "Registration.hpp"
-
+#include "CreateR.hpp"
 #include "../utils.hpp"
 #include <botan/base64.h>
 #include <json/json.h>
@@ -25,7 +24,7 @@
    must use deterministic sig alg!
 */
 
-Registration::Registration(Botan::RSA_PrivateKey* key, uint8_t* consensusHash,
+CreateR::CreateR(Botan::RSA_PrivateKey* key, uint8_t* consensusHash,
    const std::string& name, const std::string& contact):
    Record(key, consensusHash)
 {
@@ -35,7 +34,7 @@ Registration::Registration(Botan::RSA_PrivateKey* key, uint8_t* consensusHash,
 
 
 
-bool Registration::setName(const std::string& newName)
+bool CreateR::setName(const std::string& newName)
 {
    if (newName.empty() || newName.length() > 32)
       return false;
@@ -47,7 +46,7 @@ bool Registration::setName(const std::string& newName)
 
 
 
-bool Registration::addSubdomain(const std::string& from, const std::string& to)
+bool CreateR::addSubdomain(const std::string& from, const std::string& to)
 {
    if (subdomains_.size() >= 16 || from.size() > 32 || to.size() > 32)
       return false;
@@ -60,7 +59,7 @@ bool Registration::addSubdomain(const std::string& from, const std::string& to)
 
 
 
-bool Registration::setContact(const std::string& contactInfo)
+bool CreateR::setContact(const std::string& contactInfo)
 {
    if (!Utils::isPowerOfTwo(contactInfo.length()))
       return false;
@@ -72,7 +71,7 @@ bool Registration::setContact(const std::string& contactInfo)
 
 
 
-bool Registration::makeValid(uint8_t nCPUs)
+bool CreateR::makeValid(uint8_t nCPUs)
 {
    //TODO: if issue with fields other than nonce, return false
 
@@ -81,14 +80,14 @@ bool Registration::makeValid(uint8_t nCPUs)
 
 
 
-uint32_t Registration::getDifficulty() const
+uint32_t CreateR::getDifficulty() const
 {
    return 4; // 1/2^x chance of success, so order of magnitude
 }
 
 
 
-std::string Registration::asJSON() const
+std::string CreateR::asJSON() const
 {
    Json::Value obj;
 
@@ -123,7 +122,7 @@ std::string Registration::asJSON() const
 
 
 
-std::ostream& operator<<(std::ostream& os, const Registration& dt)
+std::ostream& operator<<(std::ostream& os, const CreateR& dt)
 {
    os << "Domain Registration: (currently " <<
       (dt.valid_ ? "VALID)" : "INVALID)") << std::endl;
@@ -175,7 +174,7 @@ std::ostream& operator<<(std::ostream& os, const Registration& dt)
 //********************* PRIVATE METHODS ****************************************
 
 
-UInt32Data Registration::getCentral(uint8_t* nonce) const
+UInt32Data CreateR::getCentral(uint8_t* nonce) const
 {
    std::string str;
    str += name_;
