@@ -8,7 +8,7 @@
    let "central" be:
       std::string name_;
       std::vector<std::pair<std::string,std::string>> subdomains_;
-      uint8_t consensusHash_[SHA256_LEN];
+      uint8_t consensusHash_[SHA384_LEN];
       uint8_t nonce_[NONCE_LEN];
       std::string contact_;
       long timestamp_;
@@ -95,7 +95,7 @@ std::string CreateR::asJSON() const
    obj["name"] = name_;
    obj["pgp"] = contact_;
    obj["t"] = std::to_string(timestamp_);
-   obj["cHash"] = Botan::base64_encode(consensusHash_, SHA256_LEN);
+   obj["cHash"] = Botan::base64_encode(consensusHash_, SHA384_LEN);
 
    //add any subdomains
    for (auto sub : subdomains_)
@@ -141,7 +141,7 @@ std::ostream& operator<<(std::ostream& os, const CreateR& dt)
    os << "   Validation:" << std::endl;
 
    os << "      Day Consensus: " <<
-      Botan::base64_encode(dt.consensusHash_, dt.SHA256_LEN) << std::endl;
+      Botan::base64_encode(dt.consensusHash_, dt.SHA384_LEN) << std::endl;
 
    os << "      Nonce: ";
    if (dt.isValid())
@@ -171,7 +171,9 @@ std::ostream& operator<<(std::ostream& os, const CreateR& dt)
 }
 
 
-//********************* PRIVATE METHODS ****************************************
+
+// ***************************** PRIVATE METHODS *****************************
+
 
 
 UInt32Data CreateR::getCentral(uint8_t* nonce) const
@@ -185,14 +187,14 @@ UInt32Data CreateR::getCentral(uint8_t* nonce) const
 
    int index = 0;
    auto pubKey = getPublicKey();
-   const size_t centralLen = str.length() + SHA256_LEN + NONCE_LEN + pubKey.second;
+   const size_t centralLen = str.length() + SHA384_LEN + NONCE_LEN + pubKey.second;
    uint8_t* central = new uint8_t[centralLen];
 
    memcpy(central + index, str.c_str(), str.size()); //copy string into array
    index += str.size();
 
-   memcpy(central + index, consensusHash_, SHA256_LEN);
-   index += SHA256_LEN;
+   memcpy(central + index, consensusHash_, SHA384_LEN);
+   index += SHA384_LEN;
 
    memcpy(central + index, nonce, NONCE_LEN);
    index += NONCE_LEN;

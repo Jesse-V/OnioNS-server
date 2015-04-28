@@ -1,8 +1,8 @@
 
 #include "HSProtocols.hpp"
+#include "../common/CommonProtocols.hpp"
 #include "../common/records/CreateR.hpp"
 #include "../common/utils.hpp"
-#include <botan/sha2_32.h>
 #include <iostream>
 
 
@@ -10,18 +10,10 @@ std::shared_ptr<Record> HSProtocols::createRecord()
 {
    try
    {
-      Botan::AutoSeeded_RNG rng;
-      Botan::RSA_PrivateKey* rsaKey = Utils::loadKey("assets/example.key", rng);
-      if (rsaKey != NULL)
-         std::cout << "RSA private key loaded successfully!" << std::endl;
+      auto rsaKey = loadKey();
+      auto hash384 = CommonProtocols::get().computeConsensusHash();
 
-      Botan::SHA_256 sha;
-      auto hash = sha.process("hello world");
-
-      uint8_t cHash[32];
-      memcpy(cHash, hash, 32);
-
-      auto r = std::make_shared<CreateR>(rsaKey, cHash,
+      auto r = std::make_shared<CreateR>(rsaKey, hash384,
          "example.tor", "AD97364FC20BEC80");
 
       std::cout << std::endl;
@@ -44,27 +36,22 @@ std::shared_ptr<Record> HSProtocols::createRecord()
    }
 
    return NULL;
+}
 
-/*
-      const int IN  = 512;
-      const int OUT = IN * 16;
 
-      uint8_t arr[OUT];
-      memset(arr, 0, OUT);
-      for (int j = 0; j < IN; j++)
-      {
-         Botan::SHA_256 sha256;
-         uint8_t hashBin[32];
-         auto hashRaw = sha256.process(std::to_string(j));
-         memcpy(hashBin, hashRaw, 32);
 
-         auto dst = Utils::arrayToUInt32(hashBin);
-         arr[dst % OUT]++;
-      }
+// ***************************** PRIVATE METHODS *****************************
 
-      for (int j = 0; j < OUT; j++)
-         if ((int)arr[j] > 1)
-             std::cout << (int)arr[j] << ",";
-      std::cout << std::endl;
-*/
+
+
+Botan::RSA_PrivateKey* HSProtocols::loadKey()
+{
+   std::cout << "Opening HS key... ";
+
+   Botan::AutoSeeded_RNG rng;
+   Botan::RSA_PrivateKey* rsaKey = Utils::loadKey("assets/example.key", rng);
+   if (rsaKey != NULL)
+      std::cout << "done." << std::endl;
+
+   return rsaKey;
 }

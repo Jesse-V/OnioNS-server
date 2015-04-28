@@ -4,7 +4,7 @@
 rm -rf build/
 
 #remove libscrypt build files
-((cd src/libs/libscrypt-1.20/ && make clean))
+((cd src/libs/libscrypt && make clean))
 
 #clean up built binaries
 rm tor-client tor-onions

@@ -41,6 +41,7 @@ add_executable(tor-onions
 
     hs/HSProtocols.cpp
 
+    common/CommonProtocols.cpp
     common/Environment.cpp
     common/Page.cpp
     common/Quorum.cpp

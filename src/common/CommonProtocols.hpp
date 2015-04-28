@@ -17,9 +17,10 @@ class CommonProtocols
 
       bool isRecordValid(const std::shared_ptr<Record>&);
       std::shared_ptr<Quorum> deriveQuorum();
+      uint8_t* computeConsensusHash();
 
    private:
-      CommonProtocols();
+      CommonProtocols() {}
       CommonProtocols(CommonProtocols const&) = delete;
       void operator=(CommonProtocols const&) = delete;
       static std::shared_ptr<CommonProtocols> singleton_;

@@ -19,7 +19,8 @@ class Record
 
       static const uint32_t RSA_LEN = 1024;
       static const uint32_t SIGNATURE_LEN = RSA_LEN / 8;
-      static const uint32_t SHA256_LEN = 256 / 8;
+      //static const uint32_t SHA256_LEN = 256 / 8;
+      static const uint32_t SHA384_LEN = 384 / 8;
       static const uint32_t SHA1_LEN = 160 / 8;
 
       bool setKey(Botan::RSA_PrivateKey*);
@@ -51,7 +52,7 @@ class Record
       int scrypt(const uint8_t*, size_t, uint8_t*) const;
 
       Botan::RSA_PrivateKey* key_;
-      uint8_t consensusHash_[SHA256_LEN];
+      uint8_t consensusHash_[SHA384_LEN];
       uint8_t nonce_[NONCE_LEN];
       uint8_t scrypted_[SCRYPTED_LEN];
       uint8_t signature_[SIGNATURE_LEN];

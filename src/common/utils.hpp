@@ -18,6 +18,9 @@ class Utils
 
       static Botan::RSA_PrivateKey* loadKey(const char*, Botan::RandomNumberGenerator&);
       static Botan::RSA_PrivateKey* loadOpenSSLRSA(const char*, Botan::RandomNumberGenerator&);
+
+      static void hex2bin(const char*, uint8_t*);
+      static uint8_t char2int(char);
 };
 
 #endif

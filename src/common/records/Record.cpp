@@ -20,7 +20,7 @@ Record::Record(Botan::RSA_PrivateKey* key, uint8_t* consensusHash):
    assert(key->get_n().bits() == RSA_LEN);
    setKey(key);
 
-   memcpy(consensusHash_, consensusHash, SHA256_LEN);
+   memcpy(consensusHash_, consensusHash, SHA384_LEN);
    memset(nonce_, 0, NONCE_LEN);
    memset(scrypted_, 0, SCRYPTED_LEN);
    memset(signature_, 0, SIGNATURE_LEN);
@@ -104,7 +104,9 @@ bool Record::isValid() const
 }
 
 
-// ***************************** PRIVATE METHODS: ***************************
+
+// ***************************** PRIVATE METHODS *****************************
+
 
 
 Record::WorkStatus Record::mineParallel(uint8_t nInstances)
@@ -256,7 +258,9 @@ int Record::scrypt(const uint8_t* input, size_t inputLen, uint8_t* output) const
    static bool saltReady = false;
    if (!saltReady)
    {
-      memset(SALT, 0, SCRYPT_SALT_LEN);
+      assert(SCRYPT_SALT_LEN == 16);
+      std::string piHex("243F6A8885A308D313198A2E03707344"); //pi in hex
+      Utils::hex2bin(piHex.c_str(), SALT);
       saltReady = true;
    }
 

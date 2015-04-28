@@ -60,7 +60,7 @@ void ClientProtocols::listenForDomains()
 
 
 
-// *********************** PRIVATE METHODS: *********************
+// ***************************** PRIVATE METHODS *****************************
 
 
 

@@ -3,6 +3,7 @@
 #define HS_PROTOCOLS
 
 #include "../common/records/Record.hpp"
+#include <botan/rsa.h>
 #include <memory>
 
 class HSProtocols
@@ -15,6 +16,7 @@ class HSProtocols
       }
 
       std::shared_ptr<Record> createRecord();
+      Botan::RSA_PrivateKey* loadKey();
 
    private:
       HSProtocols() {}

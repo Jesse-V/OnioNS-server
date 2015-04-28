@@ -97,7 +97,7 @@ void Session::processWrite(const boost::system::error_code& error)
 
 
 
-//************************** PRIVATE METHODS *************************
+// ***************************** PRIVATE METHODS *****************************
 
 
 
