@@ -22,7 +22,7 @@ class ClientProtocols
          Listens on an incoming named pipe, and writes to an outgoing named pipe.
       */
       void listenForDomains();
-      void broadcastRecord(const std::shared_ptr<Record>&);
+
 
    private:
       ClientProtocols() {}

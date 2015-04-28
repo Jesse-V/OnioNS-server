@@ -47,6 +47,9 @@ class Record
       WorkStatus mineParallel(uint8_t);
       WorkStatus makeValid(uint8_t, uint8_t, uint8_t*, uint8_t*, uint8_t*);
 
+      UInt32Data computeBuffer(const UInt32Data&, uint8_t*, uint8_t*);
+      bool computeValidity(const UInt32Data& buffer, uint8_t*);
+
       size_t signMessageDigest(const uint8_t*, size_t,
          const Botan::Private_Key*, uint8_t*) const;
       int scrypt(const uint8_t*, size_t, uint8_t*) const;

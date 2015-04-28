@@ -16,13 +16,15 @@ class HSProtocols
       }
 
       std::shared_ptr<Record> createRecord();
-      Botan::RSA_PrivateKey* loadKey();
+      void broadcastRecord(const std::shared_ptr<Record>&);
 
    private:
       HSProtocols() {}
       HSProtocols(HSProtocols const&) = delete;
       void operator=(HSProtocols const&) = delete;
       static std::shared_ptr<HSProtocols> singleton_;
+
+      Botan::RSA_PrivateKey* loadKey();
 };
 
 #endif

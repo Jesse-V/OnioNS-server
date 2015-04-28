@@ -5,7 +5,7 @@
 #include <libscrypt/libscrypt.h>
 #include <botan/pubkey.h>
 #include <botan/sha160.h>
-#include <botan/sha2_32.h>
+#include <botan/sha2_64.h>
 #include <botan/base64.h>
 #include <CyoEncode/CyoEncode.hpp>
 
@@ -107,6 +107,8 @@ bool Record::isValid() const
 
 // ***************************** PRIVATE METHODS *****************************
 
+/*
+todo: this whole codebase is a complete mess. Try simplying it by having workers pass Records around, rather than data buffers */
 
 
 Record::WorkStatus Record::mineParallel(uint8_t nInstances)
@@ -124,10 +126,10 @@ Record::WorkStatus Record::mineParallel(uint8_t nInstances)
    {
       workers.push_back(std::thread([n, nInstances, nonces, scryptOuts, sigs, this]()
       {
-         std::string name("worker ");
-         name += std::to_string(n+1) + "/" + std::to_string(nInstances);
+         std::string name("worker " + std::to_string(n + 1));
 
          std::cout << "Starting " << name << std::endl;
+         std::cout.flush();
 
          //prepare dynamic variables for this instance
          memset(nonces[n], 0, NONCE_LEN);
@@ -182,37 +184,13 @@ Record::WorkStatus Record::makeValid(uint8_t depth, uint8_t inc,
       if (isValid())
          return WorkStatus::Aborted;
 
-      const auto sigInLen = central.second + SCRYPTED_LEN;
-      const auto totalLen = sigInLen + SIGNATURE_LEN;
-
-      //save {central, scryptedBuf} with room for signature
-      uint8_t* buffer = new uint8_t[totalLen];
-      memcpy(buffer, central.first, central.second); //import central
-      memcpy(buffer + central.second, scryptedBuf, SCRYPTED_LEN); //import scryptedBuf
-
-      //digitally sign (RSA-SHA384) {central, scryptedBuf}
-      signMessageDigest(buffer, sigInLen, key_, sigBuf);
-      memcpy(buffer + sigInLen, sigBuf, SIGNATURE_LEN);
-
-      //hash (SHA-256) {central, scryptedBuf, sigBuf}
-      Botan::SHA_256 sha256;
-      auto hash = sha256.process(buffer, totalLen);
-
-      //interpret hash output as number and compare against threshold
-      auto num = Utils::arrayToUInt32(hash, 0);
-      std::cout << Botan::base64_encode(nonceBuf, NONCE_LEN) << " -> " << num << std::endl;
-      std::cout.flush();
-
+      UInt32Data buffer = computeBuffer(central, scryptedBuf, sigBuf);
       if (isValid())
          return WorkStatus::Aborted;
 
-      if (num < UINT32_MAX / (1 << getDifficulty()))
-      {
-         valid_ = true;
+      if (computeValidity(buffer, nonceBuf))
          return WorkStatus::Success;
-      }
-
-      return WorkStatus::NotFound;
+      return isValid() ? WorkStatus::Aborted : WorkStatus::NotFound;
    }
 
    WorkStatus ret = makeValid(depth + 1, inc, nonceBuf, scryptedBuf, sigBuf);
@@ -266,4 +244,48 @@ int Record::scrypt(const uint8_t* input, size_t inputLen, uint8_t* output) const
 
    return libscrypt_scrypt(input, inputLen, SALT, SCRYPT_SALT_LEN,
       SCR_N, 1, SCR_P, output, SCRYPTED_LEN);
+}
+
+
+
+UInt32Data Record::computeBuffer(const UInt32Data& central, uint8_t* scryptedBuf, uint8_t* sigBuf)
+{
+   const auto sigInLen = central.second + SCRYPTED_LEN;
+   const auto totalLen = sigInLen + SIGNATURE_LEN;
+
+   //save {central, scryptedBuf} with room for signature
+   uint8_t* buffer = new uint8_t[totalLen];
+   memcpy(buffer, central.first, central.second); //import central
+   memcpy(buffer + central.second, scryptedBuf, SCRYPTED_LEN); //import scryptedBuf
+
+   //digitally sign (RSA-SHA384) {central, scryptedBuf}
+   signMessageDigest(buffer, sigInLen, key_, sigBuf);
+   memcpy(buffer + sigInLen, sigBuf, SIGNATURE_LEN);
+
+   return std::make_pair(buffer, totalLen);
+}
+
+
+
+bool Record::computeValidity(const UInt32Data& buffer, uint8_t* nonceBuf)
+{
+   //interpret hash output as number
+   Botan::SHA_384 sha384;
+   auto hash = sha384.process(buffer.first, buffer.second);
+   auto num = Utils::arrayToUInt32(hash, 0);
+
+   //compare number against threshold
+   std::cout << Botan::base64_encode(nonceBuf, NONCE_LEN);
+   if (num < UINT32_MAX / (1 << getDifficulty()))
+   {
+      std::cout << " -> YES" << std::endl;
+      std::cout.flush();
+
+      valid_ = true; //todo: is this really necessary here?
+      return true;
+   }
+
+   std::cout << " -> no" << std::endl;
+   std::cout.flush();
+   return false;
 }

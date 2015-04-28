@@ -4,25 +4,6 @@
 #include <botan/base64.h>
 #include <json/json.h>
 
-/*
-   let "central" be:
-      std::string name_;
-      std::vector<std::pair<std::string,std::string>> subdomains_;
-      uint8_t consensusHash_[SHA384_LEN];
-      uint8_t nonce_[NONCE_LEN];
-      std::string contact_;
-      long timestamp_;
-      pubKey
-
-   for each nonce, generate:
-      uint8_t scrypted_[SCRYPTED_LEN]; //scrypt output of {central}
-      uint8_t signature_[SIGNATURE_LEN]; //digital sig of {central, scrypted_}
-   registration valid iff SHA384{central, scrypted_, signature_} < THRESHOLD
-   then save as {central, scrypted_, signature_} in JSON format
-
-   computational operator won't know when to stop, since the sig matters
-   must use deterministic sig alg!
-*/
 
 CreateR::CreateR(Botan::RSA_PrivateKey* key, uint8_t* consensusHash,
    const std::string& name, const std::string& contact):
@@ -82,7 +63,7 @@ bool CreateR::makeValid(uint8_t nCPUs)
 
 uint32_t CreateR::getDifficulty() const
 {
-   return 4; // 1/2^x chance of success, so order of magnitude
+   return 6; // 1/2^x chance of success, so order of magnitude
 }
 
 
@@ -91,28 +72,30 @@ std::string CreateR::asJSON() const
 {
    Json::Value obj;
 
-   //add all static fields
-   obj["name"] = name_;
-   obj["pgp"] = contact_;
-   obj["t"] = std::to_string(timestamp_);
+   obj["type"] = "Create";
+   obj["contact"] = contact_;
+   obj["timestamp"] = std::to_string(timestamp_);
    obj["cHash"] = Botan::base64_encode(consensusHash_, SHA384_LEN);
 
-   //add any subdomains
+   //add names and subdomains
+   Json::Value nameList;
+   nameList[name_] = getOnion();
    for (auto sub : subdomains_)
-      obj["subd"][sub.first] = sub.second;
+      nameList[sub.first] = sub.second;
+   obj["nameList"] = nameList;
 
    //extract and save public key
    auto ber = Botan::X509::BER_encode(*key_);
    uint8_t* berBin = new uint8_t[ber.size()];
    memcpy(berBin, ber, ber.size());
-   obj["pubKey"] = Botan::base64_encode(berBin, ber.size());
+   obj["pubHSKey"] = Botan::base64_encode(berBin, ber.size());
 
    //if the domain is valid, add nonce_, scrypted_, and signature_
    if (isValid())
    {
-      obj["n"] = Botan::base64_encode(nonce_, NONCE_LEN);
-      obj["scrypt"] = Botan::base64_encode(scrypted_, SCRYPTED_LEN);
-      obj["sig"] = Botan::base64_encode(signature_, SIGNATURE_LEN);
+      obj["nonce"] = Botan::base64_encode(nonce_, NONCE_LEN);
+      obj["pow"] = Botan::base64_encode(scrypted_, SCRYPTED_LEN);
+      obj["recordSig"] = Botan::base64_encode(signature_, SIGNATURE_LEN);
    }
 
    //output in compressed (non-human-friendly) format
@@ -140,7 +123,7 @@ std::ostream& operator<<(std::ostream& os, const CreateR& dt)
    os << "   Time: " << dt.timestamp_ << std::endl;
    os << "   Validation:" << std::endl;
 
-   os << "      Day Consensus: " <<
+   os << "      Last Consensus: " <<
       Botan::base64_encode(dt.consensusHash_, dt.SHA384_LEN) << std::endl;
 
    os << "      Nonce: ";

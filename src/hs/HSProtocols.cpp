@@ -23,7 +23,7 @@ std::shared_ptr<Record> HSProtocols::createRecord()
 
       std::cout << std::endl;
       std::cout << "Result:" << std::endl;
-      std::cout << r << std::endl;
+      std::cout << *r << std::endl;
 
       std::cout << std::endl;
       std::cout << "Final JSON: " << r->asJSON() << std::endl;
