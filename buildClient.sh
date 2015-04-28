@@ -5,7 +5,7 @@ cpus=$(grep -c ^processor /proc/cpuinfo)
 cd tor-client-src
 
 if [ ! -f "Makefile" ]; then
-   ./configure
+   ./configure --disable-asciidoc
 fi
 
 make -j $cpus
