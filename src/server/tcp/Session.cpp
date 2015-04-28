@@ -47,34 +47,37 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
    }
 
    std::string domainIn(buffer_.begin(), buffer_.begin() + n);
-   std::string onion("404");
+   std::string response("404");
 
    std::size_t end = std::min(domainIn.find('\r'), domainIn.find('\n'));
    if (end == std::string::npos)
    {
-      std::cout << "    *" << domain << "*" << std::endl;
+      std::cout << "    *" << domainIn << "*" << std::endl;
       std::cerr << "No newline found!" << std::endl;
-      return;
+      response = "<MALFORMED>";
+   }
+   else
+   {
+      domainIn.resize(end);
+      std::cout << "received \"" << domainIn << "\"" << std::endl;
+
+      if (Utils::strEndsWith(domainIn, ".tor"))
+      { //resolve .tor -> .onion
+
+         response = "onions55e7yam27n.onion";
+         //response = "2v7ibl5u4pbemwiz.onion";
+         //response = "blkbook3fxhcsn3u.onion";
+         //response = "uhwikih256ynt57t.onion";
+      }
+
+      std::cout << "Server writes \"" << response << "\"" << std::endl;
    }
 
-   domainIn.resize(end);
-   std::cout << "received \"" << domainIn << "\"" << std::endl;
-
-   if (Utils::strEndsWith(domainIn, ".tor"))
-   { //resolve .tor -> .onion
-
-      onion = "2v7ibl5u4pbemwiz.onion";
-      //onion = "blkbook3fxhcsn3u.onion";
-      //onion = "uhwikih256ynt57t.onion";
-      //onion = "2v7ibl5u4pbemwiz.onion";
-   }
-
-   std::cout << "Server writes \"" << onion << "\"" << std::endl;
-   for (std::size_t j = 0; j < onion.size(); j++)
-      buffer_[j] = onion[j];
-   buffer_[onion.size() + 0] = '\r';
-   buffer_[onion.size() + 1] = '\n';
-   asyncWriteBuffer(onion.size() + 2);
+   for (std::size_t j = 0; j < response.size(); j++)
+      buffer_[j] = response[j];
+   buffer_[response.size() + 0] = '\r';
+   buffer_[response.size() + 1] = '\n';
+   asyncWriteBuffer(response.size() + 2);
 }
 
 

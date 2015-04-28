@@ -127,7 +127,11 @@ std::string ClientProtocols::remotelyResolve(const std::string& domain)
       while (Utils::strEndsWith(response, ".tor"))
       {
          std::cout << "Sending \"" << response << "\" to resolver..." << std::endl;
+
          response = remoteResolver_->sendReceive(response + "\r\n");
+         if (response == "<MALFORMED>")
+            return "";
+
          std::cout << "Resolved to \"" << response << "\"" << std::endl;
       }
    }
