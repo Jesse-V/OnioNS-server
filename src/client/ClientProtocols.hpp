@@ -4,6 +4,7 @@
 
 #include "../common/records/Record.hpp"
 #include "tcp/SocksClient.hpp"
+#include <unordered_map>
 #include <memory>
 #include <string>
 
@@ -33,6 +34,7 @@ class ClientProtocols
       std::pair<int, int> establishIPC();
       bool connectToResolver();
       std::shared_ptr<SocksClient> remoteResolver_;
+      std::unordered_map<std::string, std::string> cache_;
 };
 
 #endif

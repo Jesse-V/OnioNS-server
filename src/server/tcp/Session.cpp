@@ -69,9 +69,9 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
          //response = "blkbook3fxhcsn3u.onion";
          //response = "uhwikih256ynt57t.onion";
       }
-
-      std::cout << "Server writes \"" << response << "\"" << std::endl;
    }
+
+   std::cout << "Server writes \"" << response << "\"" << std::endl;
 
    for (std::size_t j = 0; j < response.size(); j++)
       buffer_[j] = response[j];
