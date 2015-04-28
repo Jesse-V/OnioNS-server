@@ -7,6 +7,7 @@
 #include <botan-1.10/botan/rsa.h>
 
 typedef std::pair<uint8_t*, size_t> UInt32Data;
+typedef std::vector<std::pair<std::string,std::string>> NameList;
 
 class Record
 {

@@ -111,20 +111,20 @@ bool Record::isValid() const
 todo: this whole codebase is a complete mess. Try simplying it by having workers pass Records around, rather than data buffers */
 
 
-Record::WorkStatus Record::mineParallel(uint8_t nInstances)
+Record::WorkStatus Record::mineParallel(uint8_t nWorkers)
 {
-   if (nInstances == 0)
+   if (nWorkers == 0)
       return WorkStatus::Aborted;
 
-   auto nonces = new uint8_t[nInstances][NONCE_LEN];
-   auto scryptOuts = new uint8_t[nInstances][SCRYPTED_LEN];
-   auto sigs = new uint8_t[nInstances][SIGNATURE_LEN];
+   auto nonces = new uint8_t[nWorkers][NONCE_LEN];
+   auto scryptOuts = new uint8_t[nWorkers][SCRYPTED_LEN];
+   auto sigs = new uint8_t[nWorkers][SIGNATURE_LEN];
 
    //Record::WorkStatus status = WorkStatus::Success;
    std::vector<std::thread> workers;
-   for (uint8_t n = 0; n < nInstances; n++)
+   for (uint8_t n = 0; n < nWorkers; n++)
    {
-      workers.push_back(std::thread([n, nInstances, nonces, scryptOuts, sigs, this]()
+      workers.push_back(std::thread([n, nWorkers, nonces, scryptOuts, sigs, this]()
       {
          std::string name("worker " + std::to_string(n + 1));
 
@@ -137,7 +137,7 @@ Record::WorkStatus Record::mineParallel(uint8_t nInstances)
          memset(sigs[n], 0, SIGNATURE_LEN);
          nonces[n][NONCE_LEN - 1] = n;
 
-         auto ret = makeValid(0, nInstances, nonces[n], scryptOuts[n], sigs[n]);
+         auto ret = makeValid(0, nWorkers, nonces[n], scryptOuts[n], sigs[n]);
          if (ret == WorkStatus::Success)
          {
             std::cout << "Success from " << name << std::endl;

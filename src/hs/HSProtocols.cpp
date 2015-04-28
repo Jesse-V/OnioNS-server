@@ -10,11 +10,9 @@ std::shared_ptr<Record> HSProtocols::createRecord()
 {
    try
    {
-      auto rsaKey = loadKey();
-      auto hash384 = CommonProtocols::get().computeConsensusHash();
-
-      auto r = std::make_shared<CreateR>(rsaKey, hash384,
-         "example.tor", "AD97364FC20BEC80");
+      auto r = std::make_shared<CreateR>(loadKey(), "example2.tor", "AD97364FC20BEC80");
+      NameList list = r->getNameList();
+      list.push_back(std::make_pair("sub.example2.tor", "example.tor"));
 
       std::cout << std::endl;
       std::cout << "Initial JSON: " << r->asJSON() << std::endl;

@@ -1,53 +1,66 @@
 
 #include "CreateR.hpp"
+#include "../../common/CommonProtocols.hpp"
 #include "../utils.hpp"
 #include <botan/base64.h>
 #include <json/json.h>
 
 
-CreateR::CreateR(Botan::RSA_PrivateKey* key, uint8_t* consensusHash,
-   const std::string& name, const std::string& contact):
-   Record(key, consensusHash)
+CreateR::CreateR(Botan::RSA_PrivateKey* key,
+   const std::string& primaryName, const std::string& contact):
+   Record(key, CommonProtocols::get().computeConsensusHash())
 {
-   setName(name);
+   NameList nameList;
+   nameList.push_back(std::make_pair(primaryName, getOnion()));
+   setNameList(nameList);
+
    setContact(contact);
 }
 
 
 
-bool CreateR::setName(const std::string& newName)
+void CreateR::setNameList(const NameList& nameList)
 {
-   if (newName.empty() || newName.length() > 32)
-      return false;
+   //todo: count/check number of second-level domain names
+   //todo: count/check number and length of names
 
-   name_ = newName;
+   if (nameList.empty() || nameList.size() > 24)
+      throw std::invalid_argument("Name list of invalid length!");
+
+   for (auto pair : nameList)
+   {
+      if (pair.first.length() <= 5 || pair.first.length() > 128)
+         throw std::invalid_argument("Invalid length of source name!");
+      if (pair.second.length() <= 5 || pair.second.length() > 128)
+         throw std::invalid_argument("Invalid length of destination name!");
+
+      if (!Utils::strEndsWith(pair.first, ".tor"))
+         throw std::invalid_argument("Source name must begin with .tor!");
+      if (!Utils::strEndsWith(pair.first, ".tor") &&
+         !Utils::strEndsWith(pair.first, ".onion"))
+         throw std::invalid_argument("Destination must go to .tor or .onion!");
+   }
+
+   nameList_ = nameList;
    valid_ = false;
-   return true;
 }
 
 
 
-bool CreateR::addSubdomain(const std::string& from, const std::string& to)
+NameList CreateR::getNameList()
 {
-   if (subdomains_.size() >= 16 || from.size() > 32 || to.size() > 32)
-      return false;
-
-   subdomains_.push_back(std::make_pair(from, to));
-   valid_ = false; //need new nonce now
-
-   return true;
+   return nameList_;
 }
 
 
 
-bool CreateR::setContact(const std::string& contactInfo)
+void CreateR::setContact(const std::string& contactInfo)
 {
    if (!Utils::isPowerOfTwo(contactInfo.length()))
-      return false;
+      throw std::invalid_argument("Invalid length of PGP key");
 
    contact_ = contactInfo;
-   valid_ = false; //need new nonce now
-   return true;
+   valid_ = false;
 }
 
 
@@ -78,11 +91,8 @@ std::string CreateR::asJSON() const
    obj["cHash"] = Botan::base64_encode(consensusHash_, SHA384_LEN);
 
    //add names and subdomains
-   Json::Value nameList;
-   nameList[name_] = getOnion();
-   for (auto sub : subdomains_)
-      nameList[sub.first] = sub.second;
-   obj["nameList"] = nameList;
+   for (auto sub : nameList_)
+      obj["nameList"][sub.first] = sub.second;
 
    //extract and save public key
    auto ber = Botan::X509::BER_encode(*key_);
@@ -109,14 +119,11 @@ std::ostream& operator<<(std::ostream& os, const CreateR& dt)
 {
    os << "Domain Registration: (currently " <<
       (dt.valid_ ? "VALID)" : "INVALID)") << std::endl;
-   os << "   Name: " << dt.name_ << " -> " << dt.getOnion() << std::endl;
+   os << "   Name: DERP -> " << dt.getOnion() << std::endl;
    os << "   Subdomains: ";
 
-   if (dt.subdomains_.empty())
-      os << "(none)";
-   else
-      for (auto subd : dt.subdomains_)
-         os << std::endl << "      " << subd.first << " -> " << subd.second;
+   for (auto subd : dt.nameList_)
+      os << std::endl << "      " << subd.first << " -> " << subd.second;
    os << std::endl;
 
    os << "   Contact: 0x" << dt.contact_ << std::endl;
@@ -162,8 +169,7 @@ std::ostream& operator<<(std::ostream& os, const CreateR& dt)
 UInt32Data CreateR::getCentral(uint8_t* nonce) const
 {
    std::string str;
-   str += name_;
-   for (auto subd : subdomains_)
+   for (auto subd : nameList_)
       str += subd.first + subd.second;
    str += contact_;
    str += std::to_string(timestamp_);
