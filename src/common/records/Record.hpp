@@ -2,9 +2,10 @@
 #ifndef RECORD_HPP
 #define RECORD_HPP
 
-#include <cstdint>
 #include <botan-1.10/botan/botan.h>
 #include <botan-1.10/botan/rsa.h>
+#include <cstdint>
+#include <string>
 
 typedef std::pair<uint8_t*, size_t> UInt32Data;
 typedef std::vector<std::pair<std::string,std::string>> NameList;
@@ -24,36 +25,45 @@ class Record
       static const uint32_t SHA384_LEN = 384 / 8;
       static const uint32_t SHA1_LEN = 160 / 8;
 
-      bool setKey(Botan::RSA_PrivateKey*);
-      UInt32Data getPublicKey() const;
-      std::string getOnion() const;
-      virtual uint32_t getDifficulty() const = 0;
-
-      bool refresh();
-      virtual bool makeValid(uint8_t) = 0;
-      bool isValid() const;
-
-      virtual std::string asJSON() const = 0;
-
       enum WorkStatus
       {
          Success, NotFound, Aborted
       };
 
+      Record(Botan::RSA_PrivateKey*, uint8_t*);
+      Record(const Record&);
+
+      void setNameList(const NameList&);
+      NameList getNameList();
+
+      void setContact(const std::string&);
+      std::string getContact();
+
+      bool setKey(Botan::RSA_PrivateKey*);
+      UInt32Data getPublicKey() const;
+      std::string getOnion() const;
+
+      bool refresh();
+      void makeValid(uint8_t);
+      bool isValid() const;
+
+      //virtual bool makeValid(uint8_t);
+      virtual uint32_t getDifficulty() const;
+      virtual std::string asJSON() const;
+      friend std::ostream& operator<<(std::ostream&, const Record&);
+
    protected:
-      Record(Botan::RSA_PrivateKey* key, uint8_t*);
-      ~Record();
+      WorkStatus makeValid(bool*);
+      WorkStatus makeValid(uint8_t, uint8_t, bool*);
 
-      virtual UInt32Data getCentral(uint8_t* nonce) const = 0;
-      WorkStatus mineParallel(uint8_t);
-      WorkStatus makeValid(uint8_t, uint8_t, uint8_t*, uint8_t*, uint8_t*);
+      virtual UInt32Data computeCentral();
+      UInt32Data computeBuffer();
+      size_t updateSignature(const UInt32Data& buffer);
+      int updateScrypt(const UInt32Data& buffer);
+      void updateValidity(const UInt32Data& buffer);
 
-      UInt32Data computeBuffer(const UInt32Data&, uint8_t*, uint8_t*);
-      bool computeValidity(const UInt32Data& buffer, uint8_t*);
-
-      size_t signMessageDigest(const uint8_t*, size_t,
-         const Botan::Private_Key*, uint8_t*) const;
-      int scrypt(const uint8_t*, size_t, uint8_t*) const;
+      NameList nameList_;
+      std::string contact_;
 
       Botan::RSA_PrivateKey* key_;
       uint8_t consensusHash_[SHA384_LEN];

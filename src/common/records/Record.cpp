@@ -8,6 +8,7 @@
 #include <botan/sha2_64.h>
 #include <botan/base64.h>
 #include <CyoEncode/CyoEncode.hpp>
+#include <json/json.h>
 
 #include <thread>
 #include <cassert>
@@ -28,10 +29,76 @@ Record::Record(Botan::RSA_PrivateKey* key, uint8_t* consensusHash):
 
 
 
+Record::Record(const Record& other):
+   key_(other.key_), timestamp_(other.timestamp_), valid_(other.valid_)
+{
+   memcpy(consensusHash_, other.consensusHash_, SHA384_LEN);
+   memcpy(nonce_, other.nonce_, NONCE_LEN);
+   memcpy(scrypted_, other.scrypted_, SCRYPTED_LEN);
+   memcpy(signature_, other.signature_, SIGNATURE_LEN);
+}
+
+
+/*
 Record::~Record()
 {
-   //delete signature_;
-   //delete nonce_;
+   delete consensusHash_;
+   delete nonce_;
+   delete scrypted_;
+   delete signature_;
+}*/
+
+
+
+void Record::setNameList(const NameList& nameList)
+{
+   //todo: count/check number of second-level domain names
+   //todo: count/check number and length of names
+
+   if (nameList.empty() || nameList.size() > 24)
+      throw std::invalid_argument("Name list of invalid length!");
+
+   for (auto pair : nameList)
+   {
+      if (pair.first.length() <= 5 || pair.first.length() > 128)
+         throw std::invalid_argument("Invalid length of source name!");
+      if (pair.second.length() <= 5 || pair.second.length() > 128)
+         throw std::invalid_argument("Invalid length of destination name!");
+
+      if (!Utils::strEndsWith(pair.first, ".tor"))
+         throw std::invalid_argument("Source name must begin with .tor!");
+      if (!Utils::strEndsWith(pair.first, ".tor") &&
+         !Utils::strEndsWith(pair.first, ".onion"))
+         throw std::invalid_argument("Destination must go to .tor or .onion!");
+   }
+
+   nameList_ = nameList;
+   valid_ = false;
+}
+
+
+
+NameList Record::getNameList()
+{
+   return nameList_;
+}
+
+
+
+void Record::setContact(const std::string& contactInfo)
+{
+   if (!Utils::isPowerOfTwo(contactInfo.length()))
+      throw std::invalid_argument("Invalid length of PGP key");
+
+   contact_ = contactInfo;
+   valid_ = false;
+}
+
+
+
+std::string Record::getContact()
+{
+   return contact_;
 }
 
 
@@ -98,6 +165,49 @@ bool Record::refresh()
 
 
 
+void Record::makeValid(uint8_t nWorkers)
+{
+   if (nWorkers == 0)
+      throw std::invalid_argument("Not enough workers");
+
+   bool found = false;
+   bool* foundSig = &found;
+
+   std::vector<std::thread> workers;
+   for (uint8_t n = 0; n < nWorkers; n++)
+   {
+      workers.push_back(std::thread([n, foundSig, this]()
+      {
+         std::string name("worker " + std::to_string(n + 1));
+
+         std::cout << "Starting " << name << std::endl;
+         std::cout.flush();
+
+         auto record = std::make_shared<Record>(*this);
+         if (record->makeValid(foundSig) == WorkStatus::Success)
+         {
+            std::cout << "Success from " << name << std::endl;
+
+            //save successful answer
+            memcpy(consensusHash_, record->consensusHash_, SHA384_LEN);
+            memcpy(nonce_, record->nonce_, NONCE_LEN);
+            memcpy(scrypted_, record->scrypted_, SCRYPTED_LEN);
+            memcpy(signature_, record->signature_, SIGNATURE_LEN);
+         }
+
+         std::cout << "Shutting down " << name << std::endl;
+      }));
+   }
+
+   /*
+   std::for_each(workers.begin(), workers.end(), [](std::thread &t)
+   {
+      t.join();
+   });*/
+}
+
+
+
 bool Record::isValid() const
 {
    return valid_;
@@ -105,65 +215,119 @@ bool Record::isValid() const
 
 
 
-// ***************************** PRIVATE METHODS *****************************
-
 /*
-todo: this whole codebase is a complete mess. Try simplying it by having workers pass Records around, rather than data buffers */
-
-
-Record::WorkStatus Record::mineParallel(uint8_t nWorkers)
+bool CreateR::makeValid(uint8_t nCPUs)
 {
-   if (nWorkers == 0)
-      return WorkStatus::Aborted;
+   //TODO: if issue with fields other than nonce, return false
 
-   auto nonces = new uint8_t[nWorkers][NONCE_LEN];
-   auto scryptOuts = new uint8_t[nWorkers][SCRYPTED_LEN];
-   auto sigs = new uint8_t[nWorkers][SIGNATURE_LEN];
+   return mineParallel(nCPUs);
+}
+*/
 
-   //Record::WorkStatus status = WorkStatus::Success;
-   std::vector<std::thread> workers;
-   for (uint8_t n = 0; n < nWorkers; n++)
+
+
+uint32_t Record::getDifficulty() const
+{
+   return 6; // 1/2^x chance of success, so order of magnitude
+}
+
+
+
+std::string Record::asJSON() const
+{
+   Json::Value obj;
+
+   obj["type"] = "Create"; //todo:
+   obj["contact"] = contact_;
+   obj["timestamp"] = std::to_string(timestamp_);
+   obj["cHash"] = Botan::base64_encode(consensusHash_, SHA384_LEN);
+
+   //add names and subdomains
+   for (auto sub : nameList_)
+      obj["nameList"][sub.first] = sub.second;
+
+   //extract and save public key
+   auto ber = Botan::X509::BER_encode(*key_);
+   uint8_t* berBin = new uint8_t[ber.size()];
+   memcpy(berBin, ber, ber.size());
+   obj["pubHSKey"] = Botan::base64_encode(berBin, ber.size());
+
+   //if the domain is valid, add nonce_, scrypted_, and signature_
+   if (isValid())
    {
-      workers.push_back(std::thread([n, nWorkers, nonces, scryptOuts, sigs, this]()
-      {
-         std::string name("worker " + std::to_string(n + 1));
-
-         std::cout << "Starting " << name << std::endl;
-         std::cout.flush();
-
-         //prepare dynamic variables for this instance
-         memset(nonces[n], 0, NONCE_LEN);
-         memset(scryptOuts[n], 0, SCRYPTED_LEN);
-         memset(sigs[n], 0, SIGNATURE_LEN);
-         nonces[n][NONCE_LEN - 1] = n;
-
-         auto ret = makeValid(0, nWorkers, nonces[n], scryptOuts[n], sigs[n]);
-         if (ret == WorkStatus::Success)
-         {
-            std::cout << "Success from " << name << std::endl;
-
-            //save successful answer
-            memcpy(nonce_, nonces[n], NONCE_LEN);
-            memcpy(scrypted_, scryptOuts[n], SCRYPTED_LEN);
-            memcpy(signature_, sigs[n], SIGNATURE_LEN);
-         }
-
-         std::cout << "Shutting down " << name << std::endl;
-      }));
+      obj["nonce"] = Botan::base64_encode(nonce_, NONCE_LEN);
+      obj["pow"] = Botan::base64_encode(scrypted_, SCRYPTED_LEN);
+      obj["recordSig"] = Botan::base64_encode(signature_, SIGNATURE_LEN);
    }
 
-   std::for_each(workers.begin(), workers.end(), [](std::thread &t)
-   {
-      t.join();
-   });
+   //output in compressed (non-human-friendly) format
+   Json::FastWriter writer;
+   return writer.write(obj);
+}
 
+
+
+std::ostream& operator<<(std::ostream& os, const Record& dt)
+{
+   os << "Domain Registration: (currently " <<
+      (dt.valid_ ? "VALID)" : "INVALID)") << std::endl;
+   os << "   Name: DERP -> " << dt.getOnion() << std::endl;
+   os << "   Subdomains: ";
+
+   for (auto subd : dt.nameList_)
+      os << std::endl << "      " << subd.first << " -> " << subd.second;
+   os << std::endl;
+
+   os << "   Contact: 0x" << dt.contact_ << std::endl;
+   os << "   Time: " << dt.timestamp_ << std::endl;
+   os << "   Validation:" << std::endl;
+
+   os << "      Last Consensus: " <<
+      Botan::base64_encode(dt.consensusHash_, dt.SHA384_LEN) << std::endl;
+
+   os << "      Nonce: ";
+   if (dt.isValid())
+      os << Botan::base64_encode(dt.nonce_, dt.NONCE_LEN) << std::endl;
+   else
+      os << "<regeneration required>" << std::endl;
+
+   os << "      Proof of Work: ";
+   if (dt.isValid())
+      os << Botan::base64_encode(dt.scrypted_, dt.SCRYPTED_LEN) << std::endl;
+   else
+      os << "<regeneration required>" << std::endl;
+
+   os << "      Signature: ";
+   if (dt.isValid())
+      os << Botan::base64_encode(dt.signature_, dt.SIGNATURE_LEN / 4) <<
+         " ..." << std::endl;
+   else
+      os << "<regeneration required>" << std::endl;
+
+   auto pem = Botan::X509::PEM_encode(*dt.key_);
+   pem.pop_back(); //delete trailing /n
+   Utils::stringReplace(pem, "\n", "\n\t");
+   os << "      RSA Public Key: \n\t" << pem;
+
+   return os;
+}
+
+
+
+// ***************************** PRIVATE METHODS *****************************
+
+
+
+Record::WorkStatus Record::makeValid(bool* abortSig)
+{
+   std::cout << "Starting work..." << std::endl;
+   //*abortSig = true;
    return WorkStatus::Success;
 }
 
 
 
-Record::WorkStatus Record::makeValid(uint8_t depth, uint8_t inc,
-   uint8_t* nonceBuf, uint8_t* scryptedBuf, uint8_t* sigBuf)
+Record::WorkStatus Record::makeValid(uint8_t depth, uint8_t inc, bool* abortSig)
 {
    if (isValid())
       return WorkStatus::Aborted;
@@ -173,63 +337,109 @@ Record::WorkStatus Record::makeValid(uint8_t depth, uint8_t inc,
 
    if (depth == NONCE_LEN)
    {
-      //run central domain info through scrypt, save output to scryptedBuf
-      auto central = getCentral(nonceBuf);
-      if (scrypt(central.first, central.second, scryptedBuf) < 0)
+      UInt32Data buffer = computeBuffer();
+      if (updateScrypt(buffer) < 0)
       {
          std::cout << "Error with scrypt call!" << std::endl;
          return WorkStatus::Aborted;
       }
 
+      updateValidity(buffer);
       if (isValid())
-         return WorkStatus::Aborted;
-
-      UInt32Data buffer = computeBuffer(central, scryptedBuf, sigBuf);
-      if (isValid())
-         return WorkStatus::Aborted;
-
-      if (computeValidity(buffer, nonceBuf))
+      {
+         *abortSig = true; //alert other workers
          return WorkStatus::Success;
-      return isValid() ? WorkStatus::Aborted : WorkStatus::NotFound;
+      }
+
+      return *abortSig ? WorkStatus::Aborted : WorkStatus::NotFound;
    }
 
-   WorkStatus ret = makeValid(depth + 1, inc, nonceBuf, scryptedBuf, sigBuf);
+   WorkStatus ret = makeValid(depth + 1, inc, abortSig);
    if (ret == WorkStatus::Success || ret == WorkStatus::Aborted)
       return ret;
 
-   while (nonceBuf[depth] < UINT8_MAX)
+   while (nonce_[depth] < UINT8_MAX)
    {
-      nonceBuf[depth] += inc;
-      ret = makeValid(depth + 1, inc, nonceBuf, scryptedBuf, sigBuf);
+      nonce_[depth] += inc;
+      ret = makeValid(depth + 1, inc, abortSig);
       if (ret == WorkStatus::Success || ret == WorkStatus::Aborted)
          return ret;
    }
 
-   nonceBuf[depth] = 0;
+   nonce_[depth] = 0;
    return WorkStatus::NotFound;
 }
 
 
 
-size_t Record::signMessageDigest(const uint8_t* message, size_t length,
-   const Botan::Private_Key* key, uint8_t* sigBuf) const
+UInt32Data Record::computeCentral()
+{
+   std::string str;
+   for (auto subd : nameList_)
+      str += subd.first + subd.second;
+   str += contact_;
+   str += std::to_string(timestamp_);
+
+   int index = 0;
+   auto pubKey = getPublicKey();
+   const size_t centralLen = str.length() + SHA384_LEN + NONCE_LEN + pubKey.second;
+   uint8_t* central = new uint8_t[centralLen];
+
+   memcpy(central + index, str.c_str(), str.size()); //copy string into array
+   index += str.size();
+
+   memcpy(central + index, consensusHash_, SHA384_LEN);
+   index += SHA384_LEN;
+
+   memcpy(central + index, nonce_, NONCE_LEN);
+   index += NONCE_LEN;
+
+   memcpy(central + index, pubKey.first, pubKey.second);
+
+   //std::cout << Botan::base64_encode(central, centralLen) << std::endl;
+
+   return std::make_pair(central, centralLen);
+}
+
+
+
+UInt32Data Record::computeBuffer()
+{
+   UInt32Data central = computeCentral();
+   const auto sigInLen = central.second + SCRYPTED_LEN;
+   const auto totalLen = sigInLen + SIGNATURE_LEN;
+
+   //save {central, scryptedBuf} with room for signature
+   uint8_t* buffer = new uint8_t[totalLen];
+   memcpy(buffer, central.first, central.second); //import central
+   memcpy(buffer + central.second, scrypted_, SCRYPTED_LEN);
+
+   updateSignature(std::make_pair(buffer, sigInLen));
+   memcpy(buffer + sigInLen, signature_, SIGNATURE_LEN);
+
+   return std::make_pair(buffer, totalLen);
+}
+
+
+
+size_t Record::updateSignature(const UInt32Data& buffer)
 {
    static Botan::AutoSeeded_RNG rng;
 
    //https://stackoverflow.com/questions/14263346/how-to-perform-asymmetric-encryption-with-botan
    //http://botan.randombit.net/manual/pubkey.html#signatures
-   Botan::PK_Signer signer(*key, "EMSA-PKCS1-v1_5(SHA-384)");
-   auto sig = signer.sign_message(message, length, rng);
+   Botan::PK_Signer signer(*key_, "EMSA-PKCS1-v1_5(SHA-384)");
+   auto sig = signer.sign_message(buffer.first, buffer.second, rng);
 
    assert(sig.size() == SIGNATURE_LEN);
-   memcpy(sigBuf, sig, sig.size());
+   memcpy(signature_, sig, sig.size());
 
    return sig.size();
 }
 
 
 
-int Record::scrypt(const uint8_t* input, size_t inputLen, uint8_t* output) const
+int Record::updateScrypt(const UInt32Data& buffer)
 {
    //allocate and prepare static salt
    static uint8_t* const SALT = new uint8_t[SCRYPT_SALT_LEN];
@@ -242,32 +452,13 @@ int Record::scrypt(const uint8_t* input, size_t inputLen, uint8_t* output) const
       saltReady = true;
    }
 
-   return libscrypt_scrypt(input, inputLen, SALT, SCRYPT_SALT_LEN,
-      SCR_N, 1, SCR_P, output, SCRYPTED_LEN);
+   return libscrypt_scrypt(buffer.first, buffer.second, SALT, SCRYPT_SALT_LEN,
+      SCR_N, 1, SCR_P, scrypted_, SCRYPTED_LEN);
 }
 
 
 
-UInt32Data Record::computeBuffer(const UInt32Data& central, uint8_t* scryptedBuf, uint8_t* sigBuf)
-{
-   const auto sigInLen = central.second + SCRYPTED_LEN;
-   const auto totalLen = sigInLen + SIGNATURE_LEN;
-
-   //save {central, scryptedBuf} with room for signature
-   uint8_t* buffer = new uint8_t[totalLen];
-   memcpy(buffer, central.first, central.second); //import central
-   memcpy(buffer + central.second, scryptedBuf, SCRYPTED_LEN); //import scryptedBuf
-
-   //digitally sign (RSA-SHA384) {central, scryptedBuf}
-   signMessageDigest(buffer, sigInLen, key_, sigBuf);
-   memcpy(buffer + sigInLen, sigBuf, SIGNATURE_LEN);
-
-   return std::make_pair(buffer, totalLen);
-}
-
-
-
-bool Record::computeValidity(const UInt32Data& buffer, uint8_t* nonceBuf)
+void Record::updateValidity(const UInt32Data& buffer)
 {
    //interpret hash output as number
    Botan::SHA_384 sha384;
@@ -275,17 +466,15 @@ bool Record::computeValidity(const UInt32Data& buffer, uint8_t* nonceBuf)
    auto num = Utils::arrayToUInt32(hash, 0);
 
    //compare number against threshold
-   std::cout << Botan::base64_encode(nonceBuf, NONCE_LEN);
+   std::cout << Botan::base64_encode(nonce_, NONCE_LEN);
    if (num < UINT32_MAX / (1 << getDifficulty()))
    {
       std::cout << " -> YES" << std::endl;
       std::cout.flush();
 
-      valid_ = true; //todo: is this really necessary here?
-      return true;
+      valid_ = true;
    }
 
    std::cout << " -> no" << std::endl;
    std::cout.flush();
-   return false;
 }

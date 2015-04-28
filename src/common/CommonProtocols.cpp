@@ -21,7 +21,7 @@ uint8_t* CommonProtocols::computeConsensusHash()
 
    std::cout << "done." << std::endl;
 
-   uint8_t cHash[48];
+   uint8_t* cHash = new uint8_t[48];
    Botan::SHA_384 sha;
    memcpy(cHash, sha.process(consensusStr), 48);
 
