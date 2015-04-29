@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <string>
 
-typedef std::pair<uint8_t*, size_t> UInt32Data;
+typedef std::pair<uint8_t*, size_t> UInt8Array;
 typedef std::vector<std::pair<std::string,std::string>> NameList;
 
 class Record
@@ -30,6 +30,7 @@ class Record
          Success, NotFound, Aborted
       };
 
+      Record(Botan::RSA_PublicKey*);
       Record(Botan::RSA_PrivateKey*, uint8_t*);
       Record(const Record&);
 
@@ -40,31 +41,34 @@ class Record
       std::string getContact();
 
       bool setKey(Botan::RSA_PrivateKey*);
-      UInt32Data getPublicKey() const;
+      UInt8Array getPublicKey() const;
       std::string getOnion() const;
 
       bool refresh();
       void makeValid(uint8_t);
+      void computeValidity(bool*); //updates valid_, with flag to abort work
       bool isValid() const;
 
       //virtual bool makeValid(uint8_t);
+      std::string getType();
       virtual uint32_t getDifficulty() const;
       virtual std::string asJSON() const;
       friend std::ostream& operator<<(std::ostream&, const Record&);
 
    protected:
       WorkStatus makeValid(uint8_t, uint8_t, bool*);
+      virtual UInt8Array computeCentral();
+      void updateAppendSignature(UInt8Array& buffer);
+      int updateAppendScrypt(UInt8Array& buffer);
+      void updateValidity(const UInt8Array& buffer);
 
-      void computeValidity(bool*);
-      virtual UInt32Data computeCentral();
-      void updateAppendSignature(UInt32Data& buffer);
-      int updateAppendScrypt(UInt32Data& buffer);
-      void updateValidity(const UInt32Data& buffer);
-
+      std::string type_;
       NameList nameList_;
       std::string contact_;
 
-      Botan::RSA_PrivateKey* key_;
+      Botan::RSA_PrivateKey* privateKey_;
+      Botan::RSA_PublicKey* publicKey_;
+
       uint8_t consensusHash_[SHA384_LEN];
       uint8_t nonce_[NONCE_LEN];
       uint8_t scrypted_[SCRYPTED_LEN];

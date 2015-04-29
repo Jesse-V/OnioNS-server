@@ -15,22 +15,30 @@
 #include <iostream>
 
 
-Record::Record(Botan::RSA_PrivateKey* key, uint8_t* consensusHash):
-   timestamp_(time(NULL)), valid_(false)
+Record::Record(Botan::RSA_PublicKey* pubKey):
+   publicKey_(pubKey), type_(""), timestamp_(time(NULL)), valid_(false)
 {
-   assert(key->get_n().bits() == RSA_LEN);
-   setKey(key);
-
-   memcpy(consensusHash_, consensusHash, SHA384_LEN);
+   memset(consensusHash_, 0, NONCE_LEN);
    memset(nonce_, 0, NONCE_LEN);
    memset(scrypted_, 0, SCRYPTED_LEN);
    memset(signature_, 0, SIGNATURE_LEN);
 }
 
 
+Record::Record(Botan::RSA_PrivateKey* key, uint8_t* consensusHash):
+   Record(key)
+{
+   assert(key->get_n().bits() == RSA_LEN);
+   setKey(key);
+   memcpy(consensusHash_, consensusHash, SHA384_LEN);
+}
+
+
 
 Record::Record(const Record& other):
-   key_(other.key_), timestamp_(other.timestamp_), valid_(other.valid_)
+   type_(other.type_), privateKey_(other.privateKey_),
+   publicKey_(other.publicKey_),
+   timestamp_(other.timestamp_), valid_(other.valid_)
 {
    memcpy(consensusHash_, other.consensusHash_, SHA384_LEN);
    memcpy(nonce_, other.nonce_, NONCE_LEN);
@@ -108,17 +116,17 @@ bool Record::setKey(Botan::RSA_PrivateKey* key)
    if (key == NULL)
       return false;
 
-   key_ = key;
+   privateKey_ = key;
    valid_ = false; //need new nonce now
    return true;
 }
 
 
 
-UInt32Data Record::getPublicKey() const
+UInt8Array Record::getPublicKey() const
 {
    //https://en.wikipedia.org/wiki/X.690#BER_encoding
-   auto bem = Botan::X509::BER_encode(*key_);
+   auto bem = Botan::X509::BER_encode(*publicKey_);
    uint8_t* val = new uint8_t[bem.size()];
    memcpy(val, bem, bem.size());
 
@@ -133,7 +141,7 @@ std::string Record::getOnion() const
       // When we refer to "the hash of a public key", we mean the SHA-1 hash of the DER encoding of an ASN.1 RSA public key (as specified in PKCS.1).
 
    //get DER encoding of RSA key
-   auto x509Key = key_->x509_subject_public_key();
+   auto x509Key = publicKey_->x509_subject_public_key();
    char* derEncoded = new char[x509Key.size()];
    memcpy(derEncoded, x509Key, x509Key.size());
 
@@ -216,9 +224,16 @@ bool Record::isValid() const
 
 
 
+std::string Record::getType()
+{
+   return type_;
+}
+
+
+
 uint32_t Record::getDifficulty() const
 {
-   return 4; // 1/2^x chance of success, so order of magnitude
+   return 3; // 1/2^x chance of success, so order of magnitude
 }
 
 
@@ -227,7 +242,7 @@ std::string Record::asJSON() const
 {
    Json::Value obj;
 
-   obj["type"] = "Create"; //todo:
+   obj["type"] = type_;
    obj["contact"] = contact_;
    obj["timestamp"] = std::to_string(timestamp_);
    obj["cHash"] = Botan::base64_encode(consensusHash_, SHA384_LEN);
@@ -237,13 +252,13 @@ std::string Record::asJSON() const
       obj["nameList"][sub.first] = sub.second;
 
    //extract and save public key
-   auto ber = Botan::X509::BER_encode(*key_);
+   auto ber = Botan::X509::BER_encode(*publicKey_);
    uint8_t* berBin = new uint8_t[ber.size()];
    memcpy(berBin, ber, ber.size());
    obj["pubHSKey"] = Botan::base64_encode(berBin, ber.size());
 
    //if the domain is valid, add nonce_, scrypted_, and signature_
-   if (isValid())
+   //if (isValid())
    {
       obj["nonce"] = Botan::base64_encode(nonce_, NONCE_LEN);
       obj["pow"] = Botan::base64_encode(scrypted_, SCRYPTED_LEN);
@@ -292,7 +307,7 @@ std::ostream& operator<<(std::ostream& os, const Record& dt)
    else
       os << "<regeneration required>" << std::endl;
 
-   auto pem = Botan::X509::PEM_encode(*dt.key_);
+   auto pem = Botan::X509::PEM_encode(*dt.publicKey_);
    pem.pop_back(); //delete trailing /n
    Utils::stringReplace(pem, "\n", "\n\t");
    os << "      RSA Public Key: \n\t" << pem;
@@ -348,7 +363,7 @@ Record::WorkStatus Record::makeValid(uint8_t depth, uint8_t inc, bool* abortSig)
 
 void Record::computeValidity(bool* abortSig)
 {
-   UInt32Data buffer = computeCentral();
+   UInt8Array buffer = computeCentral();
 
    if (*abortSig)
       return;
@@ -372,9 +387,9 @@ void Record::computeValidity(bool* abortSig)
 
 //allocates a buffer big enough to append
    //scrypted_ and signature_ without buffer overflow
-UInt32Data Record::computeCentral()
+UInt8Array Record::computeCentral()
 {
-   std::string str("Create");
+   std::string str(type_);
    for (auto pair : nameList_)
       str += pair.first + pair.second;
    str += contact_;
@@ -403,27 +418,30 @@ UInt32Data Record::computeCentral()
 
 
 //signs buffer, saving to signature_, appends signature to buffer
-void Record::updateAppendSignature(UInt32Data& buffer)
+void Record::updateAppendSignature(UInt8Array& buffer)
 {
    static Botan::AutoSeeded_RNG rng;
 
-   //https://stackoverflow.com/questions/14263346/how-to-perform-asymmetric-encryption-with-botan
-   //http://botan.randombit.net/manual/pubkey.html#signatures
-   Botan::PK_Signer signer(*key_, "EMSA-PKCS1-v1_5(SHA-384)");
-   auto sig = signer.sign_message(buffer.first, buffer.second, rng);
+   if (privateKey_ != nullptr)
+   { //if we have a key, sign it
+      //https://stackoverflow.com/questions/14263346/how-to-perform-asymmetric-encryption-with-botan
+      //http://botan.randombit.net/manual/pubkey.html#signatures
+      Botan::PK_Signer signer(*privateKey_, "EMSA-PKCS1-v1_5(SHA-384)");
+      auto sig = signer.sign_message(buffer.first, buffer.second, rng);
 
-   assert(sig.size() == SIGNATURE_LEN);
-   memcpy(signature_, sig, sig.size());
+      assert(sig.size() == SIGNATURE_LEN);
+      memcpy(signature_, sig, sig.size());
+   }
 
    //append into buffer
-   memcpy(buffer.first + buffer.second, sig, sig.size());
+   memcpy(buffer.first + buffer.second, signature_, SIGNATURE_LEN);
    buffer.second += SIGNATURE_LEN;
 }
 
 
 
 //performs scrypt on buffer, appends result to buffer, returns scrypt status
-int Record::updateAppendScrypt(UInt32Data& buffer)
+int Record::updateAppendScrypt(UInt8Array& buffer)
 {
    //allocate and prepare static salt
    static uint8_t* const SALT = new uint8_t[SCRYPT_SALT_LEN];
@@ -450,8 +468,10 @@ int Record::updateAppendScrypt(UInt32Data& buffer)
 
 
 //checks whether the Record is valid based on the hash of the buffer
-void Record::updateValidity(const UInt32Data& buffer)
+void Record::updateValidity(const UInt8Array& buffer)
 {
+   std::cout << Botan::base64_encode(buffer.first, buffer.second) << std::endl;
+
    //hash entire buffer and convert hash to number
    Botan::SHA_384 sha384;
    auto hash = sha384.process(buffer.first, buffer.second);

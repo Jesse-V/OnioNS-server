@@ -33,6 +33,13 @@ bool Utils::isPowerOfTwo(std::size_t x)
 
 
 
+long Utils::decode64Estimation(const long inSize)
+{ //https://stackoverflow.com/questions/1533113/calculate-the-size-to-a-base-64-encoded-message
+   return ((inSize * 4) / 3) + (inSize / 96) + 6;
+}
+
+
+
 //https://stackoverflow.com/questions/1494399/how-do-i-search-find-and-replace-in-a-standard-string
 void Utils::stringReplace(std::string& str, const std::string& find,
    const std::string& replace)

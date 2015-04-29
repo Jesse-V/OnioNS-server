@@ -10,8 +10,11 @@ uint8_t* CommonProtocols::computeConsensusHash()
    std::cout << "Reading network consensus... ";
 
    //https://stackoverflow.com/questions/2602013/read-whole-ascii-file-into-c-stdstring
-   std::fstream certsFile("cached-certs");
-   std::fstream netStatFile("cached-microdesc-consensus");
+   std::fstream certsFile("assets/cached-certs");
+   std::fstream netStatFile("assets/cached-microdesc-consensus");
+
+   if (!certsFile)
+      throw std::runtime_error("Cannot open consensus documents!");
 
    std::string certsStr((std::istreambuf_iterator<char>(certsFile)),
       std::istreambuf_iterator<char>());
@@ -19,7 +22,7 @@ uint8_t* CommonProtocols::computeConsensusHash()
       std::istreambuf_iterator<char>());
    std::string consensusStr = certsStr + netStatStr;
 
-   std::cout << "done." << std::endl;
+   std::cout << "done. (" << consensusStr.length() << " bytes)" << std::endl;
 
    uint8_t* cHash = new uint8_t[48];
    Botan::SHA_384 sha;

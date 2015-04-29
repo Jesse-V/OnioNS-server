@@ -17,12 +17,13 @@ class ClientProtocols
          return instance;
       }
 
+      std::shared_ptr<Record> parseRecord();
+
       /*
          Accepts requests for .tor domains, resolves them, and write a .onion.
          Listens on an incoming named pipe, and writes to an outgoing named pipe.
       */
       void listenForDomains();
-
 
    private:
       ClientProtocols() {}

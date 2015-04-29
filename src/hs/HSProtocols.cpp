@@ -20,7 +20,7 @@ std::shared_ptr<Record> HSProtocols::createRecord()
       std::cout << "Initial Record: (" << json.length() << " bytes) \n" <<
          json << std::endl;
 
-      r->makeValid(4);
+      r->makeValid(1);
 
       std::cout << std::endl;
       std::cout << "Result:" << std::endl;
