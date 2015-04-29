@@ -52,7 +52,7 @@ Botan::RSA_PrivateKey* HSProtocols::loadKey()
    std::cout << "Opening HS key... ";
 
    Botan::AutoSeeded_RNG rng;
-   Botan::RSA_PrivateKey* rsaKey = Utils::loadKey("assets/example.key", rng);
+   Botan::RSA_PrivateKey* rsaKey = Utils::loadKey("/var/lib/tor-onions/example.key", rng);
    if (rsaKey != NULL)
       std::cout << "done." << std::endl;
 

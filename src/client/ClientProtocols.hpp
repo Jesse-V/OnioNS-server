@@ -18,13 +18,16 @@ class ClientProtocols
          return instance;
       }
 
-      std::shared_ptr<Record> parseRecord();
-
       /*
          Accepts requests for .tor domains, resolves them, and write a .onion.
          Listens on an incoming named pipe, and writes to an outgoing named pipe.
       */
       void listenForDomains();
+      std::string resolve(const std::string&);
+
+      std::shared_ptr<Record> parseRecord(const std::string&);
+      Json::Value toJSON(const std::string&);
+      std::string getDestination(const std::shared_ptr<Record>&, const std::string&);
 
    private:
       ClientProtocols() {}
@@ -32,10 +35,8 @@ class ClientProtocols
       void operator=(ClientProtocols const&) = delete;
       static std::shared_ptr<ClientProtocols> singleton_;
 
-      Json::Value readRecord(const std::string&);
       Botan::RSA_PublicKey* base64ToRSA(const std::string&);
 
-      std::string remotelyResolve(const std::string&);
       std::pair<int, int> establishIPC();
       bool connectToResolver();
       std::shared_ptr<SocksClient> remoteResolver_;

@@ -2,7 +2,7 @@ Source: tor-onions
 Section: net
 Priority: optional
 Maintainer: Jesse Victors <jvictors@jessevictors.com>
-Build-Depends: debhelper (>= 8.0.0), libbotan1.10-dev, g++ (>= 4.7), cmake (>= 0.0.0), make (>= 3.80), dpkg-dev (>= 1.15), libseccomp-dev (>= 0.0.0), libc6 (>= 2.10), libevent-dev (>= 2.0.0), libasio-dev (>= 1.5), libboost-system-dev (>= 1.5)
+Build-Depends: debhelper (>= 8.0.0), libbotan1.10-dev, g++ (>= 4.7), cmake (>= 0.0.0), make (>= 3.80), dpkg-dev (>= 1.15), libseccomp-dev (>= 0.0.0), libc6 (>= 2.10), libevent-dev (>= 2.0.0), libasio-dev (>= 1.5), libboost-system-dev (>= 1.5), tor (>= 0.2.4)
 Standards-Version: 3.9.5
 Homepage: https://jesse-v.github.io/OnioNS/
 Bugs: https://github.com/Jesse-V/OnioNS/issues
@@ -14,6 +14,11 @@ Depends: ${shlibs:Depends}, ${misc:Depends}
 Conflicts: tor-onions
 Replaces: libscrypt-dev, libscrypt0
 Description: Tor-powered distributed DNS for Tor hidden services.
- OnioNS enables hidden service operators to construct strong associations between a
- human-meaningful .tor domain name and their .onion hidden service address, and
- then enables Tor clients to query on those domains easily and securely.
+ The Onion Name System (OnioNS) is a privacy-enhanced distributed DNS for Tor
+ hidden services. It provides a mapping between .tor domains and .onion hidden
+ service addresses. OnioNS enables hidden service operators to claim a unique
+ meaningful domain name for their service, which clients can then easily use to
+ access the hidden service.
+
+ This package provides client, server, and hidden
+ service protocols and is intended to be installed and used alongside Tor.

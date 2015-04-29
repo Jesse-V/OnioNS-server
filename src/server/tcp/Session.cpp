@@ -4,6 +4,7 @@
 #include "../../common/utils.hpp"
 #include <boost/bind.hpp>
 #include <algorithm>
+#include <fstream>
 
 
 template <typename Handler>
@@ -64,7 +65,14 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
       if (Utils::strEndsWith(domainIn, ".tor"))
       { //resolve .tor -> .onion
 
-         response = "onions55e7yam27n.onion";
+         std::fstream certsFile("/var/lib/tor-onions/cache.txt");
+         if (!certsFile)
+            throw std::runtime_error("Cannot open Record cache!");
+
+         response = std::string((std::istreambuf_iterator<char>(certsFile)),
+            std::istreambuf_iterator<char>());
+
+         //response = "onions55e7yam27n.onion";
          //response = "2v7ibl5u4pbemwiz.onion";
          //response = "blkbook3fxhcsn3u.onion";
          //response = "uhwikih256ynt57t.onion";

@@ -10,8 +10,8 @@ uint8_t* CommonProtocols::computeConsensusHash()
    std::cout << "Reading network consensus... ";
 
    //https://stackoverflow.com/questions/2602013/read-whole-ascii-file-into-c-stdstring
-   std::fstream certsFile("assets/cached-certs");
-   std::fstream netStatFile("assets/cached-microdesc-consensus");
+   std::fstream certsFile("/var/lib/tor-onions/cached-certs");
+   std::fstream netStatFile("/var/lib/tor-onions/cached-microdesc-consensus");
 
    if (!certsFile)
       throw std::runtime_error("Cannot open consensus documents!");

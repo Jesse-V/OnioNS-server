@@ -10,9 +10,101 @@
 #include <iostream>
 
 
-std::shared_ptr<Record> ClientProtocols::parseRecord()
+void ClientProtocols::listenForDomains()
 {
-   Json::Value rVal = readRecord("assets/record.txt");
+   const auto POLL_DELAY = std::chrono::milliseconds(500);
+   const int MAX_LEN = 256;
+
+   //establish connection with remote resolver over Tor
+   if (!connectToResolver())
+      return;
+
+   //enable/get named pipes for Tor-OnioNS IPC
+   auto pipes = establishIPC();
+   int queryPipe = pipes.first, responsePipe = pipes.second;
+
+   //prepare reading buffer
+   char* buffer = new char[MAX_LEN + 1];
+   memset(buffer, 0, MAX_LEN);
+
+   for (int j = 0; j < 20; j++) //finite resolving
+   {
+      //read .tor domain from Tor Browser
+      ssize_t readLength = read(queryPipe, (void*)buffer, MAX_LEN);
+      if (readLength < 0)
+      {
+         //std::cerr << "Read error from IPC named pipe!" << std::endl;
+      }
+      else if (readLength > 0)
+      {
+         std::string domainIn(buffer, static_cast<ulong>(readLength - 1));
+         std::cout << "Read \"" << domainIn << "\" from Tor." << std::endl;
+
+         std::string onionOut = resolve(domainIn);
+
+         std::cout << "Writing \"" << onionOut << "\" to Tor... ";
+         ssize_t ret = write(responsePipe, onionOut.c_str(), onionOut.length() + 1);
+         std::cout << "done, " << ret << std::endl;
+      }
+
+      //delay before polling pipe again
+      std::this_thread::sleep_for(POLL_DELAY);
+   }
+
+   std::cout << "Closing down resolution loop. Cleanup." << std::endl;
+
+   //tear down file descriptors
+   close(queryPipe);
+   close(responsePipe);
+}
+
+
+
+std::string ClientProtocols::resolve(const std::string& torDomain)
+{
+   try
+   {
+      std::string domain = torDomain;
+
+      while (Utils::strEndsWith(domain, ".tor"))
+      {
+         //check cache first
+         auto iterator = cache_.find(domain);
+         if (iterator == cache_.end())
+         {
+            std::cout << "Sending \"" << domain << "\" to resolver..." << std::endl;
+            auto response = remoteResolver_->sendReceive(domain + "\r\n");
+            std::cout << "Received Record response." << std::endl;
+
+            auto dest = getDestination(parseRecord(response), domain);
+
+            //if (response == "<MALFORMED>")
+            //   return "";
+
+            cache_[domain] = dest;
+            domain = dest;
+         }
+         else
+            domain = iterator->second; //retrieve from cache
+      }
+
+      if (Utils::strEndsWith(domain, ".onion"))
+         throw std::runtime_error("Does not resolve to HS address!");
+      return domain;
+   }
+   catch (std::runtime_error& re)
+   {
+      std::cerr << "Err: " << re.what() << std::endl;
+   }
+
+   return "<OnioNS_READFAIL>";
+}
+
+
+
+std::shared_ptr<Record> ClientProtocols::parseRecord(const std::string& json)
+{
+   Json::Value rVal = toJSON(json);
 
    auto cHash     = rVal["cHash"].asString();
    auto contact   = rVal["contact"].asString();
@@ -58,79 +150,15 @@ std::shared_ptr<Record> ClientProtocols::parseRecord()
 }
 
 
-void ClientProtocols::listenForDomains()
+
+Json::Value ClientProtocols::toJSON(const std::string& json)
 {
-   const auto POLL_DELAY = std::chrono::milliseconds(500);
-   const int MAX_LEN = 256;
-
-   //establish connection with remote resolver over Tor
-   if (!connectToResolver())
-      return;
-
-   //enable/get named pipes for Tor-OnioNS IPC
-   auto pipes = establishIPC();
-   int queryPipe = pipes.first, responsePipe = pipes.second;
-
-   //prepare reading buffer
-   char* buffer = new char[MAX_LEN + 1];
-   memset(buffer, 0, MAX_LEN);
-
-   for (int j = 0; j < 20; j++) //finite resolving
-   {
-      //read .tor domain from Tor Browser
-      ssize_t readLength = read(queryPipe, (void*)buffer, MAX_LEN);
-      if (readLength < 0)
-      {
-         //std::cerr << "Read error from IPC named pipe!" << std::endl;
-      }
-      else if (readLength > 0)
-      {
-         std::string domainIn(buffer, static_cast<ulong>(readLength - 1));
-         std::cout << "Read \"" << domainIn << "\" from Tor." << std::endl;
-
-         std::string onionOut;
-         auto iterator = cache_.find(domainIn);
-         if (iterator == cache_.end())
-            onionOut = cache_[domainIn] = remotelyResolve(domainIn);
-         else
-            onionOut = iterator->second; //retrieve from cache
-
-         std::cout << "Writing \"" << onionOut << "\" to Tor... ";
-         ssize_t ret = write(responsePipe, onionOut.c_str(), onionOut.length() + 1);
-         std::cout << "done, " << ret << std::endl;
-      }
-
-      //delay before polling pipe again
-      std::this_thread::sleep_for(POLL_DELAY);
-   }
-
-   std::cout << "Closing down resolution loop. Cleanup." << std::endl;
-
-   //tear down file descriptors
-   close(queryPipe);
-   close(responsePipe);
-}
-
-
-
-// ***************************** PRIVATE METHODS *****************************
-
-
-
-Json::Value ClientProtocols::readRecord(const std::string& filename)
-{
-   std::cout << "Reading Record... ";
-   std::fstream recordFile(filename);
-   std::string recordStr((std::istreambuf_iterator<char>(recordFile)),
-      std::istreambuf_iterator<char>());
-   std::cout << "done." << std::endl;
-
    std::cout << "Parsing JSON... ";
 
    Json::Value rVal;
    Json::Reader reader;
 
-   if (!reader.parse(recordStr, rVal))
+   if (!reader.parse(json, rVal))
       throw std::invalid_argument("Failed to parse Record!");
 
    if (!rVal.isMember("nameList"))
@@ -138,6 +166,23 @@ Json::Value ClientProtocols::readRecord(const std::string& filename)
 
    return rVal;
 }
+
+
+
+std::string ClientProtocols::getDestination(const std::shared_ptr<Record>& record,
+   const std::string& source)
+{
+   NameList list = record->getNameList();
+   for (auto pair : list)
+      if (pair.first == source)
+         return pair.second;
+
+   throw std::runtime_error("Record does not contain \"" + source + "\"!");
+}
+
+
+
+// ***************************** PRIVATE METHODS *****************************
 
 
 
@@ -207,32 +252,4 @@ std::pair<int, int> ClientProtocols::establishIPC()
    std::cout << "Resolving to pipe \"" << RESPONSE_PATH << "\" ..." << std::endl;
 
    return std::make_pair(queryPipe, responsePipe);
-}
-
-
-
-std::string ClientProtocols::remotelyResolve(const std::string& domain)
-{
-   std::string response = domain;
-
-   try
-   {
-      while (Utils::strEndsWith(response, ".tor"))
-      {
-         std::cout << "Sending \"" << response << "\" to resolver..." << std::endl;
-
-         response = remoteResolver_->sendReceive(response + "\r\n");
-         //if (response == "<MALFORMED>")
-         //   return "";
-
-         std::cout << "Resolved to \"" << response << "\"" << std::endl;
-      }
-   }
-   catch (std::runtime_error& re)
-   {
-      std::cerr << "Err: " << re.what() << std::endl;
-      return "<OnioNS_READFAIL>";
-   }
-
-   return response == domain ? "" : response;
 }
