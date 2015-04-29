@@ -4,6 +4,7 @@
 
 #include "../common/records/Record.hpp"
 #include "tcp/SocksClient.hpp"
+#include <json/json.h>
 #include <unordered_map>
 #include <memory>
 #include <string>
@@ -30,6 +31,9 @@ class ClientProtocols
       ClientProtocols(ClientProtocols const&) = delete;
       void operator=(ClientProtocols const&) = delete;
       static std::shared_ptr<ClientProtocols> singleton_;
+
+      Json::Value readRecord(const std::string&);
+      Botan::RSA_PublicKey* base64ToRSA(const std::string&);
 
       std::string remotelyResolve(const std::string&);
       std::pair<int, int> establishIPC();

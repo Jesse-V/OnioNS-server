@@ -16,7 +16,8 @@
 
 
 Record::Record(Botan::RSA_PublicKey* pubKey):
-   publicKey_(pubKey), type_(""), timestamp_(time(NULL)), valid_(false)
+   privateKey_(nullptr), publicKey_(pubKey), type_(""),
+   timestamp_(time(NULL)), valid_(false)
 {
    memset(consensusHash_, 0, NONCE_LEN);
    memset(nonce_, 0, NONCE_LEN);
@@ -37,7 +38,8 @@ Record::Record(Botan::RSA_PrivateKey* key, uint8_t* consensusHash):
 
 Record::Record(const Record& other):
    type_(other.type_), privateKey_(other.privateKey_),
-   publicKey_(other.publicKey_),
+   publicKey_(other.publicKey_), nameList_(other.nameList_),
+   contact_(other.contact_),
    timestamp_(other.timestamp_), valid_(other.valid_)
 {
    memcpy(consensusHash_, other.consensusHash_, SHA384_LEN);
@@ -213,6 +215,9 @@ void Record::makeValid(uint8_t nWorkers)
    {
       t.join();
    });
+
+   bool tmp = false;
+   computeValidity(&tmp);
 }
 
 
@@ -233,7 +238,7 @@ std::string Record::getType()
 
 uint32_t Record::getDifficulty() const
 {
-   return 3; // 1/2^x chance of success, so order of magnitude
+   return 2; // 1/2^x chance of success, so order of magnitude
 }
 
 
@@ -252,13 +257,11 @@ std::string Record::asJSON() const
       obj["nameList"][sub.first] = sub.second;
 
    //extract and save public key
-   auto ber = Botan::X509::BER_encode(*publicKey_);
-   uint8_t* berBin = new uint8_t[ber.size()];
-   memcpy(berBin, ber, ber.size());
-   obj["pubHSKey"] = Botan::base64_encode(berBin, ber.size());
+   auto key = getPublicKey();
+   obj["pubHSKey"] = Botan::base64_encode(key.first, key.second);
 
    //if the domain is valid, add nonce_, scrypted_, and signature_
-   //if (isValid())
+   if (isValid())
    {
       obj["nonce"] = Botan::base64_encode(nonce_, NONCE_LEN);
       obj["pow"] = Botan::base64_encode(scrypted_, SCRYPTED_LEN);
@@ -422,10 +425,12 @@ void Record::updateAppendSignature(UInt8Array& buffer)
 {
    static Botan::AutoSeeded_RNG rng;
 
-   if (privateKey_ != nullptr)
+   if (privateKey_)
    { //if we have a key, sign it
       //https://stackoverflow.com/questions/14263346/how-to-perform-asymmetric-encryption-with-botan
       //http://botan.randombit.net/manual/pubkey.html#signatures
+      std::cout << "signing" << std::endl;
+      std::cout.flush();
       Botan::PK_Signer signer(*privateKey_, "EMSA-PKCS1-v1_5(SHA-384)");
       auto sig = signer.sign_message(buffer.first, buffer.second, rng);
 
@@ -470,22 +475,19 @@ int Record::updateAppendScrypt(UInt8Array& buffer)
 //checks whether the Record is valid based on the hash of the buffer
 void Record::updateValidity(const UInt8Array& buffer)
 {
-   std::cout << Botan::base64_encode(buffer.first, buffer.second) << std::endl;
-
    //hash entire buffer and convert hash to number
    Botan::SHA_384 sha384;
    auto hash = sha384.process(buffer.first, buffer.second);
    auto num = Utils::arrayToUInt32(hash, 0);
 
    //compare number against threshold
-   std::cout << Botan::base64_encode(nonce_, NONCE_LEN);
-   if (num < UINT32_MAX / (1 << getDifficulty()))
-   {
-      std::cout << " -> YES" << std::endl;
-      valid_ = true;
-   }
-   else
-      std::cout << " -> no (" << num << ")" << std::endl;
 
-   std::cout.flush();
+   if (num < UINT32_MAX / (1 << getDifficulty()))
+      valid_ = true;
+   else
+   {
+      std::cout << Botan::base64_encode(nonce_, NONCE_LEN) <<
+         " -> no (" << num << ")" << std::endl;
+      std::cout.flush();
+   }
 }

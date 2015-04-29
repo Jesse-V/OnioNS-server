@@ -4,7 +4,6 @@
 #include "../common/Environment.hpp"
 #include "../common/utils.hpp"
 #include <botan/base64.h>
-#include <json/json.h>
 #include <sys/stat.h>
 #include <thread>
 #include <fstream>
@@ -13,22 +12,7 @@
 
 std::shared_ptr<Record> ClientProtocols::parseRecord()
 {
-   std::cout << "Reading Record... ";
-   std::fstream recordFile("assets/record.txt");
-   std::string recordStr((std::istreambuf_iterator<char>(recordFile)),
-      std::istreambuf_iterator<char>());
-   std::cout << "done." << std::endl;
-
-   std::cout << "Parsing JSON... ";
-
-   Json::Value rVal;
-   Json::Reader reader;
-
-   if (!reader.parse(recordStr, rVal))
-      throw std::invalid_argument("Failed to parse Record!");
-
-   if (!rVal.isMember("nameList"))
-      throw std::invalid_argument("Record parsing: missing NameList");
+   Json::Value rVal = readRecord("assets/record.txt");
 
    auto cHash     = rVal["cHash"].asString();
    auto contact   = rVal["contact"].asString();
@@ -49,30 +33,28 @@ std::shared_ptr<Record> ClientProtocols::parseRecord()
       nameList.push_back(std::make_pair(source, list[source].asString()));
 
    std::cout << "done." << std::endl;
+
    std::cout << "Decoding into Record... ";
-
-   //decode public key, read as RSA public key
-   uint8_t* keyBuffer = new uint8_t[1024]; //todo: this is likely excessive
-   long len = Botan::base64_decode(keyBuffer, pubHSKey, false);
-   std::istringstream iss(std::string(reinterpret_cast<char*>(keyBuffer), len));
-   Botan::DataSource_Stream keyStream(iss);
-   auto key = dynamic_cast<Botan::RSA_PublicKey*>(Botan::X509::load_key(keyStream));
-
+   auto key = base64ToRSA(pubHSKey);
    auto createR = std::make_shared<CreateR>(cHash, contact, nameList, nonce,
       pow, recordSig, key, timestamp);
-
    std::cout << "done." << std::endl;
-
-   std::cout << createR->asJSON() << std::endl;
-   //std::cout <<
 
    //todo: confirm signatures, validity, etc
 
-   std::cout << "Checking validity... " << std::endl;
+   std::cout << "Checking validity... ";
+   std::cout.flush();
    bool tmp = false;
    createR->computeValidity(&tmp);
 
    std::cout << "done." << std::endl;
+
+   if (createR->isValid())
+      std::cout << "Record is valid." << std::endl;
+   else
+      std::cout << "Record is not valid!" << std::endl;
+
+   std::cout << "Record check complete." << std::endl;
 
    return createR;
 }
@@ -132,6 +114,45 @@ void ClientProtocols::listenForDomains()
 
 
 // ***************************** PRIVATE METHODS *****************************
+
+
+
+Json::Value ClientProtocols::readRecord(const std::string& filename)
+{
+   std::cout << "Reading Record... ";
+   std::fstream recordFile(filename);
+   std::string recordStr((std::istreambuf_iterator<char>(recordFile)),
+      std::istreambuf_iterator<char>());
+   std::cout << "done." << std::endl;
+
+   std::cout << "Parsing JSON... ";
+
+   Json::Value rVal;
+   Json::Reader reader;
+
+   if (!reader.parse(recordStr, rVal))
+      throw std::invalid_argument("Failed to parse Record!");
+
+   if (!rVal.isMember("nameList"))
+      throw std::invalid_argument("Record parsing: missing NameList");
+
+   return rVal;
+}
+
+
+
+Botan::RSA_PublicKey* ClientProtocols::base64ToRSA(const std::string& base64)
+{
+   //decode public key
+   long expectedSize = Utils::decode64Estimation(base64.length());
+   uint8_t* keyBuffer = new uint8_t[expectedSize];
+   long len = Botan::base64_decode(keyBuffer, base64, false);
+
+   //interpret and parse into public RSA key
+   std::istringstream iss(std::string(reinterpret_cast<char*>(keyBuffer), len));
+   Botan::DataSource_Stream keyStream(iss);
+   return dynamic_cast<Botan::RSA_PublicKey*>(Botan::X509::load_key(keyStream));
+}
 
 
 
