@@ -1,3 +1,15 @@
+tor-onions (0.2.1.1~trusty) trusty; urgency=medium
+
+  * Remote resolution of domain names over Tor.
+  * Initial TCP server for resolving domains.
+  * Essentials of the Record Generation protocol.
+  * Basic verification of Records by clients.
+  * Simpler usage syntax.
+  * Improved stability.
+  * Cleaner codebase.
+
+ -- Jesse Victors <jvictors@jessevictors.com>  Fri, 29 Apr 2015 08:37:00 -0600
+
 tor-onions (0.1.4.1~trusty) trusty; urgency=medium
 
   * Working Tor-OnioNS IPC.

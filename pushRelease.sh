@@ -7,7 +7,7 @@ mv tor-client debian/extra_includes/tor-client #prep Tor for packaging
 
 ./clean.sh
 
-version="0.1.4.1" #major.minor.patch.build
+version="0.2.1.1" #major.minor.patch.build
 edition="trusty"  #[trusty | utopic | vivid]
 name="tor-onions_"$version"~"$edition
 

@@ -29,7 +29,7 @@ CreateR::CreateR(const std::string& cHash, const std::string& contact,
    type_ = "Create";
    contact_ = contact;
    nameList_ = nameList;
-   timestamp_ = stoul(time);
+   timestamp_ = stol(time);
 
    assert(Botan::base64_decode(consensusHash_, cHash, false)   == SHA384_LEN);
    assert(Botan::base64_decode(nonce_, nonce, false)           == NONCE_LEN);

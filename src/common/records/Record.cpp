@@ -16,8 +16,8 @@
 
 
 Record::Record(Botan::RSA_PublicKey* pubKey):
-   privateKey_(nullptr), publicKey_(pubKey), type_(""),
-   timestamp_(time(NULL)), valid_(false), validSig_(validSig_)
+   type_(""), privateKey_(nullptr), publicKey_(pubKey),
+   timestamp_(time(NULL)), valid_(false), validSig_(false)
 {
    memset(consensusHash_, 0, NONCE_LEN);
    memset(nonce_, 0, NONCE_LEN);
@@ -37,10 +37,9 @@ Record::Record(Botan::RSA_PrivateKey* key, uint8_t* consensusHash):
 
 
 Record::Record(const Record& other):
-   type_(other.type_), privateKey_(other.privateKey_),
-   publicKey_(other.publicKey_), nameList_(other.nameList_),
-   contact_(other.contact_), validSig_(other.validSig_),
-   timestamp_(other.timestamp_), valid_(other.valid_)
+   type_(other.type_), nameList_(other.nameList_), contact_(other.contact_),
+   privateKey_(other.privateKey_), publicKey_(other.publicKey_),
+   timestamp_(other.timestamp_), valid_(other.valid_), validSig_(other.validSig_)
 {
    memcpy(consensusHash_, other.consensusHash_, SHA384_LEN);
    memcpy(nonce_, other.nonce_, NONCE_LEN);
@@ -245,7 +244,7 @@ std::string Record::getType()
 
 uint32_t Record::getDifficulty() const
 {
-   return 2; // 1/2^x chance of success, so order of magnitude
+   return 4; // 1/2^x chance of success, so order of magnitude
 }
 
 

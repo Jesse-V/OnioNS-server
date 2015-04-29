@@ -31,8 +31,8 @@ int main(int argc, char** argv)
 
    if (Flags::get().getMode() == Flags::OperationMode::CLIENT)
    {
-      //ClientProtocols::get().listenForDomains();
-      ClientProtocols::get().parseRecord();
+      ClientProtocols::get().listenForDomains();
+      //ClientProtocols::get().parseRecord();
    }
    else if (Flags::get().getMode() == Flags::OperationMode::HIDDEN_SERVICE)
    {

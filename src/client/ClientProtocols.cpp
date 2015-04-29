@@ -75,7 +75,7 @@ void ClientProtocols::listenForDomains()
    char* buffer = new char[MAX_LEN + 1];
    memset(buffer, 0, MAX_LEN);
 
-   while (true)
+   for (int j = 0; j < 20; j++) //finite resolving
    {
       //read .tor domain from Tor Browser
       ssize_t readLength = read(queryPipe, (void*)buffer, MAX_LEN);
@@ -85,7 +85,7 @@ void ClientProtocols::listenForDomains()
       }
       else if (readLength > 0)
       {
-         std::string domainIn(buffer, readLength - 1);
+         std::string domainIn(buffer, static_cast<ulong>(readLength - 1));
          std::cout << "Read \"" << domainIn << "\" from Tor." << std::endl;
 
          std::string onionOut;
@@ -103,6 +103,8 @@ void ClientProtocols::listenForDomains()
       //delay before polling pipe again
       std::this_thread::sleep_for(POLL_DELAY);
    }
+
+   std::cout << "Closing down resolution loop. Cleanup." << std::endl;
 
    //tear down file descriptors
    close(queryPipe);
@@ -142,9 +144,9 @@ Json::Value ClientProtocols::readRecord(const std::string& filename)
 Botan::RSA_PublicKey* ClientProtocols::base64ToRSA(const std::string& base64)
 {
    //decode public key
-   long expectedSize = Utils::decode64Estimation(base64.length());
+   unsigned long expectedSize = Utils::decode64Estimation(base64.length());
    uint8_t* keyBuffer = new uint8_t[expectedSize];
-   long len = Botan::base64_decode(keyBuffer, base64, false);
+   size_t len = Botan::base64_decode(keyBuffer, base64, false);
 
    //interpret and parse into public RSA key
    std::istringstream iss(std::string(reinterpret_cast<char*>(keyBuffer), len));
