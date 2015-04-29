@@ -317,27 +317,10 @@ Record::WorkStatus Record::makeValid(uint8_t depth, uint8_t inc, bool* abortSig)
    //base case
    if (depth == NONCE_LEN)
    {
-      UInt32Data buffer = computeCentral();
-      if (*abortSig) //stop if another worker has won
-         return WorkStatus::Aborted;
+      computeValidity(abortSig); //abortSig stops check
 
-      //updated scrypted_, append scrypted_ to buffer, check for errors
-      if (updateAppendScrypt(buffer) < 0)
-      {
-         std::cout << "Error with scrypt call!" << std::endl;
-         return WorkStatus::Aborted;
-      }
-
-      if (*abortSig) //stop if another worker has won
-         return WorkStatus::Aborted;
-
-      updateAppendSignature(buffer); //update signature_, append to buffer
-      updateValidity(buffer); //update valid_ based on entire buffer
-      delete buffer.first; //cleanup
-
-      //stop processing if found valid
       if (isValid())
-      {
+      { //stop processing if found valid
          *abortSig = true; //alert other workers
          return WorkStatus::Success;
       }
@@ -359,6 +342,30 @@ Record::WorkStatus Record::makeValid(uint8_t depth, uint8_t inc, bool* abortSig)
 
    nonce_[depth] = 0;
    return WorkStatus::NotFound;
+}
+
+
+
+void Record::computeValidity(bool* abortSig)
+{
+   UInt32Data buffer = computeCentral();
+
+   if (*abortSig)
+      return;
+
+   //updated scrypted_, append scrypted_ to buffer, check for errors
+   if (updateAppendScrypt(buffer) < 0)
+   {
+      std::cout << "Error with scrypt call!" << std::endl;
+      return;
+   }
+
+   if (*abortSig) //stop if another worker has won
+      return;
+
+   updateAppendSignature(buffer); //update signature_, append to buffer
+   updateValidity(buffer); //update valid_ based on entire buffer
+   delete buffer.first; //cleanup
 }
 
 

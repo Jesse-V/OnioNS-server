@@ -55,6 +55,7 @@ class Record
    protected:
       WorkStatus makeValid(uint8_t, uint8_t, bool*);
 
+      void computeValidity(bool*);
       virtual UInt32Data computeCentral();
       void updateAppendSignature(UInt32Data& buffer);
       int updateAppendScrypt(UInt32Data& buffer);
