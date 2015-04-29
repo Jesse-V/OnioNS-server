@@ -40,9 +40,9 @@ Please see the [Releases section](https://github.com/Jesse-V/OnioNS/releases) at
 > 1. **sudo apt-get install botan1.10-dev g++ cmake make libseccomp-dev libevent-dev libasio-dev libboost-system-dev**
 > 2. **./buildClient.sh**
 > 3. **./buildServer.sh**
-> 4. **sudo make install**
+> 4. **sudo make --file build/Makefile install**
 
-I have included build scripts for Clang if you, as I do, prefer that compiler. Please let me know if you encounter any issues, I can update these instructions so that it's easier for everyone going forward.
+I have included build scripts for Clang if you, as I do, prefer that compiler. Please let me know if you encounter any issues; I can update these instructions so that it's easier for everyone going forward.
 
 ### Initialization
 
