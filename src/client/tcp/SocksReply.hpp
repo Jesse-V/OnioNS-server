@@ -2,6 +2,7 @@
 #ifndef SOCKS_REPLY_HPP
 #define SOCKS_REPLY_HPP
 
+#include <boost/array.hpp>
 #include <boost/asio.hpp>
 
 //adapted from Boost's 1.53 socks4 sync_client.cpp example
