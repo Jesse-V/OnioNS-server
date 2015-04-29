@@ -1,4 +1,4 @@
-tor-onions (0.2.1.1~trusty) trusty; urgency=medium
+tor-onions (0.2.1.3~trusty) trusty; urgency=medium
 
   * Remote resolution of domain names over Tor.
   * Initial TCP server for resolving domains.
@@ -8,7 +8,7 @@ tor-onions (0.2.1.1~trusty) trusty; urgency=medium
   * Improved stability.
   * Cleaner codebase.
 
- -- Jesse Victors <jvictors@jessevictors.com>  Fri, 29 Apr 2015 08:37:00 -0600
+ -- Jesse Victors <jvictors@jessevictors.com>  Fri, 29 Apr 2015 11:23:00 -0600
 
 tor-onions (0.1.4.1~trusty) trusty; urgency=medium
 

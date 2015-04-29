@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 
 project(tor-onions)
 
+find_package(Boost COMPONENTS system REQUIRED)
+
 #compiler options for Clang and GCC/G++
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS "-g -O3 --std=c++0x -Wno-c++98-compat-pedantic -pedantic -Weverything -Wno-unused-parameter -Wno-global-constructors -Wno-exit-time-destructors -Wno-non-virtual-dtor -Wno-weak-vtables -Wno-padded -Wno-cast-align -Wno-gnu -Wno-nested-anon-types -Wno-documentation -Wno-documentation-unknown-command -Wno-unknown-pragmas")
@@ -63,7 +65,8 @@ add_executable(tor-onions
 #link against built and existing dependencies
 add_dependencies(tor-onions libscrypt)
 SET (LIBSCRYPT_LIB ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt/libscrypt.so.0)
-target_link_libraries(tor-onions pthread ${LIBSCRYPT_LIB} botan-1.10 /usr/lib/x86_64-linux-gnu/libboost_system.so.1.54.0)
+target_link_libraries(tor-onions pthread ${LIBSCRYPT_LIB} botan-1.10 ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY} ${Boost_LIBRARIES})
 
 #custom handling of output debug binary
 set_target_properties(tor-onions PROPERTIES DEBUG_POSTFIX "_d")

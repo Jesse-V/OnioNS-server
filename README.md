@@ -37,7 +37,7 @@ Please see the [Releases section](https://github.com/Jesse-V/OnioNS/releases) at
 
 * **Install from source**
 
-> 1. **sudo apt-get install botan1.10-dev g++ cmake make libseccomp-dev libevent-dev libasio-dev**
+> 1. **sudo apt-get install botan1.10-dev g++ cmake make libseccomp-dev libevent-dev libasio-dev libboost-system-dev**
 > 2. **./buildClient.sh**
 > 3. **./buildServer.sh**
 
