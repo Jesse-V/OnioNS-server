@@ -17,7 +17,7 @@
 
 Record::Record(Botan::RSA_PublicKey* pubKey):
    privateKey_(nullptr), publicKey_(pubKey), type_(""),
-   timestamp_(time(NULL)), valid_(false)
+   timestamp_(time(NULL)), valid_(false), validSig_(validSig_)
 {
    memset(consensusHash_, 0, NONCE_LEN);
    memset(nonce_, 0, NONCE_LEN);
@@ -39,7 +39,7 @@ Record::Record(Botan::RSA_PrivateKey* key, uint8_t* consensusHash):
 Record::Record(const Record& other):
    type_(other.type_), privateKey_(other.privateKey_),
    publicKey_(other.publicKey_), nameList_(other.nameList_),
-   contact_(other.contact_),
+   contact_(other.contact_), validSig_(other.validSig_),
    timestamp_(other.timestamp_), valid_(other.valid_)
 {
    memcpy(consensusHash_, other.consensusHash_, SHA384_LEN);
@@ -225,6 +225,13 @@ void Record::makeValid(uint8_t nWorkers)
 bool Record::isValid() const
 {
    return valid_;
+}
+
+
+
+bool Record::hasValidSignature() const
+{
+   return validSig_;
 }
 
 
@@ -433,9 +440,16 @@ void Record::updateAppendSignature(UInt8Array& buffer)
       std::cout.flush();
       Botan::PK_Signer signer(*privateKey_, "EMSA-PKCS1-v1_5(SHA-384)");
       auto sig = signer.sign_message(buffer.first, buffer.second, rng);
+      validSig_ = true;
 
       assert(sig.size() == SIGNATURE_LEN);
       memcpy(signature_, sig, sig.size());
+   }
+   else
+   { //we are validating a public Record, so confirm the signature
+      Botan::PK_Verifier verifier(*publicKey_, "EMSA-PKCS1-v1_5(SHA-384)");
+      validSig_ = verifier.verify_message(buffer.first, buffer.second,
+         signature_, SIGNATURE_LEN);
    }
 
    //append into buffer

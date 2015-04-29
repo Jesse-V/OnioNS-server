@@ -48,6 +48,7 @@ class Record
       void makeValid(uint8_t);
       void computeValidity(bool*); //updates valid_, with flag to abort work
       bool isValid() const;
+      bool hasValidSignature() const;
 
       //virtual bool makeValid(uint8_t);
       std::string getType();
@@ -74,7 +75,7 @@ class Record
       uint8_t scrypted_[SCRYPTED_LEN];
       uint8_t signature_[SIGNATURE_LEN];
       long timestamp_;
-      bool valid_;
+      bool valid_, validSig_;
 };
 
 #endif

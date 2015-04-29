@@ -40,8 +40,6 @@ std::shared_ptr<Record> ClientProtocols::parseRecord()
       pow, recordSig, key, timestamp);
    std::cout << "done." << std::endl;
 
-   //todo: confirm signatures, validity, etc
-
    std::cout << "Checking validity... ";
    std::cout.flush();
    bool tmp = false;
@@ -49,7 +47,7 @@ std::shared_ptr<Record> ClientProtocols::parseRecord()
 
    std::cout << "done." << std::endl;
 
-   if (createR->isValid())
+   if (createR->isValid() && createR->hasValidSignature())
       std::cout << "Record is valid." << std::endl;
    else
       std::cout << "Record is not valid!" << std::endl;
