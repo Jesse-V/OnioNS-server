@@ -157,7 +157,7 @@ std::string Record::getOnion() const
 bool Record::refresh()
 {
    timestamp_ = time(NULL);
-   //consensusHash_ = //TODO
+   //consensusHash_ = CommonProtocols::get().computeConsensusHash();
 
    valid_ = false; //need new nonce now
    return true;
@@ -176,7 +176,7 @@ void Record::makeValid(uint8_t nWorkers)
    std::vector<std::thread> workers;
    for (uint8_t n = 0; n < nWorkers; n++)
    {
-      workers.push_back(std::thread([n, foundSig, this]()
+      workers.push_back(std::thread([n, nWorkers, foundSig, this]()
       {
          std::string name("worker " + std::to_string(n + 1));
 
@@ -184,7 +184,8 @@ void Record::makeValid(uint8_t nWorkers)
          std::cout.flush();
 
          auto record = std::make_shared<Record>(*this);
-         if (record->makeValid(foundSig) == WorkStatus::Success)
+         record->nonce_[NONCE_LEN - 1] = n;
+         if (record->makeValid(0, nWorkers, foundSig) == WorkStatus::Success)
          {
             std::cout << "Success from " << name << std::endl;
 
@@ -193,17 +194,17 @@ void Record::makeValid(uint8_t nWorkers)
             memcpy(nonce_, record->nonce_, NONCE_LEN);
             memcpy(scrypted_, record->scrypted_, SCRYPTED_LEN);
             memcpy(signature_, record->signature_, SIGNATURE_LEN);
+            valid_ = true;
          }
 
          std::cout << "Shutting down " << name << std::endl;
       }));
    }
 
-   /*
    std::for_each(workers.begin(), workers.end(), [](std::thread &t)
    {
       t.join();
-   });*/
+   });
 }
 
 
@@ -215,20 +216,9 @@ bool Record::isValid() const
 
 
 
-/*
-bool CreateR::makeValid(uint8_t nCPUs)
-{
-   //TODO: if issue with fields other than nonce, return false
-
-   return mineParallel(nCPUs);
-}
-*/
-
-
-
 uint32_t Record::getDifficulty() const
 {
-   return 6; // 1/2^x chance of success, so order of magnitude
+   return 4; // 1/2^x chance of success, so order of magnitude
 }
 
 
@@ -271,12 +261,10 @@ std::ostream& operator<<(std::ostream& os, const Record& dt)
 {
    os << "Domain Registration: (currently " <<
       (dt.valid_ ? "VALID)" : "INVALID)") << std::endl;
-   os << "   Name: DERP -> " << dt.getOnion() << std::endl;
-   os << "   Subdomains: ";
 
+   os << "   Name List: " << std::endl;
    for (auto subd : dt.nameList_)
-      os << std::endl << "      " << subd.first << " -> " << subd.second;
-   os << std::endl;
+      os << "      " << subd.first << " -> " << subd.second << std::endl;
 
    os << "   Contact: 0x" << dt.contact_ << std::endl;
    os << "   Time: " << dt.timestamp_ << std::endl;
@@ -318,15 +306,6 @@ std::ostream& operator<<(std::ostream& os, const Record& dt)
 
 
 
-Record::WorkStatus Record::makeValid(bool* abortSig)
-{
-   std::cout << "Starting work..." << std::endl;
-   //*abortSig = true;
-   return WorkStatus::Success;
-}
-
-
-
 Record::WorkStatus Record::makeValid(uint8_t depth, uint8_t inc, bool* abortSig)
 {
    if (isValid())
@@ -335,16 +314,28 @@ Record::WorkStatus Record::makeValid(uint8_t depth, uint8_t inc, bool* abortSig)
    if (depth > NONCE_LEN)
       return WorkStatus::NotFound;
 
+   //base case
    if (depth == NONCE_LEN)
    {
-      UInt32Data buffer = computeBuffer();
-      if (updateScrypt(buffer) < 0)
+      UInt32Data buffer = computeCentral();
+      if (*abortSig) //stop if another worker has won
+         return WorkStatus::Aborted;
+
+      //updated scrypted_, append scrypted_ to buffer, check for errors
+      if (updateAppendScrypt(buffer) < 0)
       {
          std::cout << "Error with scrypt call!" << std::endl;
          return WorkStatus::Aborted;
       }
 
-      updateValidity(buffer);
+      if (*abortSig) //stop if another worker has won
+         return WorkStatus::Aborted;
+
+      updateAppendSignature(buffer); //update signature_, append to buffer
+      updateValidity(buffer); //update valid_ based on entire buffer
+      delete buffer.first; //cleanup
+
+      //stop processing if found valid
       if (isValid())
       {
          *abortSig = true; //alert other workers
@@ -372,18 +363,20 @@ Record::WorkStatus Record::makeValid(uint8_t depth, uint8_t inc, bool* abortSig)
 
 
 
+//allocates a buffer big enough to append
+   //scrypted_ and signature_ without buffer overflow
 UInt32Data Record::computeCentral()
 {
-   std::string str;
-   for (auto subd : nameList_)
-      str += subd.first + subd.second;
+   std::string str("Create");
+   for (auto pair : nameList_)
+      str += pair.first + pair.second;
    str += contact_;
    str += std::to_string(timestamp_);
 
    int index = 0;
    auto pubKey = getPublicKey();
    const size_t centralLen = str.length() + SHA384_LEN + NONCE_LEN + pubKey.second;
-   uint8_t* central = new uint8_t[centralLen];
+   uint8_t* central = new uint8_t[centralLen + SCRYPTED_LEN + SIGNATURE_LEN];
 
    memcpy(central + index, str.c_str(), str.size()); //copy string into array
    index += str.size();
@@ -397,32 +390,13 @@ UInt32Data Record::computeCentral()
    memcpy(central + index, pubKey.first, pubKey.second);
 
    //std::cout << Botan::base64_encode(central, centralLen) << std::endl;
-
    return std::make_pair(central, centralLen);
 }
 
 
 
-UInt32Data Record::computeBuffer()
-{
-   UInt32Data central = computeCentral();
-   const auto sigInLen = central.second + SCRYPTED_LEN;
-   const auto totalLen = sigInLen + SIGNATURE_LEN;
-
-   //save {central, scryptedBuf} with room for signature
-   uint8_t* buffer = new uint8_t[totalLen];
-   memcpy(buffer, central.first, central.second); //import central
-   memcpy(buffer + central.second, scrypted_, SCRYPTED_LEN);
-
-   updateSignature(std::make_pair(buffer, sigInLen));
-   memcpy(buffer + sigInLen, signature_, SIGNATURE_LEN);
-
-   return std::make_pair(buffer, totalLen);
-}
-
-
-
-size_t Record::updateSignature(const UInt32Data& buffer)
+//signs buffer, saving to signature_, appends signature to buffer
+void Record::updateAppendSignature(UInt32Data& buffer)
 {
    static Botan::AutoSeeded_RNG rng;
 
@@ -434,12 +408,15 @@ size_t Record::updateSignature(const UInt32Data& buffer)
    assert(sig.size() == SIGNATURE_LEN);
    memcpy(signature_, sig, sig.size());
 
-   return sig.size();
+   //append into buffer
+   memcpy(buffer.first + buffer.second, sig, sig.size());
+   buffer.second += SIGNATURE_LEN;
 }
 
 
 
-int Record::updateScrypt(const UInt32Data& buffer)
+//performs scrypt on buffer, appends result to buffer, returns scrypt status
+int Record::updateAppendScrypt(UInt32Data& buffer)
 {
    //allocate and prepare static salt
    static uint8_t* const SALT = new uint8_t[SCRYPT_SALT_LEN];
@@ -452,15 +429,23 @@ int Record::updateScrypt(const UInt32Data& buffer)
       saltReady = true;
    }
 
-   return libscrypt_scrypt(buffer.first, buffer.second, SALT, SCRYPT_SALT_LEN,
-      SCR_N, 1, SCR_P, scrypted_, SCRYPTED_LEN);
+   //compute scrypt
+   auto r = libscrypt_scrypt(buffer.first, buffer.second, SALT,
+      SCRYPT_SALT_LEN, SCR_N, 1, SCR_P, scrypted_, SCRYPTED_LEN);
+
+   //append scrypt output to buffer
+   memcpy(buffer.first + buffer.second, scrypted_, SCRYPTED_LEN);
+   buffer.second += SCRYPTED_LEN;
+
+   return r;
 }
 
 
 
+//checks whether the Record is valid based on the hash of the buffer
 void Record::updateValidity(const UInt32Data& buffer)
 {
-   //interpret hash output as number
+   //hash entire buffer and convert hash to number
    Botan::SHA_384 sha384;
    auto hash = sha384.process(buffer.first, buffer.second);
    auto num = Utils::arrayToUInt32(hash, 0);
@@ -470,11 +455,10 @@ void Record::updateValidity(const UInt32Data& buffer)
    if (num < UINT32_MAX / (1 << getDifficulty()))
    {
       std::cout << " -> YES" << std::endl;
-      std::cout.flush();
-
       valid_ = true;
    }
+   else
+      std::cout << " -> no (" << num << ")" << std::endl;
 
-   std::cout << " -> no" << std::endl;
    std::cout.flush();
 }

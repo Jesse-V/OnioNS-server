@@ -53,13 +53,11 @@ class Record
       friend std::ostream& operator<<(std::ostream&, const Record&);
 
    protected:
-      WorkStatus makeValid(bool*);
       WorkStatus makeValid(uint8_t, uint8_t, bool*);
 
       virtual UInt32Data computeCentral();
-      UInt32Data computeBuffer();
-      size_t updateSignature(const UInt32Data& buffer);
-      int updateScrypt(const UInt32Data& buffer);
+      void updateAppendSignature(UInt32Data& buffer);
+      int updateAppendScrypt(UInt32Data& buffer);
       void updateValidity(const UInt32Data& buffer);
 
       NameList nameList_;
