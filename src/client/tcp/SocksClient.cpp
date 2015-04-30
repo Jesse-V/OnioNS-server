@@ -36,7 +36,7 @@ std::string SocksClient::sendReceive(const std::string& sendStr)
    std::cout << "Writing... ";
    boost::asio::write(socket_, boost::asio::buffer(sendStr));
 
-   std::cout << "done. Reading response... " << std::endl;
+   std::cout << "done. Reading response... ";
 
    boost::asio::streambuf response;
    boost::asio::read_until(socket_, response, "\n");
@@ -45,7 +45,7 @@ std::string SocksClient::sendReceive(const std::string& sendStr)
    std::istream is(&response);
    is >> s;
 
-   std::cout << "done, \"" << s << "\"" << std::endl;
+   std::cout << "done." << std::endl;
    return s;
 }
 

@@ -27,7 +27,7 @@ void ClientProtocols::listenForDomains()
    char* buffer = new char[MAX_LEN + 1];
    memset(buffer, 0, MAX_LEN);
 
-   for (int j = 0; j < 20; j++) //finite resolving
+   for (int j = 0; j < 600; j++) //finite resolving
    {
       //read .tor domain from Tor Browser
       ssize_t readLength = read(queryPipe, (void*)buffer, MAX_LEN);
@@ -88,8 +88,8 @@ std::string ClientProtocols::resolve(const std::string& torDomain)
             domain = iterator->second; //retrieve from cache
       }
 
-      if (Utils::strEndsWith(domain, ".onion"))
-         throw std::runtime_error("Does not resolve to HS address!");
+      if (!Utils::strEndsWith(domain, ".onion"))
+         throw std::runtime_error("\"" + domain + "\" is not a HS address!");
       return domain;
    }
    catch (std::runtime_error& re)

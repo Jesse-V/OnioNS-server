@@ -72,14 +72,14 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
          response = std::string((std::istreambuf_iterator<char>(certsFile)),
             std::istreambuf_iterator<char>());
 
+         std::cout << "Server found Record. (" << response.length() << " bytes)\n";
+
          //response = "onions55e7yam27n.onion";
          //response = "2v7ibl5u4pbemwiz.onion";
          //response = "blkbook3fxhcsn3u.onion";
          //response = "uhwikih256ynt57t.onion";
       }
    }
-
-   std::cout << "Server writes \"" << response << "\"" << std::endl;
 
    for (std::size_t j = 0; j < response.size(); j++)
       buffer_[j] = response[j];
