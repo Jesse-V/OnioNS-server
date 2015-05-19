@@ -65,11 +65,11 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
       if (Utils::strEndsWith(domainIn, ".tor"))
       { //resolve .tor -> .onion
 
-         std::fstream certsFile("/var/lib/tor-onions/cache.txt");
-         if (!certsFile)
+         std::fstream cacheFile("/var/lib/tor-onions/cache.txt");
+         if (!cacheFile)
             throw std::runtime_error("Cannot open Record cache!");
 
-         response = std::string((std::istreambuf_iterator<char>(certsFile)),
+         response = std::string((std::istreambuf_iterator<char>(cacheFile)),
             std::istreambuf_iterator<char>());
 
          std::cout << "Server found Record. (" << response.length() << " bytes)\n";

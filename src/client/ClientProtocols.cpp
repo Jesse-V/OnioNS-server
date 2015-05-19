@@ -12,6 +12,17 @@
 
 void ClientProtocols::listenForDomains()
 {
+/*   std::fstream cacheFile("/var/lib/tor-onions/cache.txt");
+   if (!cacheFile)
+      throw std::runtime_error("Cannot open Record cache!");
+   std::string str((std::istreambuf_iterator<char>(cacheFile)),
+      std::istreambuf_iterator<char>());
+
+
+
+
+   auto record = parseRecord(str);
+*/
    const auto POLL_DELAY = std::chrono::milliseconds(500);
    const int MAX_LEN = 256;
 
@@ -85,7 +96,10 @@ std::string ClientProtocols::resolve(const std::string& torDomain)
             domain = dest;
          }
          else
+         {
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
             domain = iterator->second; //retrieve from cache
+         }
       }
 
       if (!Utils::strEndsWith(domain, ".onion"))
@@ -124,25 +138,29 @@ std::shared_ptr<Record> ClientProtocols::parseRecord(const std::string& json)
    for (auto source : sources)
       nameList.push_back(std::make_pair(source, list[source].asString()));
 
-   std::cout << "done." << std::endl;
+   //std::cout << "done." << std::endl;
 
-   std::cout << "Decoding into Record... ";
+   //std::cout << "Decoding into Record... ";
    auto key = base64ToRSA(pubHSKey);
    auto createR = std::make_shared<CreateR>(cHash, contact, nameList, nonce,
       pow, recordSig, key, timestamp);
-   std::cout << "done." << std::endl;
+   //std::cout << "done." << std::endl;
 
    std::cout << "Checking validity... ";
    std::cout.flush();
    bool tmp = false;
    createR->computeValidity(&tmp);
-
    std::cout << "done." << std::endl;
 
-   if (createR->isValid() && createR->hasValidSignature())
-      std::cout << "Record is valid." << std::endl;
+   if (createR->hasValidSignature())
+      std::cout << "Record signature is valid." << std::endl;
    else
-      std::cout << "Record is not valid!" << std::endl;
+      throw std::runtime_error("Bad signature on Record!");
+
+   if (createR->isValid())
+      std::cout << "Record proof-of-work is valid." << std::endl;
+   else
+      throw std::runtime_error("Record is not valid!");
 
    std::cout << "Record check complete." << std::endl;
 
@@ -153,7 +171,7 @@ std::shared_ptr<Record> ClientProtocols::parseRecord(const std::string& json)
 
 Json::Value ClientProtocols::toJSON(const std::string& json)
 {
-   std::cout << "Parsing JSON... ";
+   //std::cout << "Parsing JSON... ";
 
    Json::Value rVal;
    Json::Reader reader;
