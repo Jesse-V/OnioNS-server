@@ -6,7 +6,6 @@
 
 void ServerProtocols::startServer()
 {
-   Server s(15678);
-   s.start();
+  Server s(15678);
+  s.start();
 }
-

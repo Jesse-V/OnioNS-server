@@ -8,8 +8,8 @@
 
 class Page
 {
-   private:
-      std::vector<Record> recordList_;
+ private:
+  std::vector<Record> recordList_;
 };
 
 #endif

@@ -8,30 +8,30 @@
 
 class ServerProtocols
 {
-   public:
-      static ServerProtocols& get()
-      { //http://stackoverflow.com/questions/1008019/
-         static ServerProtocols instance;
-         return instance;
-      }
+ public:
+  static ServerProtocols& get()
+  {  // http://stackoverflow.com/questions/1008019/
+    static ServerProtocols instance;
+    return instance;
+  }
 
-      void initializeDatabase();
-      void validatePagechain();
-      void buildCache();
+  void initializeDatabase();
+  void validatePagechain();
+  void buildCache();
 
-      void startServer();
-      void receiveNewRecord(const std::shared_ptr<Record>&);
-      void uploadPagechain();
-      void synchronizePagechain();
-      void publishDatabaseHash();
-      void selectPage();
-      void flood();
+  void startServer();
+  void receiveNewRecord(const std::shared_ptr<Record>&);
+  void uploadPagechain();
+  void synchronizePagechain();
+  void publishDatabaseHash();
+  void selectPage();
+  void flood();
 
-   private:
-      ServerProtocols() {} //http://stackoverflow.com/questions/270947/
-      ServerProtocols(ServerProtocols const&) = delete;
-      void operator=(ServerProtocols const&) = delete;
-      static std::shared_ptr<ServerProtocols> singleton_;
+ private:
+  ServerProtocols() {}  // http://stackoverflow.com/questions/270947/
+  ServerProtocols(ServerProtocols const&) = delete;
+  void operator=(ServerProtocols const&) = delete;
+  static std::shared_ptr<ServerProtocols> singleton_;
 };
 
 #endif

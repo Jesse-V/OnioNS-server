@@ -7,8 +7,8 @@
 
 class Quorum
 {
-   private:
-      std::vector<std::string> fingerprints_;
+ private:
+  std::vector<std::string> fingerprints_;
 };
 
 #endif
