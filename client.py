@@ -15,7 +15,7 @@ def main():
     csocket = stem.socket.ControlPort(port = 9151)
     stem.connection.authenticate(csocket)
   except stem.SocketError as exc:
-    print 'Unable to connect to tor on port 9051: %s' % exc
+    print 'Unable to connect to tor on port 9151: %s' % exc
     sys.exit(1)
   except stem.connection.AuthenticationFailure as exc:
     print 'Unable to authenticate: %s' % exc
@@ -43,17 +43,20 @@ def initialize(stdscr, controller, csocket):
 def handle_event(stdscr, controller, csocket, stream):
   p = re.compile('.*\.tor', re.IGNORECASE)
   if p.match(stream.target_address) is not None:
-    stdscr.addstr('[notice] Detected OnioNS domain!')
+    #stdscr.addstr('[notice] Detected OnioNS domain!\n')
     # <lookup here>
     dest='onions55e7yam27n.onion'
     csocket.send('REDIRECTSTREAM ' + stream.id + ' ' + dest)
-    stdscr.addstr(str(csocket.recv()) + '\n')
-    # controller.map_address("x.tor=y.onion")
+    r=str(csocket.recv())
+    stdscr.addstr('[notice] Rewrote ' + stream.target_address + ' to ' + dest + ' \n')
+    #controller.map_address(stream.target_address + '=' + dest)
 
   if stream.circ_id == None:
     stdscr.addstr('[debug] Attaching request for ' + stream.target_address + ' to circuit\n')
-    stdscr.addstr('[debug] ' + str(stream) + '\n')
-    controller.attach_stream(stream.id, 0)
+    try:
+      controller.attach_stream(stream.id, 0)
+    except stem.UnsatisfiableRequest:
+      pass
 
   stdscr.refresh()
 
