@@ -1,73 +1,20 @@
 
 #include "ClientProtocols.hpp"
+#include "tcp/IPC.hpp"
 #include "../common/records/CreateR.hpp"
-#include "../common/Environment.hpp"
 #include "../common/utils.hpp"
 #include <botan/base64.h>
-#include <sys/stat.h>
-#include <thread>
-#include <fstream>
 #include <iostream>
 
 
 void ClientProtocols::listenForDomains()
 {
-  /*   std::fstream cacheFile("/var/lib/tor-onions/cache.txt");
-     if (!cacheFile)
-        throw std::runtime_error("Cannot open Record cache!");
-     std::string str((std::istreambuf_iterator<char>(cacheFile)),
-        std::istreambuf_iterator<char>());
-
-
-
-
-     auto record = parseRecord(str);
-  */
-  const auto POLL_DELAY = std::chrono::milliseconds(500);
-  const int MAX_LEN = 256;
-
   // establish connection with remote resolver over Tor
   if (!connectToResolver())
     return;
 
-  // enable/get named pipes for Tor-OnioNS IPC
-  auto pipes = establishIPC();
-  int queryPipe = pipes.first, responsePipe = pipes.second;
-
-  // prepare reading buffer
-  char* buffer = new char[MAX_LEN + 1];
-  memset(buffer, 0, MAX_LEN);
-
-  for (int j = 0; j < 600; j++)  // finite resolving
-  {
-    // read .tor domain from Tor Browser
-    ssize_t readLength = read(queryPipe, (void*)buffer, MAX_LEN);
-    if (readLength < 0)
-    {
-      // std::cerr << "Read error from IPC named pipe!" << std::endl;
-    }
-    else if (readLength > 0)
-    {
-      std::string domainIn(buffer, static_cast<ulong>(readLength - 1));
-      std::cout << "Read \"" << domainIn << "\" from Tor." << std::endl;
-
-      std::string onionOut = resolve(domainIn);
-
-      std::cout << "Writing \"" << onionOut << "\" to Tor... ";
-      ssize_t ret =
-          write(responsePipe, onionOut.c_str(), onionOut.length() + 1);
-      std::cout << "done, " << ret << std::endl;
-    }
-
-    // delay before polling pipe again
-    std::this_thread::sleep_for(POLL_DELAY);
-  }
-
-  std::cout << "Closing down resolution loop. Cleanup." << std::endl;
-
-  // tear down file descriptors
-  close(queryPipe);
-  close(responsePipe);
+  IPC ipc(15678);
+  ipc.start();
 }
 
 
@@ -97,13 +44,10 @@ std::string ClientProtocols::resolve(const std::string& torDomain)
         domain = dest;
       }
       else
-      {
-        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
         domain = iterator->second;  // retrieve from cache
-      }
     }
 
-    if (!Utils::strEndsWith(domain, ".onion"))
+    if (domain.length() != 22 || !Utils::strEndsWith(domain, ".onion"))
       throw std::runtime_error("\"" + domain + "\" is not a HS address!");
     return domain;
   }
@@ -112,7 +56,8 @@ std::string ClientProtocols::resolve(const std::string& torDomain)
     std::cerr << "Err: " << re.what() << std::endl;
   }
 
-  return "<OnioNS_READFAIL>";
+  // return "<OnioNS_READFAIL>";
+  return "xxxxxxxxxxxxxxxx.onion";
 }
 
 
@@ -228,7 +173,7 @@ bool ClientProtocols::connectToResolver()
     std::cout << "Starting client functionality..." << std::endl;
 
     // connect over Tor to remote resolver
-    remoteResolver_ = std::make_shared<SocksClient>("localhost", 9050);
+    remoteResolver_ = std::make_shared<SocksClient>("localhost", 9150);
     remoteResolver_->connectTo("129.123.7.8", 15678);
   }
   catch (boost::system::system_error const& ex)
@@ -244,32 +189,4 @@ bool ClientProtocols::connectToResolver()
   }
 
   return true;
-}
-
-
-
-std::pair<int, int> ClientProtocols::establishIPC()
-{
-  // const auto PIPE_CHECK = std::chrono::milliseconds(500);
-  const auto QUERY_PATH = Environment::get().getQueryPipe();
-  const auto RESPONSE_PATH = Environment::get().getResponsePipe();
-
-  // create named pipes that we will use for Tor-OnioNS IPC
-  std::cout << "Initializing IPC... ";
-  mkfifo(QUERY_PATH.c_str(), 0777);
-  mkfifo(RESPONSE_PATH.c_str(), 0777);
-  std::cout << "done." << std::endl;
-
-  // named pipes are best dealt with C-style
-  // each side has to open for reading before the other can open for writing
-  std::cout << "Waiting for Tor connection... ";
-  std::cout.flush();
-  int responsePipe = open(RESPONSE_PATH.c_str(), O_WRONLY);
-  int queryPipe = open(QUERY_PATH.c_str(), O_RDONLY);  // O_NONBLOCK
-  std::cout << "done. " << std::endl;
-
-  std::cout << "Listening on pipe \"" << QUERY_PATH << "\" ..." << std::endl;
-  std::cout << "Resolving to pipe \"" << RESPONSE_PATH << "\" ..." << std::endl;
-
-  return std::make_pair(queryPipe, responsePipe);
 }

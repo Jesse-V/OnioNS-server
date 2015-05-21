@@ -1,6 +1,6 @@
 
-#ifndef SESSION_HPP
-#define SESSION_HPP
+#ifndef IPC_SESSION_HPP
+#define IPC_SESSION_HPP
 
 #include "../../common/tcp/HandleAlloc.hpp"
 #include <boost/array.hpp>
@@ -8,10 +8,10 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <string>
 
-class Session : public boost::enable_shared_from_this<Session>
+class IPCSession : public boost::enable_shared_from_this<IPCSession>
 {
  public:
-  Session(boost::asio::io_service&);
+  IPCSession(boost::asio::io_service&);
   boost::asio::ip::tcp::socket& getSocket();
   void start();
   void processRead(const boost::system::error_code&, size_t);
@@ -25,7 +25,5 @@ class Session : public boost::enable_shared_from_this<Session>
   boost::array<char, 2048> buffer_;
   HandleAlloc allocator_;
 };
-
-typedef boost::shared_ptr<Session> session_ptr;
 
 #endif

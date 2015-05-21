@@ -42,9 +42,12 @@ def handle_event(stdscr, controller, stream):
     # https://docs.python.org/2/howto/sockets.html
     ipc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     ipc.connect(('localhost', 15678))
-    ipc.send(stream.target_address + '\n')
+    ipc.send(stream.target_address)
     dest = ipc.recv(22)
     ipc.close()
+
+    if dest == 'xxxxxxxxxxxxxxxx.onion'
+      dest = '<OnioNS_FAIL>' # triggers fail due to invalid hostname
 
     r=str(controller.msg('REDIRECTSTREAM ' + stream.id + ' ' + dest))
     stdscr.addstr('[notice] Rewrote ' + stream.target_address + ' to ' + dest + ', ' + r + ' \n')

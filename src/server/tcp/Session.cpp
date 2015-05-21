@@ -1,6 +1,6 @@
 
 #include "Session.hpp"
-#include "MemAllocator.hpp"
+#include "../../common/tcp/MemAllocator.hpp"
 #include "../../common/utils.hpp"
 #include <boost/bind.hpp>
 #include <algorithm>

@@ -35,11 +35,9 @@ class ClientProtocols
   ClientProtocols(ClientProtocols const&) = delete;
   void operator=(ClientProtocols const&) = delete;
   static std::shared_ptr<ClientProtocols> singleton_;
-
   Botan::RSA_PublicKey* base64ToRSA(const std::string&);
-
-  std::pair<int, int> establishIPC();
   bool connectToResolver();
+
   std::shared_ptr<SocksClient> remoteResolver_;
   std::unordered_map<std::string, std::string> cache_;
 };

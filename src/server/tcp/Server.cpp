@@ -9,7 +9,7 @@ Server::Server(ushort port)
       acceptor_(*ios_, tcp::endpoint(tcp::v4(), port))
 {
   std::cout << "Initiating server..." << std::endl;
-  SessionPtr session(new Session(*ios_));
+  boost::shared_ptr<Session> session(new Session(*ios_));
   acceptor_.async_accept(session->getSocket(),
                          boost::bind(&Server::handleAccept, this, session,
                                      boost::asio::placeholders::error));
@@ -40,7 +40,7 @@ void Server::stop()
 
 
 
-void Server::handleAccept(SessionPtr session,
+void Server::handleAccept(boost::shared_ptr<Session> session,
                           const boost::system::error_code& error)
 {
   std::cout << "Connection accepted." << std::endl;

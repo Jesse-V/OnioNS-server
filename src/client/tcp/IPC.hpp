@@ -1,21 +1,20 @@
 
-#ifndef SERVER_HPP
-#define SERVER_HPP
+#ifndef IPC_HPP
+#define IPC_HPP
 
-#include "Session.hpp"
+#include "IPCSession.hpp"
 #include <boost/asio.hpp>
 #include <string>
 
-class Server
+class IPC
 {
  public:
-  Server(ushort);
-  ~Server();
+  IPC(ushort);
+  ~IPC();
   void start();
-  void stop();
 
  private:
-  void handleAccept(boost::shared_ptr<Session>,
+  void handleAccept(boost::shared_ptr<IPCSession>,
                     const boost::system::error_code&);
 
   std::shared_ptr<boost::asio::io_service> ios_;
