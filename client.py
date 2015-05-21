@@ -1,26 +1,17 @@
 import curses
 import functools
 import re
+import socket
 
 import stem
 import stem.connection
 import stem.socket
 
 from stem.control import EventType, Controller
-from stem.util import str_tools
+#from stem.util import str_tools
+
 
 def main():
-  # open raw socket with control port
-  try:
-    csocket = stem.socket.ControlPort(port = 9151)
-    stem.connection.authenticate(csocket)
-  except stem.SocketError as exc:
-    print 'Unable to connect to tor on port 9151: %s' % exc
-    sys.exit(1)
-  except stem.connection.AuthenticationFailure as exc:
-    print 'Unable to authenticate: %s' % exc
-    sys.exit(1)
-
   # open main controller
   with Controller.from_port(port = 9151) as controller:
     controller.authenticate()
@@ -29,29 +20,36 @@ def main():
     })
 
     try:
-      curses.wrapper(initialize, controller, csocket)
+      curses.wrapper(initialize, controller)
     except KeyboardInterrupt:
       pass
 
+
 # listen for events and set up callbacks
-def initialize(stdscr, controller, csocket):
-  event_handler = functools.partial(handle_event, stdscr, controller, csocket)
+def initialize(stdscr, controller):
+  event_handler = functools.partial(handle_event, stdscr, controller)
   controller.add_event_listener(event_handler, EventType.STREAM)
   stdscr.getch()
 
+
 # handle a stream event
-def handle_event(stdscr, controller, csocket, stream):
+def handle_event(stdscr, controller, stream):
   p = re.compile('.*\.tor', re.IGNORECASE)
   if p.match(stream.target_address) is not None:
     #stdscr.addstr('[notice] Detected OnioNS domain!\n')
-    # <lookup here>
-    dest='onions55e7yam27n.onion'
-    csocket.send('REDIRECTSTREAM ' + stream.id + ' ' + dest)
-    r=str(csocket.recv())
-    stdscr.addstr('[notice] Rewrote ' + stream.target_address + ' to ' + dest + ' \n')
-    #controller.map_address(stream.target_address + '=' + dest)
 
-  if stream.circ_id == None:
+    # send to OnioNS and wait for resolution
+    # https://docs.python.org/2/howto/sockets.html
+    ipc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    ipc.connect(('localhost', 15678))
+    ipc.send(stream.target_address + '\n')
+    dest = ipc.recv(22)
+    ipc.close()
+
+    r=str(controller.msg('REDIRECTSTREAM ' + stream.id + ' ' + dest))
+    stdscr.addstr('[notice] Rewrote ' + stream.target_address + ' to ' + dest + ', ' + r + ' \n')
+
+  if stream.circ_id is None:
     stdscr.addstr('[debug] Attaching request for ' + stream.target_address + ' to circuit\n')
     try:
       controller.attach_stream(stream.id, 0)

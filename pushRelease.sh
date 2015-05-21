@@ -2,10 +2,8 @@
 
 # dependencies: dput
 
-./ClangBuildClient.sh
-mv tor-client debian/extra_includes/tor-client #prep Tor for packaging
-
-./clean.sh
+#./clean.sh
+./ClangBuild.sh
 
 version="0.2.1.3" #major.minor.patch.build
 edition="vivid"  #[trusty | utopic | vivid]
@@ -15,12 +13,11 @@ tar -czf ${name}.orig.tar.gz src/ #http://xkcd.com/1168/
 echo "Tarball creation step complete."
 
 #http://www.cyberciti.biz/faq/linux-unix-creating-a-manpage/
-myManPath="debian/extra_includes"
-gzip --best -c ${myManPath}/manpage > ${myManPath}/tor-onions.1.gz
-echo "Manpage creation step complete."
+#myManPath="debian/extra_includes"
+#gzip --best -c ${myManPath}/manpage > ${myManPath}/onions.1.gz
+#echo "Manpage creation step complete."
 
 cd src/
-cp -rl ../debian debian # this cannot be a symlink
 dpkg-buildpackage -S -sa -kAD97364FC20BEC80
 cd ..
 echo "Debian packaging step complete."

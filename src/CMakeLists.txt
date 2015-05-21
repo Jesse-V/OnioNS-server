@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(tor-onions)
+project(onions)
 
 find_package(Boost COMPONENTS system REQUIRED)
 
@@ -26,7 +26,7 @@ add_custom_target(libscrypt
    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt/
 )
 
-add_executable(tor-onions
+add_executable(onions
     main.cpp
     Flags.cpp
 
@@ -63,20 +63,19 @@ add_executable(tor-onions
 )
 
 #link against built and existing dependencies
-add_dependencies(tor-onions libscrypt)
+add_dependencies(onions libscrypt)
 SET (LIBSCRYPT_LIB ${CMAKE_CURRENT_SOURCE_DIR}/libs/libscrypt/libscrypt.so.0)
-target_link_libraries(tor-onions pthread ${LIBSCRYPT_LIB} botan-1.10 ${Boost_FILESYSTEM_LIBRARY}
+target_link_libraries(onions pthread ${LIBSCRYPT_LIB} botan-1.10 ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY} ${Boost_LIBRARIES})
 
 #custom handling of output debug binary
-set_target_properties(tor-onions PROPERTIES DEBUG_POSTFIX "_d")
+set_target_properties(onions PROPERTIES DEBUG_POSTFIX "_d")
 
 #installation of files
 set(DEB_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/debian/extra_includes")
-install(TARGETS tor-onions                   DESTINATION /usr/bin/)
-install(FILES ${DEB_FOLDER}/tor-client       DESTINATION /usr/bin/)
-install(FILES ${LIBSCRYPT_LIB}               DESTINATION /usr/lib/)
-install(FILES ${DEB_FOLDER}/tor-onions.1.gz  DESTINATION /usr/share/man/man1)
+install(TARGETS onions                   DESTINATION /usr/bin/)
+install(FILES ${LIBSCRYPT_LIB}           DESTINATION /usr/lib/)
+install(FILES ${DEB_FOLDER}/onions.1.gz  DESTINATION /usr/share/man/man1)
 
 set(ASSETS "${DEB_FOLDER}/assets")
 install(FILES ${ASSETS}/example.key         DESTINATION /var/lib/tor-onions/)
