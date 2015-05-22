@@ -78,6 +78,7 @@ set(DEB_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/debian/extra_includes")
 install(TARGETS onions                   DESTINATION /usr/bin/)
 install(FILES ${LIBSCRYPT_LIB}           DESTINATION /usr/lib/)
 install(FILES ${DEB_FOLDER}/onions.1.gz  DESTINATION /usr/share/man/man1)
+install(FILES ${DEB_FOLDER}/client.py    DESTINATION /var/lib/tor-onions/)
 
 set(ASSETS "${DEB_FOLDER}/assets")
 install(FILES ${ASSETS}/example.key         DESTINATION /var/lib/tor-onions/)
@@ -85,3 +86,5 @@ install(FILES ${ASSETS}/cache.txt           DESTINATION /var/lib/tor-onions/)
 install(FILES ${ASSETS}/cached-certs        DESTINATION /var/lib/tor-onions/)
 install(FILES ${ASSETS}/cached-microdesc-consensus  DESTINATION /var/lib/tor-onions/)
 install(FILES ${ASSETS}/cached-microdescs.new       DESTINATION /var/lib/tor-onions/)
+
+#http://www.itk.org/Wiki/CMake_FAQ#Can_I_do_.22make_uninstall.22_with_CMake.3F

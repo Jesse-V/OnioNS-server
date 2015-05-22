@@ -64,7 +64,7 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
     if (Utils::strEndsWith(domainIn, ".tor"))
     {  // resolve .tor -> .onion
 
-      std::fstream cacheFile("/var/lib/tor-onions/cache.txt");
+      std::ifstream cacheFile("/var/lib/tor-onions/cache.txt");
       if (!cacheFile)
         throw std::runtime_error("Cannot open Record cache!");
 

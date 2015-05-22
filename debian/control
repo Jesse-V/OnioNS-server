@@ -2,7 +2,7 @@ Source: tor-onions
 Section: net
 Priority: optional
 Maintainer: Jesse Victors <kernelcorn@riseup.net>
-Build-Depends: debhelper (>= 8.0.0), libbotan1.10-dev, g++ (>= 4.7), cmake (>= 0.0.0), make (>= 3.80), dpkg-dev (>= 1.15), libasio-dev (>= 1.5), libboost-system-dev (>= 1.5), tor (>= 0.2.4)
+Build-Depends: debhelper (>= 8.0.0), libbotan1.10-dev, g++ (>= 4.7), cmake (>= 0.0.0), make (>= 3.80), dpkg-dev (>= 1.15), libasio-dev (>= 1.4), libboost-system-dev (>= 1.49), tor (>= 0.2.4), python-stem (>= 1.1)
 Standards-Version: 3.9.5
 Homepage: http://onions.jessevictors.com
 Bugs: https://github.com/Jesse-V/OnioNS/issues

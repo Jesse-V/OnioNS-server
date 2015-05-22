@@ -7,9 +7,9 @@ Onion Name System (OnioNS) is a privacy-enhanced, distributed, and highly usable
 
 #### Linux
 
-** *Ubuntu 14.04+, Debian 8+, or Linux Mint 17+**
+**Ubuntu 14.04+, Debian 8+, or Linux Mint 17+**
 
-All architectures that can run Tor are supported. If you have an ARM board (Pi, BBB, Odroid, etc) feel free to test it.
+i386, amd64, and armhf architectures are supported, so it should run on most 32-bit, 64-bit, and ARM machines. If you have an ARM board (Pi, BBB, Odroid, etc) feel free to test it.
 
 #### Windows
 
@@ -44,14 +44,14 @@ Please see the [Releases section](https://github.com/Jesse-V/OnioNS/releases) at
 
 The ClangBuild.sh script is available if you prefer the Clang compiler. This script is recommended if you are developing or hacking OnioNS. You will need to run **sudo apt-get install clang-format-3.6** before running the script as the script will also re-style your code to the official development style, which is based on Chromium.
 
-The code does not compile on Debian Wheezy but if you can figure out the procedures, please let me know. If you successfully compile OnioNS on any other Linux distribution, please describe the procedures in a Github ticket and I'll try to support it going forward.
+The code does not compile on Debian Wheezy but if you can figure out the procedures, please let me know. Including wheezy-backports and upgrading GCC is probably necessary there. If you successfully compile OnioNS on any other Linux distribution, please describe the procedures in a Github ticket and I'll try to support it going forward.
 
 ### Usage
 
 > 1. Open the Tor Browser.
 > 2. Open two terminals, A and B.
 > 3. In Terminal A, run **onions client -v**
-> 4. In Terminal B, run **python client.py**
+> 4. In Terminal B, run **python /var/lib/tor-onions/client.py**
 > 5. Type "example.tor" into the Tor Browser.
 > 6. In a moment, you should arrive at a hidden service.
 > 7. Close the Tor Browser.

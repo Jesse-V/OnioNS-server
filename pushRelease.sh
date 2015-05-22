@@ -1,7 +1,7 @@
 #!/bin/sh
 
 version="0.2.2.3" #major.minor.patch.build
-edition="trusty"  #[trusty | utopic | vivid]
+edition="trusty"  #[trusty | utopic | vivid | wily]
 name="tor-onions_"$version"~"$edition
 
 tar -czf ${name}.orig.tar.gz src/ #http://xkcd.com/1168/

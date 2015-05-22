@@ -1,3 +1,11 @@
+tor-onions (0.2.3.1~trusty) trusty; urgency=medium
+
+  * Inclusion of client-side Stem script in package (#7)
+  * Updated manpage (#8)
+  * Additional control for registering a domain (#9)
+
+ -- Jesse Victors <kernelcorn@riseup.net>  Wed, 20 May 2015 23:31:00 -0700
+
 tor-onions (0.2.2.3~trusty) trusty; urgency=medium
 
   * Compatibility with the unaltered Tor Browser.
