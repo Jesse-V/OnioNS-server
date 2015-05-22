@@ -3,6 +3,7 @@
 #include "../common/CommonProtocols.hpp"
 #include "../common/records/CreateR.hpp"
 #include "../common/utils.hpp"
+#include "../Flags.hpp"
 #include <iostream>
 
 
@@ -10,10 +11,11 @@ std::shared_ptr<Record> HSProtocols::createRecord()
 {
   try
   {
-    auto r = std::make_shared<CreateR>(loadKey(), "example2.tor",
+    auto r = std::make_shared<CreateR>(loadKey(), Flags::get().getDomainName(),
                                        "AD97364FC20BEC80");
     NameList list = r->getNameList();
-    list.push_back(std::make_pair("sub.example2.tor", "example.tor"));
+    list.push_back(
+        std::make_pair("sub." + Flags::get().getDomainName(), "example.tor"));
     r->setNameList(list);
 
     std::cout << std::endl;
@@ -54,7 +56,7 @@ Botan::RSA_PrivateKey* HSProtocols::loadKey()
 
   Botan::AutoSeeded_RNG rng;
   Botan::RSA_PrivateKey* rsaKey =
-      Utils::loadKey("/var/lib/tor-onions/example.key", rng);
+      Utils::loadKey(Flags::get().getKeyPath(), rng);
   if (rsaKey != NULL)
     std::cout << "done." << std::endl;
 

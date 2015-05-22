@@ -30,6 +30,8 @@ class Flags
   OperationMode getMode();
   Command getCommand();
   bool verbosityEnabled();
+  std::string getDomainName();
+  std::string getKeyPath();
 
  private:
   Flags() {}
@@ -40,6 +42,7 @@ class Flags
   OperationMode mode_;
   Command command_;
   bool verbosity_;
+  std::string domainName_, keyPath_;
 };
 
 #endif

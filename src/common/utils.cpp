@@ -68,7 +68,7 @@ bool Utils::strEndsWith(const std::string& str, const std::string& ending)
 
 
 
-Botan::RSA_PrivateKey* Utils::loadKey(const char* filename,
+Botan::RSA_PrivateKey* Utils::loadKey(const std::string& filename,
                                       Botan::RandomNumberGenerator& rng)
 {
   try
@@ -102,7 +102,7 @@ Botan::RSA_PrivateKey* Utils::loadKey(const char* filename,
 // http://botan.randombit.net/faq.html#how-do-i-load-this-key-generated-by-openssl-into-botan
 // http://lists.randombit.net/pipermail/botan-devel/2010-June/001157.html
 // http://lists.randombit.net/pipermail/botan-devel/attachments/20100611/1d8d870a/attachment.cpp
-Botan::RSA_PrivateKey* Utils::loadOpenSSLRSA(const char* filename,
+Botan::RSA_PrivateKey* Utils::loadOpenSSLRSA(const std::string& filename,
                                              Botan::RandomNumberGenerator& rng)
 {
   Botan::DataSource_Stream in(filename);

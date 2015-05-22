@@ -1,5 +1,6 @@
 
 #include "Flags.hpp"
+#include "common/utils.hpp"
 #include <tclap/CmdLine.h>
 #include <stdexcept>
 
@@ -9,43 +10,45 @@ bool Flags::parse(int argc, char** argv)
   if (argc <= 1)
     return false;
 
-  std::string mode(argv[1]);
-  if (mode == "client")
-    mode_ = OperationMode::CLIENT;
-  else if (mode == "server")
-    mode_ = OperationMode::SERVER;
-  else if (mode == "hs")
-    mode_ = OperationMode::HIDDEN_SERVICE;
-  else
-  {
-    std::cerr << "Unknown mode of operation! Exiting." << std::endl;
-    std::cout << "Command not in the form \"tor-onions <mode> <flags>\" \n";
-    return false;
-  }
-
-  TCLAP::SwitchArg createRecordFlag(
-      "c", "create", "Register a domain name via a Create Record.", false);
-
-  TCLAP::SwitchArg verboseFlag("v", "verbose", "Verbose printing to stdout.",
-                               false);
-
-  TCLAP::SwitchArg licenseFlag("l", "license",
-                               "Prints license information and exits.", false);
-
   TCLAP::CmdLine cmd(R".(Examples:
-      tor-onions client
-      tor-onions server
+      onions --client -v
+      onions --hs -r --domain=<domain> --hskey=<keypath> -v
       ).",
                      '=', "<unknown>");
 
-  cmd.add(createRecordFlag);
+  TCLAP::SwitchArg verboseFlag("v", "verbose", "Verbose printing to stdout.",
+                               false);
+  TCLAP::SwitchArg licenseFlag("l", "license",
+                               "Prints license information and exits.", false);
+
+  TCLAP::SwitchArg clientMode("c", "client", "Switch to client mode.", false);
+  TCLAP::SwitchArg serverMode("s", "server", "Switch to name-server mode.",
+                              false);
+  TCLAP::SwitchArg hsMode("d", "hs", "Switch to hidden service mode.", false);
+
+  TCLAP::SwitchArg createRecord("r", "register", "Register a domain name.",
+                                false);
+  TCLAP::ValueArg<std::string> domainName("n", "domain",
+                                          "The domain name to be claimed.",
+                                          false, "example.tor", "domain");
+  TCLAP::ValueArg<std::string> keyPath(
+      "k", "hskey", "The path to the private hidden service RSA key.", false,
+      "/var/lib/tor-onions/example.key", "keypath");
+
   cmd.add(verboseFlag);
   cmd.add(licenseFlag);
 
-  cmd.parse(argc - 1, argv + 1);
+  cmd.add(clientMode);
+  cmd.add(serverMode);
+  cmd.add(hsMode);
 
-  if (createRecordFlag.isSet())
-    command_ = Command::CREATE_RECORD;
+  cmd.add(createRecord);
+  cmd.add(domainName);
+  cmd.add(keyPath);
+
+  cmd.parse(argc, argv);
+
+  verbosity_ = verboseFlag.isSet();
 
   if (licenseFlag.isSet())
   {
@@ -53,7 +56,42 @@ bool Flags::parse(int argc, char** argv)
     return false;
   }
 
-  verbosity_ = verboseFlag.isSet();
+  if (clientMode.isSet())
+    mode_ = OperationMode::CLIENT;
+  else if (serverMode.isSet())
+    mode_ = OperationMode::SERVER;
+  else if (hsMode.isSet())
+  {
+    mode_ = OperationMode::HIDDEN_SERVICE;
+
+    if (keyPath.isSet())
+    {
+      if (!Utils::strEndsWith(domainName.getValue(), ".tor"))
+      {
+        std::cerr << "Domain name must end in .tor" << std::endl;
+        return false;
+      }
+    }
+    else
+    {
+      std::cerr << "HS mode, but missing path to key! Specify with --hskey"
+                << std::endl;
+      return false;
+    }
+    // todo: check for --register
+  }
+  else
+  {
+    std::cerr << "No mode specified! Missing --client, --server, or --hs flags."
+              << std::endl;
+    return false;
+  }
+
+  if (createRecord.isSet())
+    command_ = Command::CREATE_RECORD;
+
+  domainName_ = domainName.getValue();
+  keyPath_ = keyPath.getValue();
 
   return true;
 }
@@ -77,4 +115,18 @@ Flags::Command Flags::getCommand()
 bool Flags::verbosityEnabled()
 {
   return verbosity_;
+}
+
+
+
+std::string Flags::getDomainName()
+{
+  return domainName_;
+}
+
+
+
+std::string Flags::getKeyPath()
+{
+  return keyPath_;
 }

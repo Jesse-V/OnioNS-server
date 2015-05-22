@@ -446,8 +446,6 @@ void Record::updateAppendSignature(UInt8Array& buffer)
   {  // if we have a key, sign it
     // https://stackoverflow.com/questions/14263346/how-to-perform-asymmetric-encryption-with-botan
     // http://botan.randombit.net/manual/pubkey.html#signatures
-    std::cout << "signing" << std::endl;
-    std::cout.flush();
     Botan::PK_Signer signer(*privateKey_, "EMSA-PKCS1-v1_5(SHA-384)");
     auto sig = signer.sign_message(buffer.first, buffer.second, rng);
     validSig_ = true;

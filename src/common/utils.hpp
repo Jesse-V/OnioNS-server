@@ -20,9 +20,9 @@ class Utils
                             const std::string&);
   static bool strEndsWith(const std::string& str, const std::string& ending);
 
-  static Botan::RSA_PrivateKey* loadKey(const char*,
+  static Botan::RSA_PrivateKey* loadKey(const std::string&,
                                         Botan::RandomNumberGenerator&);
-  static Botan::RSA_PrivateKey* loadOpenSSLRSA(const char*,
+  static Botan::RSA_PrivateKey* loadOpenSSLRSA(const std::string&,
                                                Botan::RandomNumberGenerator&);
 
   static void hex2bin(const char*, uint8_t*);

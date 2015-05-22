@@ -37,7 +37,7 @@ Please see the [Releases section](https://github.com/Jesse-V/OnioNS/releases) at
 
 * **Install from source**
 
-> 1. **sudo apt-get install python-pip botan1.10-dev g++ cmake make libasio-dev libboost-system-dev**
+> 1. **sudo apt-get install python-stem botan1.10-dev g++ cmake make libasio-dev libboost-system-dev**
 > 2. **./build.sh**
 > 3. **cd build/**
 > 4. **sudo make install**
@@ -50,7 +50,7 @@ The code does not compile on Debian Wheezy but if you can figure out the procedu
 
 > 1. Open the Tor Browser.
 > 2. Open two terminals, A and B.
-> 3. In Terminal A, run **onions client -v**
+> 3. In Terminal A, run **onions --client -v**
 > 4. In Terminal B, run **python /var/lib/tor-onions/client.py**
 > 5. Type "example.tor" into the Tor Browser.
 > 6. In a moment, you should arrive at a hidden service.
@@ -59,9 +59,13 @@ The code does not compile on Debian Wheezy but if you can figure out the procedu
 
 ### Registering a Domain Name
 
-> 1. **onions hs --domain=mydomain.tor --hskey=/var/lib/tor-onions/example.key -v**
+> 1. **onions --hs -r --domain=mydomain.tor --hskey=/var/lib/tor-onions/example.key -v**
 > 2. Wait for the computational work to complete.
 > 3. Please send final JSON to me over IRC or email (see below).
+
+### Getting Help
+
+A manpage is available for your convenience. You can also type **onions --help** for a list of flags and usage examples. Contact me on IRC or by email (see below) if you need further assistance.
 
 ### Bug Reporting
 
