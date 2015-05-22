@@ -1,45 +1,61 @@
 .\" Manpage for OnioNS
 .\" Visit github.com/Jesse-V/OnioNS to report bugs, errors, or typos.
-.TH man 8 "4 October 2015" "0.1.0.1" "OnioNS man page"
+.TH man 8 "May 21, 2015" "0.2.3" "OnioNS man page"
 
 .SH NAME
-OnioNS \- Tor-powered Distributed DNS for Tor Hidden Services
+The Onion Name System (OnioNS) \- Tor-powered Distributed DNS for Tor Hidden Services
 
 .SH SYNOPSIS
-    \OnioNS\fR [\fB--help\fR|\fB--license\fR|\fB--version\fR]
+    OnioNS\fR [\fB--help\fR|\fB--license\fR|\fB--version\fR]
+    OnioNS\fR [\fB--client\fR|\fB--server\fR|\fB--hs --hskey --domain\fR]
 
 .SH DESCRIPTION
 
-Tor a third-generation onion router that acts as anonymizing communication service. Users choose a source-routed path through a set of nodes, and negotiate a "virtual circuit" through the network, in which each node knows its predecessor and successor, but no others. Traffic flowing down the circuit is unwrapped by a symmetric key at each node, which reveals the downstream node.
+Tor a third-generation onion router that acts as anonymizing communication service. Users choose a path through a set of three Tor nodes and negotiate a "virtual circuit" through the network, in which each node knows its predecessor and successor, but no others. Traffic flowing down the circuit is unwrapped by a symmetric key at each node, which reveals the downstream node.
 
-Tor also supports hidden services, anonymous servers that intentionally hide their IP address through Tor circuits. Hidden services are traditionally contacted by an .onion domain name, an algorithmically-generated address. This introduces severe usability problems because of the disassiation between a service's purpose and its domain name. OnioNS is a Tor-powered distributed DNS that associates human-meaningful .tor domains with .onion hidden service addresses.
+Tor also supports hidden services, anonymous servers that intentionally hide their IP address through Tor circuits. Traditionally, hidden services have major usability issues because their addresses are algorithmically generated. OnioNS allows clients to access hidden services by a meaningful, globally-unique domain name chosen by the hidden service operator.
 
 .SH OPTIONS
 
 OnioNS is primarily a command-line utility.
 
-The following options can be specified on the command line using the following syntax:
+In the typical Unix fashion, flags with values use the following syntax:
     --<option>=<value>
-  or when marking boolean values true:
-    --<option>
+  while boolean on/off flags use:
+    --<option> or -<option>
+
+\fB -c \fR or \fB --client \fR
+        Enables client mode, which is useful for resolving domain names.
+
+\fB -s \fR or \fB --server \fR
+        Enables name server mode, which resolves queries for remote clients.
+
+\fB -d \fR or \fB --hs \fR
+        Enables hidden service mode, useful for registering claims on domain names and managing DNS information.
+
+\fB -k \fR or \fB --hskey \fR
+        The path to the hidden service private RSA key. Must be specified when --hs is given.
+
+\fB -r \fR or \fB --register \fR
+        Indicates that you want to claim a domain name. Must be used with --hs to have any effect.
+
+\fB -n \fR or \fB --domain \fR
+        The domain name you want to claim. Must be used with --hs to have any effect.
 
 \fB -h \fR or \fB --help \fR
-        Prints usage format and available flags, and then quits.
+        Prints list of flags and usage examples and then quits.
 
 \fB -l \fR or \fB --license \fR
-        Prints license information and quit.
+        Prints license information and then quit.
 
 \fB -v \fR or \fB --verbose \fR
-        Verbose printing to stdout. Useful when debugging.
-
-\fB --version \fR
-        Print version and quit.
+        Increases the verbosity to stdout. This is highly recommended.
 
 .\"  .SH SEE ALSO
 
 .SH BUGS
 Please visit https://github.com/Jesse-V/OnioNS/issues for the list
-of known bugs. Github users are welcome to report bugs there.
+of known bugs or to open a ticket on a new bug. If you do not have a Github account, please contact kernelcorn on #tor-dev on OFTC IRC, or email kernelcorn at riseup dot net. Please follow the same process for filing enhancement requests.
 
 .SH AUTHOR
 Jesse Victors (kernelcorn@riseup.net, PGP 0xC20BEC80)
