@@ -1,2 +1,2 @@
-debian/extra_includes/tor-onions
-debian/extra_includes/tor-onions.1.gz
+debian/extra_includes/onions
+debian/extra_includes/onions.1.gz

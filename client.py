@@ -34,6 +34,8 @@ def initialize(stdscr, controller):
 
 # handle a stream event
 def handle_event(stdscr, controller, stream):
+  stdscr.addstr('[debug] ' + str(stream) + '\n')
+
   p = re.compile('.*\.tor', re.IGNORECASE)
   if p.match(stream.target_address) is not None:
     #stdscr.addstr('[notice] Detected OnioNS domain!\n')
@@ -41,12 +43,12 @@ def handle_event(stdscr, controller, stream):
     # send to OnioNS and wait for resolution
     # https://docs.python.org/2/howto/sockets.html
     ipc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ipc.connect(('localhost', 15678))
+    ipc.connect(('localhost', 9053))
     ipc.send(stream.target_address)
     dest = ipc.recv(22)
     ipc.close()
 
-    if dest == 'xxxxxxxxxxxxxxxx.onion'
+    if dest == 'xxxxxxxxxxxxxxxx.onion':
       dest = '<OnioNS_FAIL>' # triggers fail due to invalid hostname
 
     r=str(controller.msg('REDIRECTSTREAM ' + stream.id + ' ' + dest))

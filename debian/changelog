@@ -1,3 +1,14 @@
+tor-onions (0.2.2.3~trusty) trusty; urgency=medium
+
+  * Compatibility with the unaltered Tor Browser.
+  * Transfer of Records over Tor for stronger security.
+  * Changed IPC from named pipes to sockets.
+  * Changed communication ports to TCP 9053 and 10053.
+  * Fixed bugs with building from source.
+  * Support for i386, amd64, and armhf architectures.
+
+ -- Jesse Victors <kernelcorn@riseup.net>  Wed, 20 May 2015 23:31:00 -0700
+
 tor-onions (0.2.1.3~vivid) vivid; urgency=medium
 
   * Remote resolution of domain names over Tor.
@@ -8,7 +19,7 @@ tor-onions (0.2.1.3~vivid) vivid; urgency=medium
   * Improved stability.
   * Cleaner codebase.
 
- -- Jesse Victors <jvictors@jessevictors.com>  Fri, 29 Apr 2015 11:23:00 -0600
+ -- Jesse Victors <kernelcorn@riseup.net>  Fri, 29 Apr 2015 11:23:00 -0600
 
 tor-onions (0.1.4.1~trusty) trusty; urgency=medium
 
@@ -16,14 +27,14 @@ tor-onions (0.1.4.1~trusty) trusty; urgency=medium
   * Cleaner setup of named pipes.
   * Removed helper script.
 
- -- Jesse Victors <jvictors@jessevictors.com>  Fri, 10 Apr 2015 10:06:00 -0600
+ -- Jesse Victors <kernelcorn@riseup.net>  Fri, 10 Apr 2015 10:06:00 -0600
 
 tor-onions (0.1.3.5~trusty) trusty; urgency=medium
 
   * Added named pipes for Tor-OnioNS IPC.
   * Main binary called from helper script.
 
- -- Jesse Victors <jvictors@jessevictors.com>  Sun, 05 Apr 2015 14:57:00 -0600
+ -- Jesse Victors <kernelcorn@riseup.net>  Sun, 05 Apr 2015 14:57:00 -0600
 
 tor-onions (0.1.2.6~trusty) trusty; urgency=medium
 
@@ -31,42 +42,26 @@ tor-onions (0.1.2.6~trusty) trusty; urgency=medium
   * Lowercased binary in accordance with conventions.
   * Builds for Ubuntu Trusty, Utopic, and Vivid.
 
- -- Jesse Victors <jvictors@jessevictors.com>  Sun, 05 Apr 2015 9:39:00 -0600
+ -- Jesse Victors <kernelcorn@riseup.net>  Sun, 05 Apr 2015 9:39:00 -0600
 
 tor-onions (0.1.1.15) trusty; urgency=medium
 
-  * Noted conflict with libscrypt0, which also provides an older libscrypt.so.0
-
- -- Jesse Victors <jvictors@jessevictors.com>  Sat, 04 Apr 2015 17:48:00 -0600
-
-tor-onions (0.1.1.14) trusty; urgency=medium
-
   * Installation of libscrypt shared object.
   * Fixed lintian warnings and errors.
+  * Noted conflict with libscrypt0, which also provides an older libscrypt.so.0
 
- -- Jesse Victors <jvictors@jessevictors.com>  Sat, 04 Apr 2015 15:45:00 -0600
+ -- Jesse Victors <kernelcorn@riseup.net>  Sat, 04 Apr 2015 17:48:00 -0600
 
 tor-onions (0.1.1.1) trusty; urgency=medium
 
   * Installation of binary and manpage.
 
- -- Jesse Victors <jvictors@jessevictors.com>  Sat, 04 Apr 2015 13:52:00 -0600
+ -- Jesse Victors <kernelcorn@riseup.net>  Sat, 04 Apr 2015 13:52:00 -0600
 
 tor-onions (0.1.0.3) trusty; urgency=medium
 
+  * Initial build.
+  * Domain Registration protocol.
   * Corrected package name.
 
- -- Jesse Victors <jvictors@jessevictors.com>  Sat, 04 Apr 2015 13:17:00 -0600
-
-tor-onions (0.1.0.2) trusty; urgency=medium
-
-  * Fixed section field in Debian control.
-
- -- Jesse Victors <jvictors@jessevictors.com>  Sat, 04 Apr 2015 13:11:00 -0600
-
-tor-onions (0.1.0.1) trusty; urgency=medium
-
-  * Domain Registration protocol.
-  * Initial build.
-
- -- Jesse Victors <jvictors@jessevictors.com>  Sat, 04 Apr 2015 12:35:00 -0600
+ -- Jesse Victors <kernelcorn@riseup.net>  Sat, 04 Apr 2015 13:17:00 -0600

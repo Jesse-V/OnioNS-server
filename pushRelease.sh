@@ -1,21 +1,15 @@
 #!/bin/sh
 
-# dependencies: dput
-
-#./clean.sh
-./ClangBuild.sh
-
-version="0.2.1.3" #major.minor.patch.build
-edition="vivid"  #[trusty | utopic | vivid]
+version="0.2.2.3" #major.minor.patch.build
+edition="trusty"  #[trusty | utopic | vivid]
 name="tor-onions_"$version"~"$edition
 
 tar -czf ${name}.orig.tar.gz src/ #http://xkcd.com/1168/
 echo "Tarball creation step complete."
 
 #http://www.cyberciti.biz/faq/linux-unix-creating-a-manpage/
-#myManPath="debian/extra_includes"
-#gzip --best -c ${myManPath}/manpage > ${myManPath}/onions.1.gz
-#echo "Manpage creation step complete."
+cp -rl debian src/debian # this cannot be a symlink
+gzip --best -c debian/extra_includes/manpage > src/debian/extra_includes/onions.1.gz
 
 cd src/
 dpkg-buildpackage -S -sa -kAD97364FC20BEC80

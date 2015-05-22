@@ -3,7 +3,7 @@ Upstream-Name: OnioNS
 Source: https://github.com/Jesse-V/OnioNS
 
 Files: *
-Copyright: 2015 Jesse Victors <jvictors@jessevictors.com>
+Copyright: 2015 Jesse Victors <kernelcorn@riseup.net>
 License: Modified/New BSD License
  Copyright (c) 2015, Jesse Victors
  All rights reserved.

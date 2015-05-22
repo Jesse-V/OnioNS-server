@@ -1,15 +1,15 @@
 Source: tor-onions
 Section: net
 Priority: optional
-Maintainer: Jesse Victors <jvictors@jessevictors.com>
-Build-Depends: debhelper (>= 8.0.0), libbotan1.10-dev, g++ (>= 4.7), cmake (>= 0.0.0), make (>= 3.80), dpkg-dev (>= 1.15), libseccomp-dev (>= 0.0.0), libc6 (>= 2.10), libevent-dev (>= 2.0.0), libasio-dev (>= 1.5), libboost-system-dev (>= 1.5), tor (>= 0.2.4)
+Maintainer: Jesse Victors <kernelcorn@riseup.net>
+Build-Depends: debhelper (>= 8.0.0), libbotan1.10-dev, g++ (>= 4.7), cmake (>= 0.0.0), make (>= 3.80), dpkg-dev (>= 1.15), libasio-dev (>= 1.5), libboost-system-dev (>= 1.5), tor (>= 0.2.4)
 Standards-Version: 3.9.5
-Homepage: https://jesse-v.github.io/OnioNS/
+Homepage: http://onions.jessevictors.com
 Bugs: https://github.com/Jesse-V/OnioNS/issues
 Vcs-Git: https://github.com/Jesse-V/OnioNS.git
 
 Package: tor-onions
-Architecture: amd64
+Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Conflicts: tor-onions
 Replaces: libscrypt-dev, libscrypt0

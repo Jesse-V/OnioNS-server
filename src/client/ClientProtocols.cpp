@@ -13,7 +13,7 @@ void ClientProtocols::listenForDomains()
   if (!connectToResolver())
     return;
 
-  IPC ipc(15678);
+  IPC ipc(9053);
   ipc.start();
 }
 
@@ -37,9 +37,6 @@ std::string ClientProtocols::resolve(const std::string& torDomain)
 
         auto dest = getDestination(parseRecord(response), domain);
 
-        // if (response == "<MALFORMED>")
-        //   return "";
-
         cache_[domain] = dest;
         domain = dest;
       }
@@ -56,7 +53,6 @@ std::string ClientProtocols::resolve(const std::string& torDomain)
     std::cerr << "Err: " << re.what() << std::endl;
   }
 
-  // return "<OnioNS_READFAIL>";
   return "xxxxxxxxxxxxxxxx.onion";
 }
 
@@ -173,8 +169,8 @@ bool ClientProtocols::connectToResolver()
     std::cout << "Starting client functionality..." << std::endl;
 
     // connect over Tor to remote resolver
-    remoteResolver_ = std::make_shared<SocksClient>("localhost", 9150);
-    remoteResolver_->connectTo("129.123.7.8", 15678);
+    remoteResolver_ = std::make_shared<SocksClient>("localhost", 9050);
+    remoteResolver_->connectTo("129.123.7.8", 10053);
   }
   catch (boost::system::system_error const& ex)
   {
