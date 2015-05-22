@@ -169,13 +169,15 @@ bool ClientProtocols::connectToResolver()
     std::cout << "Starting client functionality..." << std::endl;
 
     // connect over Tor to remote resolver
-    remoteResolver_ = std::make_shared<SocksClient>("localhost", 9050);
+    remoteResolver_ = std::make_shared<SocksClient>("localhost", 9150);
     remoteResolver_->connectTo("129.123.7.8", 10053);
+    std::cout << "The Tor Browser appears to be running." << std::endl;
   }
   catch (boost::system::system_error const& ex)
   {
     std::cerr << ex.what() << std::endl;
-    std::cerr << "Tor does not appear to be running! Aborting." << std::endl;
+    std::cerr << "The Tor Browser does not appear to be running! Aborting."
+              << std::endl;
     return false;
   }
   catch (std::exception& ex)
