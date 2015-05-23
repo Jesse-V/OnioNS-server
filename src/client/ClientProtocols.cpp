@@ -168,7 +168,7 @@ bool ClientProtocols::connectToResolver()
   try
   {
     // connect over Tor to remote resolver
-    std::cout << "Testing connection to Tor..." << std::endl;
+    std::cout << "Detecting the Tor Browser..." << std::endl;
     socks_ = std::make_shared<SocksClient>("localhost", 9150);
     socks_->connectTo("129.123.7.8", 10053);
     std::cout << "The Tor Browser appears to be running." << std::endl;

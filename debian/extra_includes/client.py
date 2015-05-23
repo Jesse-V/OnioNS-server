@@ -3,27 +3,35 @@ import stem, stem.connection, stem.socket
 from stem.control import EventType, Controller
 #from stem.util import str_tools
 
-import socket, functools, re
+import socket, functools, re, sys
 from threading import Thread
 
 import time
 
 # start of application
 def main():
-  # open main controller
-  with Controller.from_port(port = 9151) as controller:
-    controller.authenticate()
-    controller.set_options({
-      '__LeaveStreamsUnattached': '1'
-    })
+  try:
+    # open main controller
+    controller = Controller.from_port(port = 9151)
+  except stem.SocketError:
+    sys.exit("[err] The Tor Browser is not running. Cannot continue")
 
-    event_handler = functools.partial(handle_event, controller)
-    controller.add_event_listener(event_handler, EventType.STREAM)
+  controller.authenticate()
+  controller.set_options({
+    '__LeaveStreamsUnattached': '1'
+  })
 
-    try:
-      time.sleep(60 * 60 * 24 * 365) #basically, wait indefinitely
-    except KeyboardInterrupt:
-      print ''
+  print 'Successfully connected to the Tor Browser.'
+
+  event_handler = functools.partial(handle_event, controller)
+  controller.add_event_listener(event_handler, EventType.STREAM)
+
+  print 'Now monitoring stream connections.'
+
+  try:
+    time.sleep(60 * 60 * 24 * 365) #basically, wait indefinitely
+  except KeyboardInterrupt:
+    print ''
 
 
 
