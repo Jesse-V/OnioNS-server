@@ -38,7 +38,7 @@ class ClientProtocols
   Botan::RSA_PublicKey* base64ToRSA(const std::string&);
   bool connectToResolver();
 
-  std::shared_ptr<SocksClient> remoteResolver_;
+  std::shared_ptr<SocksClient> socks_;
   std::unordered_map<std::string, std::string> cache_;
 };
 

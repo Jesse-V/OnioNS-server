@@ -25,21 +25,23 @@ void SocksClient::connectTo(const std::string& host, short port)
   std::cout << "Resolving address of remote host..." << std::endl;
   tcp::resolver::query query(tcp::v4(), host, std::to_string(port));
   endpoint_ = *resolver_.resolve(query);
+
+  if (!checkSOCKS())
+    throw std::runtime_error("Remote host refused connection.");
 }
 
 
 
 std::string SocksClient::sendReceive(const std::string& sendStr)
 {
-  if (!checkSOCKS())
-    throw std::runtime_error("Remote host refused connection.");
-
-  std::cout << "Writing... ";
-  boost::asio::write(socket_, boost::asio::buffer(sendStr));
-
-  std::cout << "done. Reading response... ";
+  std::cout << "Sending... ";
+  std::cout.flush();
 
   boost::asio::streambuf response;
+  boost::asio::write(socket_, boost::asio::buffer(sendStr + "\n"));
+
+  std::cout << "receiving... ";
+  std::cout.flush();
   boost::asio::read_until(socket_, response, "\n");
 
   std::string s;
@@ -47,13 +49,15 @@ std::string SocksClient::sendReceive(const std::string& sendStr)
   is >> s;
 
   std::cout << "done." << std::endl;
+  std::cout.flush();
+
   return s;
 }
 
 
 bool SocksClient::checkSOCKS()
 {
-  std::cout << "Connecting via Tor..." << std::endl;
+  // std::cout << "Connecting via Tor..." << std::endl;
 
   SocksRequest sreq(SocksRequest::connect, endpoint_, "OnioNS");
   boost::asio::write(socket_, sreq.buffers());

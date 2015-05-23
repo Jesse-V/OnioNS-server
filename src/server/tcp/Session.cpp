@@ -46,39 +46,41 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
     return;
   }
 
-  std::string domainIn(buffer_.begin(), buffer_.begin() + n);
+  std::string readIn(buffer_.begin(), buffer_.begin() + n);
   std::string response("404");
 
-  std::size_t end = std::min(domainIn.find('\r'), domainIn.find('\n'));
-  if (end == std::string::npos)
+  // trim
+  readIn = readIn.substr(0, readIn.find("\r"));
+  readIn = readIn.substr(0, readIn.find("\n"));
+
+  std::cout << "\"" << readIn << "\"" << std::endl;
+
+  if (readIn == "ping")
   {
-    std::cout << "    *" << domainIn << "*" << std::endl;
-    std::cerr << "No newline found!" << std::endl;
-    response = "<MALFORMED>";
+    // std::cout << "Sending response." << std::endl;
+    response = "pong";
+  }
+  else if (Utils::strEndsWith(readIn, ".tor"))
+  {  // resolve .tor -> .onion
+
+    // std::cout << "Received query for \"" << readIn << "\"" << std::endl;
+
+    std::ifstream cacheFile("/var/lib/tor-onions/cache.txt");
+    if (!cacheFile)
+      throw std::runtime_error("Cannot open Record cache!");
+
+    response = std::string((std::istreambuf_iterator<char>(cacheFile)),
+                           std::istreambuf_iterator<char>());
+
+    std::cout << "Returning Record (" << response.length() << " bytes)\n";
+
+    // response = "onions55e7yam27n.onion";
+    // response = "2v7ibl5u4pbemwiz.onion";
+    // response = "blkbook3fxhcsn3u.onion";
+    // response = "uhwikih256ynt57t.onion";
   }
   else
-  {
-    domainIn.resize(end);
-    std::cout << "received \"" << domainIn << "\"" << std::endl;
-
-    if (Utils::strEndsWith(domainIn, ".tor"))
-    {  // resolve .tor -> .onion
-
-      std::ifstream cacheFile("/var/lib/tor-onions/cache.txt");
-      if (!cacheFile)
-        throw std::runtime_error("Cannot open Record cache!");
-
-      response = std::string((std::istreambuf_iterator<char>(cacheFile)),
-                             std::istreambuf_iterator<char>());
-
-      std::cout << "Server found Record. (" << response.length() << " bytes)\n";
-
-      // response = "onions55e7yam27n.onion";
-      // response = "2v7ibl5u4pbemwiz.onion";
-      // response = "blkbook3fxhcsn3u.onion";
-      // response = "uhwikih256ynt57t.onion";
-    }
-  }
+    std::cout << "404ed request" << std::endl;
 
   for (std::size_t j = 0; j < response.size(); j++)
     buffer_[j] = response[j];
@@ -98,7 +100,7 @@ void Session::processWrite(const boost::system::error_code& error)
     return;
   }
 
-  std::cout << "done." << std::endl;
+  // std::cout << "done." << std::endl;
   asyncReadBuffer();
 }
 
@@ -110,7 +112,7 @@ void Session::processWrite(const boost::system::error_code& error)
 
 void Session::asyncReadBuffer()
 {
-  std::cout << "Reading... ";
+  // std::cout << "Reading... ";
   socket_.async_read_some(
       boost::asio::buffer(buffer_),
       makeHandler(allocator_,
@@ -123,7 +125,7 @@ void Session::asyncReadBuffer()
 
 void Session::asyncWriteBuffer(std::size_t len)
 {
-  std::cout << "Writing... ";
+  // std::cout << "Writing... ";
   boost::asio::async_write(
       socket_, boost::asio::buffer(buffer_, len),
       makeHandler(allocator_,

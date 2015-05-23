@@ -31,8 +31,9 @@ std::string ClientProtocols::resolve(const std::string& torDomain)
       auto iterator = cache_.find(domain);
       if (iterator == cache_.end())
       {
-        std::cout << "Sending \"" << domain << "\" to resolver..." << std::endl;
-        auto response = remoteResolver_->sendReceive(domain + "\r\n");
+        std::cout << "Sending \"" << domain << "\" to name server..."
+                  << std::endl;
+        auto response = socks_->sendReceive(domain);
         std::cout << "Received Record response." << std::endl;
 
         auto dest = getDestination(parseRecord(response), domain);
@@ -166,23 +167,27 @@ bool ClientProtocols::connectToResolver()
 {
   try
   {
-    std::cout << "Starting client functionality..." << std::endl;
-
     // connect over Tor to remote resolver
-    remoteResolver_ = std::make_shared<SocksClient>("localhost", 9150);
-    remoteResolver_->connectTo("129.123.7.8", 10053);
+    std::cout << "Testing connection to Tor..." << std::endl;
+    socks_ = std::make_shared<SocksClient>("localhost", 9150);
+    socks_->connectTo("129.123.7.8", 10053);
     std::cout << "The Tor Browser appears to be running." << std::endl;
+
+    std::cout << "Testing connection to the name server..." << std::endl;
+    auto r = socks_->sendReceive("ping");
+    if (r == "pong")
+      std::cout << "Name server confirmed up." << std::endl;
+    else
+    {
+      std::cout << r << std::endl;
+      std::cerr << "Name server did not return a valid response!" << std::endl;
+      return false;
+    }
   }
   catch (boost::system::system_error const& ex)
   {
     std::cerr << ex.what() << std::endl;
-    std::cerr << "The Tor Browser does not appear to be running! Aborting."
-              << std::endl;
-    return false;
-  }
-  catch (std::exception& ex)
-  {
-    std::cerr << ex.what() << std::endl;
+    std::cerr << "Test failed. Cannot continue." << std::endl;
     return false;
   }
 

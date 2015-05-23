@@ -20,7 +20,10 @@ def main():
     event_handler = functools.partial(handle_event, controller)
     controller.add_event_listener(event_handler, EventType.STREAM)
 
-    time.sleep(60 * 60 * 24 * 365) #basically, wait indefinitely
+    try:
+      time.sleep(60 * 60 * 24 * 365) #basically, wait indefinitely
+    except KeyboardInterrupt:
+      print ''
 
 
 
@@ -28,14 +31,14 @@ def main():
 def handle_event(controller, stream):
   print '[debug] ' + str(stream)
 
-  p = re.compile('.*\.tor', re.IGNORECASE)
+  p = re.compile('.*\.tor$', re.IGNORECASE)
   if p.match(stream.target_address) is not None: # if .tor, send to OnioNS
     t = Thread(target=resolveOnioNS, args=[controller, stream])
     t.start()
   elif stream.circ_id is None: # if not .tor and unattached, attach now
     attachStream(controller, stream)
 
-  print '[debug] Finished handling stream.'
+  # print '[debug] Finished handling stream.'
 
 
 
@@ -69,9 +72,10 @@ def attachStream(controller, stream):
     controller.attach_stream(stream.id, 0)
   except stem.UnsatisfiableRequest:
     pass
-  except stem.InvalidRequest:
-    print '[err] Failed to attach stream. Dropping.'
-
+  except stem.InvalidRequest, ir:
+    print '[warn] Stream attachment: invalid request. Dropping. '   + ir.message
+  except stem.OperationFailed, of:
+    print '[warn] Stream attachment: operation failed. Dropping. ' + of.message
 
 
 if __name__ == '__main__':

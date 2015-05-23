@@ -46,9 +46,9 @@ void IPCSession::processRead(const boost::system::error_code& error, size_t n)
   }
 
   std::string domainIn(buffer_.begin(), buffer_.begin() + n);
-  std::cout << "Read \"" << domainIn << "\" from Tor." << std::endl;
+  std::cout << "Read \"" << domainIn << "\" from Tor Browser." << std::endl;
   std::string onionOut = ClientProtocols::get().resolve(domainIn);
-  std::cout << "Writing \"" << onionOut << "\" to Tor... ";
+  std::cout << "Writing \"" << onionOut << "\" to Tor Browser... ";
 
   for (std::size_t j = 0; j < onionOut.size(); j++)
     buffer_[j] = onionOut[j];
