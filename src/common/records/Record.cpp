@@ -254,7 +254,7 @@ std::string Record::getType()
 
 uint32_t Record::getDifficulty() const
 {
-  return 4;  // 1/2^x chance of success, so order of magnitude
+  return 6;  // 1/2^x chance of success, so order of magnitude
 }
 
 

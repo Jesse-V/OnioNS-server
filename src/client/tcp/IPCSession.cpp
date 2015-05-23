@@ -40,8 +40,7 @@ void IPCSession::processRead(const boost::system::error_code& error, size_t n)
 {
   if (error || n <= 0)
   {
-    std::cout << std::endl;
-    std::cerr << error.message() << std::endl;
+    std::cerr << "IPC: " << error.message() << std::endl;
     return;
   }
 
