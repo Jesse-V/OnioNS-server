@@ -7,7 +7,10 @@ using boost::asio::ip::tcp;
 
 IPC::IPC(ushort port)
     : ios_(std::make_shared<boost::asio::io_service>()),
-      acceptor_(*ios_, tcp::endpoint(tcp::v4(), port))
+      acceptor_(
+          *ios_,
+          tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"),
+                        port))
 {
   std::cout << "Initiating Tor-OnioNS IPC socket..." << std::endl;
   boost::shared_ptr<IPCSession> session(new IPCSession(*ios_));
