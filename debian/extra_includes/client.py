@@ -1,7 +1,9 @@
 
 import stem, stem.connection, stem.socket
 from stem.control import EventType, Controller
-#from stem.util import str_tools
+
+import errno # https://stackoverflow.com/questions/14425401/
+from socket import error as socket_error
 
 import socket, functools, re, sys
 from threading import Thread
@@ -57,10 +59,17 @@ def resolveOnioNS(controller, stream):
   # send to OnioNS and wait for resolution
   # https://docs.python.org/2/howto/sockets.html
   ipc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  ipc.connect(('localhost', 9053))
-  ipc.send(stream.target_address)
-  dest = ipc.recv(22)
-  ipc.close()
+
+  try:
+    ipc.connect(('localhost', 9053))
+    ipc.send(stream.target_address)
+    dest = ipc.recv(22)
+    ipc.close()
+  except socket_error as serr:
+    if serr.errno != errno.ECONNREFUSED:
+      raise serr
+    print '[err] OnioNS client is not running!'
+    dest = '<IPC_FAIL>'
 
   if dest == 'xxxxxxxxxxxxxxxx.onion':
     dest = '<OnioNS_FAIL>' # triggers fail due to invalid hostname

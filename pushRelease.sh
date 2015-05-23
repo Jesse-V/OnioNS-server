@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version="0.2.2.3" #major.minor.patch.build
+version="0.2.3.1" #major.minor.patch.build
 edition="trusty"  #[trusty | utopic | vivid | wily]
 name="tor-onions_"$version"~"$edition
 

@@ -2,7 +2,7 @@ Source: tor-onions
 Section: net
 Priority: optional
 Maintainer: Jesse Victors <kernelcorn@riseup.net>
-Build-Depends: debhelper (>= 8.0.0), libbotan1.10-dev, g++ (>= 4.7), cmake (>= 0.0.0), make (>= 3.80), dpkg-dev (>= 1.15), libasio-dev (>= 1.4), libboost-system-dev (>= 1.49), python-stem (>= 1.1)
+Build-Depends: debhelper (>= 8.0.0), libbotan1.10-dev, g++ (>= 4.7), cmake (>= 0.0.0), make (>= 3.80), dpkg-dev (>= 1.15), libasio-dev (>= 1.4), libboost-system-dev (>= 1.48), python-stem (>= 1.1)
 Standards-Version: 3.9.5
 Homepage: http://onions.jessevictors.com
 Bugs: https://github.com/Jesse-V/OnioNS/issues
@@ -18,7 +18,5 @@ Description: Tor-powered distributed DNS for Tor hidden services.
  hidden services. It provides a mapping between .tor domains and .onion hidden
  service addresses. OnioNS enables hidden service operators to claim a unique
  meaningful domain name for their service, which clients can then easily use to
- access the hidden service.
-
- This package provides client, server, and hidden
+ access the hidden service. This package provides client, server, and hidden
  service protocols and is intended to be installed and used alongside Tor.
