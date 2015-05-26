@@ -1,13 +1,13 @@
 
-#include "HiddenService.hpp"
-#include "../common/CommonProtocols.hpp"
+#include "HS.hpp"
+#include "../common/Common.hpp"
 #include "../common/records/CreateR.hpp"
 #include "../common/utils.hpp"
 #include "../Flags.hpp"
 #include <iostream>
 
 
-std::shared_ptr<Record> HiddenService::createRecord()
+std::shared_ptr<Record> HS::createRecord()
 {
   try
   {
@@ -50,7 +50,7 @@ std::shared_ptr<Record> HiddenService::createRecord()
 
 
 
-Botan::RSA_PrivateKey* HiddenService::loadKey()
+Botan::RSA_PrivateKey* HS::loadKey()
 {
   std::cout << "Opening HS key... ";
 

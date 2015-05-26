@@ -1,18 +1,18 @@
 
-#ifndef COMMON_PROTOCOLS_HPP
-#define COMMON_PROTOCOLS_HPP
+#ifndef COMMON_HPP
+#define COMMON_HPP
 
 #include "records/Record.hpp"
 #include "Quorum.hpp"
 #include <json/json.h>
 #include <memory>
 
-class CommonProtocols
+class Common
 {
  public:
-  static CommonProtocols& get()
+  static Common& get()
   {
-    static CommonProtocols instance;
+    static Common instance;
     return instance;
   }
 
@@ -26,10 +26,10 @@ class CommonProtocols
   uint8_t* computeConsensusHash();
 
  private:
-  CommonProtocols() {}
-  CommonProtocols(CommonProtocols const&) = delete;
-  void operator=(CommonProtocols const&) = delete;
-  static std::shared_ptr<CommonProtocols> singleton_;
+  Common() {}
+  Common(Common const&) = delete;
+  void operator=(Common const&) = delete;
+  static std::shared_ptr<Common> singleton_;
 };
 
 #endif

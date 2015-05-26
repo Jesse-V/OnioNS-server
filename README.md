@@ -37,10 +37,11 @@ Please see the [Releases section](https://github.com/Jesse-V/OnioNS/releases) at
 
 * **Install from source**
 
-> 1. **sudo apt-get install python-stem botan1.10-dev g++ cmake make libasio-dev libboost-system-dev**
-> 2. **./build.sh**
-> 3. **cd build/**
-> 4. **sudo make install**
+> 1. Fetch the .zip from the Releases page, or clone this repo if you want the cutting edge. I ensure that the code compiles before committing.
+> 2. **sudo apt-get install python-stem botan1.10-dev g++ cmake make libasio-dev libboost-system-dev**
+> 3. **./build.sh**
+> 4. **cd build/**
+> 5. **sudo make install**
 
 The ClangBuild.sh script is available if you prefer the Clang compiler. This script is recommended if you are developing or hacking OnioNS. You will need to run **sudo apt-get install clang-format-3.6** before running the script as the script will also re-style your code to the official development style, which is based on Chromium.
 
@@ -69,4 +70,4 @@ A manpage is available for your convenience. You can also type **onions --help**
 
 ### Bug Reporting
 
-Please open a ticket on Github. If you do not have a Github account, please contact kernelcorn on #tor-dev on OFTC IRC, or email kernelcorn at riseup dot net. Please follow the same process for filing enhancement requests. I use PGP key 0xC20BEC80.
+Please open a ticket on Github. If you do not have a Github account, please contact kernelcorn on #tor-dev on OFTC IRC, or email kernelcorn at riseup dot net. Please follow the same process for filing enhancement requests. I use PGP key 0xC20BEC80. I accept pull requests if you want to contribute.

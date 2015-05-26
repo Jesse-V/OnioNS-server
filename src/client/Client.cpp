@@ -1,7 +1,7 @@
 
 #include "Client.hpp"
 #include "tcp/IPC.hpp"
-#include "../common/CommonProtocols.hpp"
+#include "../common/Common.hpp"
 #include "../common/utils.hpp"
 #include <iostream>
 
@@ -35,8 +35,8 @@ std::string Client::resolve(const std::string& torDomain)
         auto response = socks_->sendReceive(domain);
         std::cout << "Received Record response." << std::endl;
 
-        auto dest = CommonProtocols::get().getDestination(
-            CommonProtocols::get().parseRecord(response), domain);
+        auto dest = Common::get().getDestination(
+            Common::get().parseRecord(response), domain);
 
         cache_[domain] = dest;
         domain = dest;

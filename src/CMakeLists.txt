@@ -43,9 +43,9 @@ add_executable(onions
     mirror/tcp/Server.cpp
     mirror/tcp/Session.cpp
 
-    hs/HiddenService.cpp
+    hs/HS.cpp
 
-    common/CommonProtocols.cpp
+    common/Common.cpp
     common/Environment.cpp
     common/Page.cpp
     common/Quorum.cpp

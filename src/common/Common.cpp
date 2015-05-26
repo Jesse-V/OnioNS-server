@@ -1,5 +1,5 @@
 
-#include "CommonProtocols.hpp"
+#include "Common.hpp"
 #include "../common/records/CreateR.hpp"
 #include "utils.hpp"
 #include <botan/sha2_64.h>
@@ -7,7 +7,7 @@
 #include <iostream>
 
 
-std::shared_ptr<Record> CommonProtocols::parseRecord(const std::string& json)
+std::shared_ptr<Record> Common::parseRecord(const std::string& json)
 {
   Json::Value rVal = toJSON(json);
 
@@ -60,7 +60,7 @@ std::shared_ptr<Record> CommonProtocols::parseRecord(const std::string& json)
 
 
 
-Json::Value CommonProtocols::toJSON(const std::string& json)
+Json::Value Common::toJSON(const std::string& json)
 {
   // std::cout << "Parsing JSON... ";
 
@@ -78,9 +78,8 @@ Json::Value CommonProtocols::toJSON(const std::string& json)
 
 
 
-std::string CommonProtocols::getDestination(
-    const std::shared_ptr<Record>& record,
-    const std::string& source)
+std::string Common::getDestination(const std::shared_ptr<Record>& record,
+                                   const std::string& source)
 {
   NameList list = record->getNameList();
   for (auto pair : list)
@@ -92,7 +91,7 @@ std::string CommonProtocols::getDestination(
 
 
 
-uint8_t* CommonProtocols::computeConsensusHash()
+uint8_t* Common::computeConsensusHash()
 {
   std::cout << "Reading network consensus... ";
 

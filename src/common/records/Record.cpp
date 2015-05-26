@@ -175,7 +175,7 @@ std::string Record::getOnion() const
 bool Record::refresh()
 {
   timestamp_ = time(NULL);
-  // consensusHash_ = CommonProtocols::get().computeConsensusHash();
+  // consensusHash_ = Common::get().computeConsensusHash();
 
   valid_ = false;  // need new nonce now
   return true;

@@ -6,12 +6,12 @@
 #include <botan/rsa.h>
 #include <memory>
 
-class HiddenService
+class HS
 {
  public:
-  static HiddenService& get()
+  static HS& get()
   {
-    static HiddenService instance;
+    static HS instance;
     return instance;
   }
 
@@ -19,10 +19,10 @@ class HiddenService
   void broadcastRecord(const std::shared_ptr<Record>&);
 
  private:
-  HiddenService() {}
-  HiddenService(HiddenService const&) = delete;
-  void operator=(HiddenService const&) = delete;
-  static std::shared_ptr<HiddenService> singleton_;
+  HS() {}
+  HS(HS const&) = delete;
+  void operator=(HS const&) = delete;
+  static std::shared_ptr<HS> singleton_;
 
   Botan::RSA_PrivateKey* loadKey();
 };

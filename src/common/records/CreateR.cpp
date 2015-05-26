@@ -1,6 +1,6 @@
 
 #include "CreateR.hpp"
-#include "../../common/CommonProtocols.hpp"
+#include "../../common/Common.hpp"
 #include <botan/base64.h>
 #include <cassert>
 #include <iostream>
@@ -9,7 +9,7 @@
 CreateR::CreateR(Botan::RSA_PrivateKey* key,
                  const std::string& primaryName,
                  const std::string& contact)
-    : Record(key, CommonProtocols::get().computeConsensusHash())
+    : Record(key, Common::get().computeConsensusHash())
 {
   type_ = "Create";
 

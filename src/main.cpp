@@ -3,7 +3,7 @@
 #include "Flags.hpp"
 #include "common/Environment.hpp"
 #include "client/Client.hpp"
-#include "hs/HiddenService.hpp"
+#include "hs/HS.hpp"
 #include "mirror/Mirror.hpp"
 #include <botan/botan.h>
 #include <fstream>
@@ -31,7 +31,7 @@ int main(int argc, char** argv)
   else if (Flags::get().getMode() == Flags::OperationMode::HIDDEN_SERVICE)
   {
     if (Flags::get().getCommand() == Flags::Command::CREATE_RECORD)
-      HiddenService::get().createRecord();
+      HS::get().createRecord();
   }
   else if (Flags::get().getMode() == Flags::OperationMode::MIRROR)
   {
