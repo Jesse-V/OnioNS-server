@@ -1,8 +1,10 @@
 
 #include "utils.hpp"
 #include <botan/pem.h>
+#include <botan/base64.h>
 #include <cstdio>
 #include <stdexcept>
+#include <sstream>
 #include <iostream>
 
 
@@ -64,6 +66,21 @@ bool Utils::strEndsWith(const std::string& str, const std::string& ending)
         str.compare(str.length() - ending.length(), ending.length(), ending));
   else
     return false;
+}
+
+
+
+Botan::RSA_PublicKey* Utils::base64ToRSA(const std::string& base64)
+{
+  // decode public key
+  unsigned long expectedSize = decode64Estimation(base64.length());
+  uint8_t* keyBuffer = new uint8_t[expectedSize];
+  size_t len = Botan::base64_decode(keyBuffer, base64, false);
+
+  // interpret and parse into public RSA key
+  std::istringstream iss(std::string(reinterpret_cast<char*>(keyBuffer), len));
+  Botan::DataSource_Stream keyStream(iss);
+  return dynamic_cast<Botan::RSA_PublicKey*>(Botan::X509::load_key(keyStream));
 }
 
 
@@ -131,20 +148,6 @@ Botan::RSA_PrivateKey* Utils::loadOpenSSLRSA(const std::string& filename,
 
 
 
-uint8_t Utils::char2int(char c)
-{
-  if (c >= '0' && c <= '9')
-    return c - '0';
-  if (c >= 'A' && c <= 'F')
-    return c - 'A' + 10;
-  if (c >= 'a' && c <= 'f')
-    return c - 'a' + 10;
-
-  throw std::runtime_error("Invalid character");
-}
-
-
-
 // This function assumes src to be a zero terminated sanitized string with
 // an even number of [0-9a-f] characters, and target to be sufficiently large
 void Utils::hex2bin(const char* src, uint8_t* target)
@@ -154,4 +157,18 @@ void Utils::hex2bin(const char* src, uint8_t* target)
     *(target++) = char2int(*src) * 16 + char2int(src[1]);
     src += 2;
   }
+}
+
+
+
+uint8_t Utils::char2int(const char c)
+{
+  if (c >= '0' && c <= '9')
+    return c - '0';
+  if (c >= 'A' && c <= 'F')
+    return c - 'A' + 10;
+  if (c >= 'a' && c <= 'f')
+    return c - 'a' + 10;
+
+  throw std::runtime_error("Invalid character");
 }

@@ -1,7 +1,7 @@
 #OnioNS - the Onion Name Service
 ### Tor-Powered Distributed DNS for Tor Hidden Services
 
-Onion Name System (OnioNS) is a privacy-enhanced, distributed, and highly usable DNS for Tor hidden services. It allows users to reference a hidden service by a meaningful globally-unique domain name chosen by the hidden service operator. The system is powered by the Tor network and relies on a distributed database. This project aims to address the major usability issue that has been with Tor hidden services since their introduction in 2002. The official project page is onions55e7yam27n.onion, which is example.tor under OnioNS.
+The Onion Name System (OnioNS) is a privacy-enhanced, distributed, and highly usable DNS for Tor hidden services. It allows users to reference a hidden service by a meaningful globally-unique domain name chosen by the hidden service operator. The system is powered by the Tor network and relies on a distributed database. This project aims to address the major usability issue that has been with Tor hidden services since their introduction in 2002. The official project page is onions55e7yam27n.onion, which is example.tor under OnioNS.
 
 ### Supported Systems
 
@@ -17,7 +17,7 @@ Not currently supported at the moment, though the **client** functionality will 
 
 #### OS-X and *BSD
 
-Not currently supported, support planned in the far future. I am willing to provide upstream support to anyone who wishes to port the client functionality over there. My current primary focus is developing the Linux edition.
+Not currently supported, support planned in the far future. I am willing to provide upstream support to anyone who wishes to port the software over there. I have not attempted to compile this code on any BSD system. My current primary focus is developing the Linux edition.
 
 ### Installation
 
@@ -33,7 +33,7 @@ This is the recommended method as it's very easy to stay up-to-date with my rele
 
 * **Install from .deb file**
 
-Please see the [Releases section](https://github.com/Jesse-V/OnioNS/releases) at the top of this Github repo. If you prefer, you may also download them from [my PPA](https://launchpad.net/~jvictors/+archive/tor-dev/+packages). They are equivalent.
+Please see the [Releases section](https://github.com/Jesse-V/OnioNS/releases) at the top of this Github repo. I provide amd64 .deb builds there. For other architectures, you may download them from [my PPA](https://launchpad.net/~jvictors/+archive/tor-dev/+packages). They are equivalent.
 
 * **Install from source**
 

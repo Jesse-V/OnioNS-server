@@ -37,8 +37,10 @@ CreateR::CreateR(const std::string& cHash,
   nameList_ = nameList;
   timestamp_ = stol(time);
 
-  assert(Botan::base64_decode(consensusHash_, cHash, false) == SHA384_LEN);
+  assert(Botan::base64_decode(consensusHash_, cHash, false) ==
+         Environment::SHA384_LEN);
   assert(Botan::base64_decode(nonce_, nonce, false) == NONCE_LEN);
   assert(Botan::base64_decode(scrypted_, pow, false) == SCRYPTED_LEN);
-  assert(Botan::base64_decode(signature_, sig, false) == SIGNATURE_LEN);
+  assert(Botan::base64_decode(signature_, sig, false) ==
+         Environment::SIGNATURE_LEN);
 }

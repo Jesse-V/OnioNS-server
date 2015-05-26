@@ -4,6 +4,7 @@
 
 #include "records/Record.hpp"
 #include "Quorum.hpp"
+#include <json/json.h>
 #include <memory>
 
 class CommonProtocols
@@ -15,8 +16,13 @@ class CommonProtocols
     return instance;
   }
 
-  bool isRecordValid(const std::shared_ptr<Record>&);
-  std::shared_ptr<Quorum> deriveQuorum();
+  std::shared_ptr<Record> parseRecord(const std::string&);
+  Json::Value toJSON(const std::string&);
+  std::string getDestination(const std::shared_ptr<Record>&,
+                             const std::string&);
+
+  // bool isRecordValid(const std::shared_ptr<Record>&);
+  // std::shared_ptr<Quorum> deriveQuorum();
   uint8_t* computeConsensusHash();
 
  private:

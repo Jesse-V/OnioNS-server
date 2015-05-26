@@ -2,6 +2,7 @@
 #ifndef RECORD_HPP
 #define RECORD_HPP
 
+#include "../Environment.hpp"
 #include <botan-1.10/botan/botan.h>
 #include <botan-1.10/botan/rsa.h>
 #include <cstdint>
@@ -18,12 +19,6 @@ class Record
 
   static const uint8_t NONCE_LEN = 4;
   static const uint8_t SCRYPTED_LEN = 16;
-
-  static const uint32_t RSA_LEN = 1024;
-  static const uint32_t SIGNATURE_LEN = RSA_LEN / 8;
-  // static const uint32_t SHA256_LEN = 256 / 8;
-  static const uint32_t SHA384_LEN = 384 / 8;
-  static const uint32_t SHA1_LEN = 160 / 8;
 
   enum WorkStatus
   {
@@ -72,10 +67,10 @@ class Record
   Botan::RSA_PrivateKey* privateKey_;
   Botan::RSA_PublicKey* publicKey_;
 
-  uint8_t consensusHash_[SHA384_LEN];
+  uint8_t consensusHash_[Environment::SHA384_LEN];
   uint8_t nonce_[NONCE_LEN];
   uint8_t scrypted_[SCRYPTED_LEN];
-  uint8_t signature_[SIGNATURE_LEN];
+  uint8_t signature_[Environment::SIGNATURE_LEN];
   long timestamp_;
   bool valid_, validSig_;
 };

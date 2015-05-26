@@ -58,6 +58,9 @@ add_executable(onions
     common/records/UpdateR.cpp
     common/records/DeleteR.cpp
 
+    common/merkle/MerkleTree.cpp
+    common/merkle/MerkleNode.cpp
+
     ${JSONCPP_CPP}
 
     libs/CyoEncode/CyoDecode.c
