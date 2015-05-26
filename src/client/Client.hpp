@@ -1,6 +1,6 @@
 
-#ifndef CLIENT_PROTOCOLS_HPP
-#define CLIENT_PROTOCOLS_HPP
+#ifndef CLIENT_HPP
+#define CLIENT_HPP
 
 #include "../common/records/Record.hpp"
 #include "tcp/SocksClient.hpp"
@@ -9,12 +9,12 @@
 #include <memory>
 #include <string>
 
-class ClientProtocols
+class Client
 {
  public:
-  static ClientProtocols& get()
+  static Client& get()
   {
-    static ClientProtocols instance;
+    static Client instance;
     return instance;
   }
 
@@ -31,10 +31,10 @@ class ClientProtocols
                              const std::string&);
 
  private:
-  ClientProtocols() {}
-  ClientProtocols(ClientProtocols const&) = delete;
-  void operator=(ClientProtocols const&) = delete;
-  static std::shared_ptr<ClientProtocols> singleton_;
+  Client() {}
+  Client(Client const&) = delete;
+  void operator=(Client const&) = delete;
+  static std::shared_ptr<Client> singleton_;
   Botan::RSA_PublicKey* base64ToRSA(const std::string&);
   bool connectToResolver();
 

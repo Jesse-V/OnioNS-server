@@ -1,5 +1,5 @@
 
-#include "ClientProtocols.hpp"
+#include "Client.hpp"
 #include "tcp/IPC.hpp"
 #include "../common/records/CreateR.hpp"
 #include "../common/utils.hpp"
@@ -7,7 +7,7 @@
 #include <iostream>
 
 
-void ClientProtocols::listenForDomains()
+void Client::listenForDomains()
 {
   // establish connection with remote resolver over Tor
   if (!connectToResolver())
@@ -19,7 +19,7 @@ void ClientProtocols::listenForDomains()
 
 
 
-std::string ClientProtocols::resolve(const std::string& torDomain)
+std::string Client::resolve(const std::string& torDomain)
 {
   try
   {
@@ -59,7 +59,7 @@ std::string ClientProtocols::resolve(const std::string& torDomain)
 
 
 
-std::shared_ptr<Record> ClientProtocols::parseRecord(const std::string& json)
+std::shared_ptr<Record> Client::parseRecord(const std::string& json)
 {
   Json::Value rVal = toJSON(json);
 
@@ -112,7 +112,7 @@ std::shared_ptr<Record> ClientProtocols::parseRecord(const std::string& json)
 
 
 
-Json::Value ClientProtocols::toJSON(const std::string& json)
+Json::Value Client::toJSON(const std::string& json)
 {
   // std::cout << "Parsing JSON... ";
 
@@ -130,9 +130,8 @@ Json::Value ClientProtocols::toJSON(const std::string& json)
 
 
 
-std::string ClientProtocols::getDestination(
-    const std::shared_ptr<Record>& record,
-    const std::string& source)
+std::string Client::getDestination(const std::shared_ptr<Record>& record,
+                                   const std::string& source)
 {
   NameList list = record->getNameList();
   for (auto pair : list)
@@ -148,7 +147,7 @@ std::string ClientProtocols::getDestination(
 
 
 
-Botan::RSA_PublicKey* ClientProtocols::base64ToRSA(const std::string& base64)
+Botan::RSA_PublicKey* Client::base64ToRSA(const std::string& base64)
 {
   // decode public key
   unsigned long expectedSize = Utils::decode64Estimation(base64.length());
@@ -163,7 +162,7 @@ Botan::RSA_PublicKey* ClientProtocols::base64ToRSA(const std::string& base64)
 
 
 
-bool ClientProtocols::connectToResolver()
+bool Client::connectToResolver()
 {
   try
   {

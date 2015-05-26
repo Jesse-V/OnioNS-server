@@ -1,11 +1,10 @@
 
 
-#include "main.hpp"
 #include "Flags.hpp"
 #include "common/Environment.hpp"
-#include "client/ClientProtocols.hpp"
-#include "hs/HSProtocols.hpp"
-#include "server/ServerProtocols.hpp"
+#include "client/Client.hpp"
+#include "hs/HiddenService.hpp"
+#include "mirror/Mirror.hpp"
 #include <botan/botan.h>
 #include <fstream>
 #include <iostream>
@@ -27,16 +26,16 @@ int main(int argc, char** argv)
 
   if (Flags::get().getMode() == Flags::OperationMode::CLIENT)
   {
-    ClientProtocols::get().listenForDomains();
+    Client::get().listenForDomains();
   }
   else if (Flags::get().getMode() == Flags::OperationMode::HIDDEN_SERVICE)
   {
     if (Flags::get().getCommand() == Flags::Command::CREATE_RECORD)
-      HSProtocols::get().createRecord();
+      HiddenService::get().createRecord();
   }
-  else if (Flags::get().getMode() == Flags::OperationMode::SERVER)
+  else if (Flags::get().getMode() == Flags::OperationMode::MIRROR)
   {
-    ServerProtocols::get().startServer();
+    Mirror::get().startServer();
   }
 
   return EXIT_SUCCESS;

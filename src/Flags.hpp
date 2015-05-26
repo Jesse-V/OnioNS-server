@@ -17,7 +17,7 @@ class Flags
   enum OperationMode
   {
     CLIENT,
-    SERVER,
+    MIRROR,
     HIDDEN_SERVICE
   };
 

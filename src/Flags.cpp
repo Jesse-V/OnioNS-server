@@ -22,8 +22,8 @@ bool Flags::parse(int argc, char** argv)
                                "Prints license information and exits.", false);
 
   TCLAP::SwitchArg clientMode("c", "client", "Switch to client mode.", false);
-  TCLAP::SwitchArg serverMode("s", "server", "Switch to name-server mode.",
-                              false);
+  TCLAP::SwitchArg mirrorMode("s", "server",
+                              "Switch to name-server (Mirror) mode.", false);
   TCLAP::SwitchArg hsMode("d", "hs", "Switch to hidden service mode.", false);
 
   TCLAP::SwitchArg createRecord("r", "register", "Register a domain name.",
@@ -39,7 +39,7 @@ bool Flags::parse(int argc, char** argv)
   cmd.add(licenseFlag);
 
   cmd.add(clientMode);
-  cmd.add(serverMode);
+  cmd.add(mirrorMode);
   cmd.add(hsMode);
 
   cmd.add(createRecord);
@@ -58,8 +58,8 @@ bool Flags::parse(int argc, char** argv)
 
   if (clientMode.isSet())
     mode_ = OperationMode::CLIENT;
-  else if (serverMode.isSet())
-    mode_ = OperationMode::SERVER;
+  else if (mirrorMode.isSet())
+    mode_ = OperationMode::MIRROR;
   else if (hsMode.isSet())
   {
     mode_ = OperationMode::HIDDEN_SERVICE;

@@ -1,10 +1,10 @@
 
-#include "ServerProtocols.hpp"
+#include "Mirror.hpp"
 #include "tcp/Server.hpp"
 #include <iostream>
 
 
-void ServerProtocols::startServer()
+void Mirror::startServer()
 {
   Server s(10053);
   s.start();

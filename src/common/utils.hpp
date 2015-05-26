@@ -1,6 +1,6 @@
 
-#ifndef UTILS
-#define UTILS
+#ifndef UTILS_HPP
+#define UTILS_HPP
 
 #include <botan/rsa.h>
 #include <cstdint>
