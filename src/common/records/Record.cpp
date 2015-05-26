@@ -227,7 +227,7 @@ void Record::makeValid(uint8_t nWorkers)
                 });
 
   bool tmp = false;
-  computeValidity(&tmp);
+  computeValidity(&tmp);  // todo: faster way than this?
 }
 
 

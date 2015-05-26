@@ -32,26 +32,41 @@ void SocksClient::connectTo(const std::string& host, short port)
 
 
 
-std::string SocksClient::sendReceive(const std::string& sendStr)
+Json::Value SocksClient::sendReceive(const std::string& output)
 {
   std::cout << "Sending... ";
   std::cout.flush();
 
-  boost::asio::streambuf response;
-  boost::asio::write(socket_, boost::asio::buffer(sendStr + "\n"));
+  // send as JSON
+  Json::Value outVal;
+  outVal["request"] = output;
+  Json::FastWriter writer;
+  boost::asio::write(socket_, boost::asio::buffer(writer.write(outVal)));
 
+  // read from socket until newline
   std::cout << "receiving... ";
   std::cout.flush();
+  boost::asio::streambuf response;
   boost::asio::read_until(socket_, response, "\n");
 
-  std::string s;
+  // convert to string
+  std::string responseStr;
   std::istream is(&response);
-  is >> s;
+  is >> responseStr;
+
+  // parse into JSON object
+  Json::Reader reader;
+  Json::Value responseVal;
+  if (!reader.parse(responseStr, responseVal))
+    responseVal["error"] = "Failed to parse response from server.";
+
+  if (!responseVal.isMember("error") && !responseVal.isMember("response"))
+    responseVal["error"] = "Invalid response from server.";
 
   std::cout << "done." << std::endl;
   std::cout.flush();
 
-  return s;
+  return responseVal;
 }
 
 

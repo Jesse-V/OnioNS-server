@@ -3,6 +3,7 @@
 #define SOCKS_CLIENT_HPP
 
 #include <string>
+#include <json/json.h>
 #include <boost/asio.hpp>
 
 class SocksClient
@@ -10,7 +11,7 @@ class SocksClient
  public:
   SocksClient(const std::string&, short);
   void connectTo(const std::string&, short);
-  std::string sendReceive(const std::string& send);
+  Json::Value sendReceive(const std::string& send);
 
  private:
   bool checkSOCKS();

@@ -3,6 +3,7 @@
 #include "tcp/IPC.hpp"
 #include "../common/Common.hpp"
 #include "../common/utils.hpp"
+#include <json/json.h>
 #include <iostream>
 
 
@@ -30,13 +31,14 @@ std::string Client::resolve(const std::string& torDomain)
       auto iterator = cache_.find(domain);
       if (iterator == cache_.end())
       {
-        std::cout << "Sending \"" << domain << "\" to name server..."
-                  << std::endl;
-        auto response = socks_->sendReceive(domain);
+        std::cout << "Sending \"" << domain << "\" to name server...\n";
+        auto received = socks_->sendReceive(domain);
+        if (received.isMember("error"))
+          throw std::runtime_error(received["error"].asString());
         std::cout << "Received Record response." << std::endl;
 
         auto dest = Common::get().getDestination(
-            Common::get().parseRecord(response), domain);
+            Common::get().parseRecord(received["response"].asString()), domain);
 
         cache_[domain] = dest;
         domain = dest;

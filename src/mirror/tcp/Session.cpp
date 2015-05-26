@@ -31,7 +31,7 @@ boost::asio::ip::tcp::socket& Session::getSocket()
 void Session::start()
 {
   std::cout << "Starting session..." << std::endl;
-  asyncReadBuffer();
+  asyncRead();
 }
 
 
@@ -46,21 +46,32 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
     return;
   }
 
-  std::string readIn(buffer_.begin(), buffer_.begin() + n);
-  std::string response("404");
+  std::string inputStr(buffer_.begin(), buffer_.begin() + n);
+  Json::Value inputVal, outputVal;
 
-  // trim
-  readIn = readIn.substr(0, readIn.find("\r"));
-  readIn = readIn.substr(0, readIn.find("\n"));
-
-  std::cout << "\"" << readIn << "\"" << std::endl;
-
-  if (readIn == "ping")
+  Json::Reader reader;
+  if (!reader.parse(inputStr, inputVal))
   {
-    // std::cout << "Sending response." << std::endl;
-    response = "pong";
+    outputVal["error"] = "Failed to parse message!";
+    asyncWrite(outputVal);
+    return;
   }
-  else if (Utils::strEndsWith(readIn, ".tor"))
+
+  if (!inputVal.isMember("request"))
+  {
+    outputVal["error"] = "Message is missing the request field!";
+    asyncWrite(outputVal);
+    return;
+  }
+
+  // todo: can confirm that it can be casted to string
+  std::string request(inputVal["request"].asString());
+
+  if (request == "ping")
+  {
+    outputVal["response"] = "pong";
+  }
+  else if (Utils::strEndsWith(request, ".tor"))
   {  // resolve .tor -> .onion
 
     // std::cout << "Received query for \"" << readIn << "\"" << std::endl;
@@ -69,24 +80,23 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
     if (!cacheFile)
       throw std::runtime_error("Cannot open Record cache!");
 
-    response = std::string((std::istreambuf_iterator<char>(cacheFile)),
-                           std::istreambuf_iterator<char>());
+    outputVal["response"] =
+        std::string(std::istreambuf_iterator<char>(cacheFile),
+                    std::istreambuf_iterator<char>());
 
-    std::cout << "Returning Record (" << response.length() << " bytes)\n";
+    std::cout << "Returning Record" << std::endl;
 
     // response = "onions55e7yam27n.onion";
     // response = "2v7ibl5u4pbemwiz.onion";
     // response = "blkbook3fxhcsn3u.onion";
     // response = "uhwikih256ynt57t.onion";
+
+    // todo: 404 if not found
   }
   else
-    std::cout << "404ed request" << std::endl;
+    outputVal["error"] = "Unknown request.";
 
-  for (std::size_t j = 0; j < response.size(); j++)
-    buffer_[j] = response[j];
-  buffer_[response.size() + 0] = '\r';
-  buffer_[response.size() + 1] = '\n';
-  asyncWriteBuffer(response.size() + 2);
+  asyncWrite(outputVal);
 }
 
 
@@ -101,7 +111,7 @@ void Session::processWrite(const boost::system::error_code& error)
   }
 
   // std::cout << "done." << std::endl;
-  asyncReadBuffer();
+  asyncRead();
 }
 
 
@@ -110,7 +120,7 @@ void Session::processWrite(const boost::system::error_code& error)
 
 
 
-void Session::asyncReadBuffer()
+void Session::asyncRead()
 {
   // std::cout << "Reading... ";
   socket_.async_read_some(
@@ -123,11 +133,22 @@ void Session::asyncReadBuffer()
 
 
 
-void Session::asyncWriteBuffer(std::size_t len)
+void Session::asyncWrite(const Json::Value& val)
 {
+  Json::FastWriter writer;
+  asyncWrite(writer.write(val));
+}
+
+
+
+void Session::asyncWrite(const std::string& str)
+{
+  for (std::size_t j = 0; j < str.size(); j++)
+    buffer_[j] = str[j];
+
   // std::cout << "Writing... ";
   boost::asio::async_write(
-      socket_, boost::asio::buffer(buffer_, len),
+      socket_, boost::asio::buffer(buffer_, str.size()),
       makeHandler(allocator_,
                   boost::bind(&Session::processWrite, shared_from_this(),
                               boost::asio::placeholders::error)));

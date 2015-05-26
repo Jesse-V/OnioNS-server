@@ -3,6 +3,7 @@
 #define SESSION_HPP
 
 #include "../../common/tcp/HandleAlloc.hpp"
+#include <json/json.h>
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -18,8 +19,9 @@ class Session : public boost::enable_shared_from_this<Session>
   void processWrite(const boost::system::error_code&);
 
  private:
-  void asyncReadBuffer();
-  void asyncWriteBuffer(std::size_t);
+  void asyncRead();
+  void asyncWrite(const Json::Value&);
+  void asyncWrite(const std::string&);
 
   boost::asio::ip::tcp::socket socket_;
   boost::array<char, 2048> buffer_;
