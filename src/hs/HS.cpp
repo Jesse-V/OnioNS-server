@@ -13,10 +13,9 @@ std::shared_ptr<Record> HS::createRecord()
   {
     auto r = std::make_shared<CreateR>(loadKey(), Flags::get().getDomainName(),
                                        "AD97364FC20BEC80");
-    NameList list = r->getNameList();
-    list.push_back(
-        std::make_pair("sub." + Flags::get().getDomainName(), "example.tor"));
-    r->setNameList(list);
+    NameList list = r->getSubdomains();
+    list.push_back(std::make_pair("sub", "example.tor"));
+    r->setSubdomains(list);
 
     std::cout << std::endl;
     auto json = r->asJSON();

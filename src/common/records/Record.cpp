@@ -16,8 +16,7 @@
 
 
 Record::Record(Botan::RSA_PublicKey* pubKey)
-    : type_(""),
-      privateKey_(nullptr),
+    : privateKey_(nullptr),
       publicKey_(pubKey),
       timestamp_(time(NULL)),
       valid_(false),
@@ -28,6 +27,7 @@ Record::Record(Botan::RSA_PublicKey* pubKey)
   memset(scrypted_, 0, SCRYPTED_LEN);
   memset(signature_, 0, Environment::SIGNATURE_LEN);
 }
+
 
 
 Record::Record(Botan::RSA_PrivateKey* key, uint8_t* consensusHash) : Record(key)
@@ -41,7 +41,8 @@ Record::Record(Botan::RSA_PrivateKey* key, uint8_t* consensusHash) : Record(key)
 
 Record::Record(const Record& other)
     : type_(other.type_),
-      nameList_(other.nameList_),
+      name_(other.name_),
+      subdomains_(other.subdomains_),
       contact_(other.contact_),
       privateKey_(other.privateKey_),
       publicKey_(other.publicKey_),
@@ -67,37 +68,63 @@ Record::~Record()
 
 
 
-void Record::setNameList(const NameList& nameList)
+void Record::setName(const std::string& name)
 {
-  // todo: count/check number of second-level domain names
-  // todo: count/check number and length of names
+  // todo: check for valid name characters
 
-  if (nameList.empty() || nameList.size() > 24)
-    throw std::invalid_argument("Name list of invalid length!");
+  if (name.length() < 5 || name.length() > 128)
+    throw std::invalid_argument("Invalid length of name!");
 
-  for (auto pair : nameList)
-  {
-    if (pair.first.length() <= 5 || pair.first.length() > 128)
-      throw std::invalid_argument("Invalid length of source name!");
-    if (pair.second.length() <= 5 || pair.second.length() > 128)
-      throw std::invalid_argument("Invalid length of destination name!");
+  if (!Utils::strEndsWith(name, ".tor"))
+    throw std::invalid_argument("Name must end with the .tor label!");
 
-    if (!Utils::strEndsWith(pair.first, ".tor"))
-      throw std::invalid_argument("Source name must begin with .tor!");
-    if (!Utils::strEndsWith(pair.first, ".tor") &&
-        !Utils::strEndsWith(pair.first, ".onion"))
-      throw std::invalid_argument("Destination must go to .tor or .onion!");
-  }
-
-  nameList_ = nameList;
+  name_ = name;
   valid_ = false;
 }
 
 
 
-NameList Record::getNameList()
+std::string Record::getName()
 {
-  return nameList_;
+  return name_;
+}
+
+
+
+void Record::setSubdomains(const NameList& subdomains)
+{
+  // todo: count/check number and length of names
+
+  std::cout << name_ << std::endl;
+
+  if (subdomains.size() > 24)
+    throw std::invalid_argument("Cannot have more than 24 subdomains!");
+
+  for (auto pair : subdomains)
+  {
+    std::cout << pair.first << std::endl;
+
+    if (pair.first.length() == 0 || pair.first.length() > 128)
+      throw std::invalid_argument("Invalid length of subdomain!");
+    if (pair.second.length() == 0 || pair.second.length() > 128)
+      throw std::invalid_argument("Invalid length of destination!");
+
+    if (Utils::strEndsWith(pair.first, name_))
+      throw std::invalid_argument("Subdomain should not contain name");
+    if (!Utils::strEndsWith(pair.second, ".tor") &&
+        !Utils::strEndsWith(pair.second, ".onion"))
+      throw std::invalid_argument("Destination must go to .tor or .onion!");
+  }
+
+  subdomains_ = subdomains;
+  valid_ = false;
+}
+
+
+
+NameList Record::getSubdomains()
+{
+  return subdomains_;
 }
 
 
@@ -268,10 +295,11 @@ std::string Record::asJSON() const
   obj["contact"] = contact_;
   obj["timestamp"] = std::to_string(timestamp_);
   obj["cHash"] = Botan::base64_encode(consensusHash_, Environment::SHA384_LEN);
+  obj["name"] = name_;
 
-  // add names and subdomains
-  for (auto sub : nameList_)
-    obj["nameList"][sub.first] = sub.second;
+  // add subdomains
+  for (auto sub : subdomains_)
+    obj["subd"][sub.first] = sub.second;
 
   // extract and save public key
   auto key = getPublicKey();
@@ -298,11 +326,13 @@ std::ostream& operator<<(std::ostream& os, const Record& dt)
   os << "Domain Registration: (currently "
      << (dt.valid_ ? "VALID)" : "INVALID)") << std::endl;
 
-  os << "   Name List: " << std::endl;
-  for (auto subd : dt.nameList_)
-    os << "      " << subd.first << " -> " << subd.second << std::endl;
+  os << "   Domain Information: " << std::endl;
+  os << "      " << dt.name_ << " -> " << dt.getOnion() << std::endl;
+  for (auto subd : dt.subdomains_)
+    os << "      " << subd.first << "." << dt.name_ << " -> " << subd.second
+       << std::endl;
 
-  os << "   Contact: 0x" << dt.contact_ << std::endl;
+  os << "   Contact: PGP 0x" << dt.contact_ << std::endl;
   os << "   Time: " << dt.timestamp_ << std::endl;
   os << "   Validation:" << std::endl;
 
@@ -411,8 +441,8 @@ void Record::computeValidity(bool* abortSig)
 // scrypted_ and signature_ without buffer overflow
 UInt8Array Record::computeCentral()
 {
-  std::string str(type_);
-  for (auto pair : nameList_)
+  std::string str(type_ + name_);
+  for (auto pair : subdomains_)
     str += pair.first + pair.second;
   str += contact_;
   str += std::to_string(timestamp_);
@@ -512,8 +542,7 @@ void Record::updateValidity(const UInt8Array& buffer)
     valid_ = true;
   else
   {
-    std::cout << Botan::base64_encode(nonce_, NONCE_LEN) << " -> no (" << num
-              << ")" << std::endl;
+    std::cout << Botan::base64_encode(nonce_, NONCE_LEN) << " -> not valid\n";
     std::cout.flush();
   }
 }

@@ -31,8 +31,11 @@ class Record
   Record(Botan::RSA_PrivateKey*, uint8_t*);
   Record(const Record&);
 
-  void setNameList(const NameList&);
-  NameList getNameList();
+  void setName(const std::string&);
+  std::string getName();
+
+  void setSubdomains(const NameList&);
+  NameList getSubdomains();
 
   void setContact(const std::string&);
   std::string getContact();
@@ -60,9 +63,8 @@ class Record
   int updateAppendScrypt(UInt8Array& buffer);
   void updateValidity(const UInt8Array& buffer);
 
-  std::string type_;
-  NameList nameList_;
-  std::string contact_;
+  std::string type_, name_, contact_;
+  NameList subdomains_;
 
   Botan::RSA_PrivateKey* privateKey_;
   Botan::RSA_PublicKey* publicKey_;

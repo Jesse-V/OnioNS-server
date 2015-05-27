@@ -12,11 +12,7 @@ CreateR::CreateR(Botan::RSA_PrivateKey* key,
     : Record(key, Common::get().computeConsensusHash())
 {
   type_ = "Create";
-
-  NameList nameList;
-  nameList.push_back(std::make_pair(primaryName, getOnion()));
-  setNameList(nameList);
-
+  setName(primaryName);
   setContact(contact);
 }
 
@@ -24,7 +20,8 @@ CreateR::CreateR(Botan::RSA_PrivateKey* key,
 
 CreateR::CreateR(const std::string& cHash,
                  const std::string& contact,
-                 const NameList& nameList,
+                 const std::string& name,
+                 const NameList& subdomains,
                  const std::string& nonce,
                  const std::string& pow,
                  const std::string& sig,
@@ -33,8 +30,9 @@ CreateR::CreateR(const std::string& cHash,
     : Record(pubKey)
 {
   type_ = "Create";
-  contact_ = contact;
-  nameList_ = nameList;
+  setContact(contact);
+  setName(name);
+  setSubdomains(subdomains);
   timestamp_ = stol(time);
 
   assert(Botan::base64_decode(consensusHash_, cHash, false) ==

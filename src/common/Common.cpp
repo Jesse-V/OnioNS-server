@@ -16,25 +16,26 @@ std::shared_ptr<Record> Common::parseRecord(const std::string& json)
   auto nonce = rVal["nonce"].asString();
   auto pow = rVal["pow"].asString();
   auto pubHSKey = rVal["pubHSKey"].asString();
-  auto recordSig = rVal["recordSig"].asString();
+  auto sig = rVal["recordSig"].asString();
   auto timestamp = rVal["timestamp"].asString();
   auto type = rVal["type"].asString();
+  auto name = rVal["name"].asString();
 
   if (type != "Create")
     throw std::invalid_argument("Record parsing: not a Create Record!");
 
-  NameList nameList;
-  Json::Value list = rVal["nameList"];
+  NameList subdomains;
+  Json::Value list = rVal["subd"];
   auto sources = list.getMemberNames();
   for (auto source : sources)
-    nameList.push_back(std::make_pair(source, list[source].asString()));
+    subdomains.push_back(std::make_pair(source, list[source].asString()));
 
   // std::cout << "done." << std::endl;
 
   // std::cout << "Decoding into Record... ";
   auto key = Utils::base64ToRSA(pubHSKey);
-  auto createR = std::make_shared<CreateR>(cHash, contact, nameList, nonce, pow,
-                                           recordSig, key, timestamp);
+  auto createR = std::make_shared<CreateR>(cHash, contact, name, subdomains,
+                                           nonce, pow, sig, key, timestamp);
   // std::cout << "done." << std::endl;
 
   std::cout << "Checking validity... ";
@@ -81,10 +82,13 @@ Json::Value Common::toJSON(const std::string& json)
 std::string Common::getDestination(const std::shared_ptr<Record>& record,
                                    const std::string& source)
 {
-  NameList list = record->getNameList();
-  for (auto pair : list)
-    if (pair.first == source)
-      return pair.second;
+  if (record->getName() == source)
+    return record->getOnion();
+
+  NameList list = record->getSubdomains();
+  for (auto subdomain : list)
+    if (subdomain.first == source)
+      return subdomain.second;
 
   throw std::runtime_error("Record does not contain \"" + source + "\"!");
 }
