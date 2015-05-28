@@ -15,17 +15,7 @@ class Mirror
     return instance;
   }
 
-  // void initializeDatabase();
-  // void validatePagechain();
-  // void buildCache();
-
   void startServer();
-  // void receiveNewRecord(const std::shared_ptr<Record>&);
-  // void uploadPagechain();
-  // void synchronizePagechain();
-  // void publishDatabaseHash();
-  // void selectPage();
-  // void flood();
 
  private:
   Mirror() {}  // http://stackoverflow.com/questions/270947/

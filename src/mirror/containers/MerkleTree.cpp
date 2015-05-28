@@ -1,9 +1,9 @@
 
-#include "MerkleNode.hpp"
+#include "MerkleTree.hpp"
 #include <botan/sha2_64.h>
 
 
-MerkleNode::MerkleNode(const NodePtr& leftChild, NodePtr& rightChild)
+MerkleTree::Node::Node(const NodePtr& leftChild, NodePtr& rightChild)
     : left_(leftChild),
       right_(rightChild),
       leftBound_(leftChild->leftBound_),
@@ -23,7 +23,7 @@ MerkleNode::MerkleNode(const NodePtr& leftChild, NodePtr& rightChild)
 
 
 
-MerkleNode::MerkleNode(const std::shared_ptr<Record>& r)
+MerkleTree::Node::Node(const std::shared_ptr<Record>& r)
     : left_(nullptr), right_(nullptr)
 {
   // hash_ =
@@ -33,42 +33,42 @@ MerkleNode::MerkleNode(const std::shared_ptr<Record>& r)
 
 
 
-uint8_t* MerkleNode::getHash()
+uint8_t* MerkleTree::Node::getHash()
 {
   return hash_;
 }
 
 
 
-bool MerkleNode::isLeaf()
+bool MerkleTree::Node::isLeaf()
 {
   return !left_ && !right_;
 }
 
 
 
-NodePtr MerkleNode::getLeftChild()
+std::shared_ptr<MerkleTree::Node> MerkleTree::Node::getLeftChild()
 {
   return left_;
 }
 
 
 
-NodePtr MerkleNode::getRightChild()
+std::shared_ptr<MerkleTree::Node> MerkleTree::Node::getRightChild()
 {
   return right_;
 }
 
 
 
-std::string MerkleNode::getLeftBound()
+std::string MerkleTree::Node::getLeftBound()
 {
   return leftBound_;
 }
 
 
 
-std::string MerkleNode::getRightBound()
+std::string MerkleTree::Node::getRightBound()
 {
   return rightBound_;
 }

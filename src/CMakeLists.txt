@@ -39,27 +39,21 @@ add_executable(onions
     client/tcp/IPCSession.cpp
 
     mirror/Mirror.cpp
-    mirror/Snapshot.cpp
     mirror/tcp/Server.cpp
     mirror/tcp/Session.cpp
+
+    mirror/containers/Cache.cpp
+    mirror/containers/MerkleTree.cpp
 
     hs/HS.cpp
 
     common/Common.cpp
     common/Environment.cpp
-    common/Page.cpp
     common/Quorum.cpp
     common/utils.cpp
 
     common/records/Record.cpp
     common/records/CreateR.cpp
-    common/records/RenewR.cpp
-    common/records/MoveR.cpp
-    common/records/UpdateR.cpp
-    common/records/DeleteR.cpp
-
-    common/merkle/MerkleTree.cpp
-    common/merkle/MerkleNode.cpp
 
     ${JSONCPP_CPP}
 
