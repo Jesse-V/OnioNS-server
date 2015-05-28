@@ -49,7 +49,6 @@ add_executable(onions
 
     common/Common.cpp
     common/Environment.cpp
-    common/Quorum.cpp
     common/utils.cpp
 
     common/records/Record.cpp
