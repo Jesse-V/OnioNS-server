@@ -199,6 +199,16 @@ std::string Record::getOnion() const
 
 
 
+uint8_t* Record::getHash()
+{
+  Botan::SHA_384 sha;
+  uint8_t* hash = new uint8_t[Environment::SHA384_LEN];
+  hash = sha.process(asJSON());
+  return hash;
+}
+
+
+
 bool Record::refresh()
 {
   timestamp_ = time(NULL);

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "Preparing assets..."
-cp -rl debian src/debian # this cannot be a symlink
+cp -rl debian src # this cannot be a symlink
 gzip --best -c debian/extra_includes/manpage > src/debian/extra_includes/onions.1.gz
 
 echo "Preparing build..."

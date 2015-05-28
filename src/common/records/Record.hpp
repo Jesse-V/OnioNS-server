@@ -5,6 +5,7 @@
 #include "../Environment.hpp"
 #include <botan-1.10/botan/botan.h>
 #include <botan-1.10/botan/rsa.h>
+#include <memory>
 #include <cstdint>
 #include <string>
 
@@ -43,6 +44,7 @@ class Record
   bool setKey(Botan::RSA_PrivateKey*);
   UInt8Array getPublicKey() const;
   std::string getOnion() const;
+  uint8_t* getHash();
 
   bool refresh();
   void makeValid(uint8_t);
@@ -76,5 +78,7 @@ class Record
   long timestamp_;
   bool valid_, validSig_;
 };
+
+typedef std::shared_ptr<Record> RecordPtr;
 
 #endif

@@ -16,7 +16,7 @@ class MerkleTree
 
    public:
     Node(const NodePtr&, NodePtr&);
-    Node(const std::shared_ptr<Record>&);
+    Node(const RecordPtr&);
 
     uint8_t* getHash();
     bool isLeaf();

@@ -6,6 +6,8 @@
 
 void Mirror::startServer()
 {
-  Server s(10053);
+  // todo: load Records from the cache file, add to Cache
+
+  Server s(Environment::SERVER_PORT);
   s.start();
 }

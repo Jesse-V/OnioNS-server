@@ -15,10 +15,9 @@ class Common
     return instance;
   }
 
-  std::shared_ptr<Record> parseRecord(const std::string&);
+  RecordPtr parseRecord(const std::string&);
   Json::Value toJSON(const std::string&);
-  std::string getDestination(const std::shared_ptr<Record>&,
-                             const std::string&);
+  std::string getDestination(const RecordPtr&, const std::string&);
 
   uint8_t* computeConsensusHash();
 

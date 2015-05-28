@@ -4,7 +4,6 @@
 
 #include "../common/records/Record.hpp"
 #include <botan/rsa.h>
-#include <memory>
 
 class HS
 {
@@ -15,8 +14,8 @@ class HS
     return instance;
   }
 
-  std::shared_ptr<Record> createRecord();
-  void broadcastRecord(const std::shared_ptr<Record>&);
+  RecordPtr createRecord();
+  void broadcastRecord(const RecordPtr&);
 
  private:
   HS() {}

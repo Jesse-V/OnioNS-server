@@ -13,7 +13,7 @@ void Client::listenForDomains()
   if (!connectToResolver())
     return;
 
-  IPC ipc(9053);
+  IPC ipc(Environment::IPC_PORT);
   ipc.start();
 }
 
@@ -72,7 +72,7 @@ bool Client::connectToResolver()
     // connect over Tor to remote resolver
     std::cout << "Detecting the Tor Browser..." << std::endl;
     socks_ = std::make_shared<SocksClient>("localhost", 9150);
-    socks_->connectTo("129.123.7.8", 10053);
+    socks_->connectTo("129.123.7.8", Environment::SERVER_PORT);
     std::cout << "The Tor Browser appears to be running." << std::endl;
 
     std::cout << "Testing connection to the name server..." << std::endl;

@@ -7,7 +7,7 @@
 #include <iostream>
 
 
-std::shared_ptr<Record> Common::parseRecord(const std::string& json)
+RecordPtr Common::parseRecord(const std::string& json)
 {
   Json::Value rVal = toJSON(json);
 
@@ -79,7 +79,7 @@ Json::Value Common::toJSON(const std::string& json)
 
 
 
-std::string Common::getDestination(const std::shared_ptr<Record>& record,
+std::string Common::getDestination(const RecordPtr& record,
                                    const std::string& source)
 {
   if (record->getName() == source)

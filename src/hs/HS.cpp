@@ -7,7 +7,7 @@
 #include <iostream>
 
 
-std::shared_ptr<Record> HS::createRecord()
+RecordPtr HS::createRecord()
 {
   try
   {

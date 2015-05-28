@@ -23,8 +23,7 @@ MerkleTree::Node::Node(const NodePtr& leftChild, NodePtr& rightChild)
 
 
 
-MerkleTree::Node::Node(const std::shared_ptr<Record>& r)
-    : left_(nullptr), right_(nullptr)
+MerkleTree::Node::Node(const RecordPtr& r) : left_(nullptr), right_(nullptr)
 {
   // hash_ =
   // leftBound_
