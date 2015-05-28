@@ -28,7 +28,6 @@ class Client
   Client() {}
   Client(Client const&) = delete;
   void operator=(Client const&) = delete;
-  static std::shared_ptr<Client> singleton_;
   bool connectToResolver();
 
   std::shared_ptr<SocksClient> socks_;

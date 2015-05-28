@@ -3,8 +3,6 @@
 #define MIRROR_HPP
 
 #include "../common/records/Record.hpp"
-#include <memory>
-#include <string>
 
 class Mirror
 {
@@ -21,7 +19,6 @@ class Mirror
   Mirror() {}  // http://stackoverflow.com/questions/270947/
   Mirror(Mirror const&) = delete;
   void operator=(Mirror const&) = delete;
-  static std::shared_ptr<Mirror> singleton_;
 };
 
 #endif

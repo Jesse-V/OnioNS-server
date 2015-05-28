@@ -2,7 +2,6 @@
 #ifndef FLAGS_HPP
 #define FLAGS_HPP
 
-#include <memory>
 #include <string>
 
 class Flags
@@ -37,7 +36,6 @@ class Flags
   Flags() {}
   Flags(Flags const&) = delete;
   void operator=(Flags const&) = delete;
-  static std::shared_ptr<Flags> singleton_;
 
   OperationMode mode_;
   Command command_;

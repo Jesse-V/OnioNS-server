@@ -22,7 +22,6 @@ class HS
   HS() {}
   HS(HS const&) = delete;
   void operator=(HS const&) = delete;
-  static std::shared_ptr<HS> singleton_;
 
   Botan::RSA_PrivateKey* loadKey();
 };
