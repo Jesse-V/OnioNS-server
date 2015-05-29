@@ -16,6 +16,7 @@ class Common
   }
 
   RecordPtr parseRecord(const std::string&);
+  RecordPtr parseRecord(const Json::Value&);
   Json::Value toJSON(const std::string&);
   std::string getDestination(const RecordPtr&, const std::string&);
 

@@ -9,8 +9,13 @@
 
 RecordPtr Common::parseRecord(const std::string& json)
 {
-  Json::Value rVal = toJSON(json);
+  return parseRecord(toJSON(json));
+}
 
+
+
+RecordPtr Common::parseRecord(const Json::Value& rVal)
+{
   auto cHash = rVal["cHash"].asString();
   auto contact = rVal["contact"].asString();
   auto nonce = rVal["nonce"].asString();
