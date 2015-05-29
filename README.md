@@ -60,9 +60,10 @@ The code does not compile on Debian Wheezy but if you can figure out the procedu
 
 ### Registering a Domain Name
 
-> 1. **onions --hs -r --domain=mydomain.tor --hskey=/var/lib/tor-onions/example.key -v**
-> 2. Wait for the computational work to complete.
-> 3. Please send final JSON to me over IRC or email (see below).
+> 1. **onions --hs -r --hskey=/var/lib/tor-onions/example.key -v**
+> 2. Answer the prompts for the primary domain name and any subdomains.
+> 3. Wait for the computational work to complete.
+> 4. Send the final JSON to me over IRC or email (see below).
 
 ### Getting Help
 

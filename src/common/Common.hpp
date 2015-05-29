@@ -26,6 +26,9 @@ class Common
   Common() {}
   Common(Common const&) = delete;
   void operator=(Common const&) = delete;
+
+  RecordPtr assembleRecord(const Json::Value&);
+  void checkValidity(const RecordPtr&);
 };
 
 #endif

@@ -7,7 +7,7 @@ The Onion Name System (OnioNS) \- Tor-powered Distributed DNS for Tor Hidden Ser
 
 .SH SYNOPSIS
     OnioNS\fR [\fB--help\fR|\fB--license\fR|\fB--version\fR]
-    OnioNS\fR [\fB--client\fR|\fB--server\fR|\fB--hs --hskey --domain\fR]
+    OnioNS\fR [\fB--client\fR|\fB--server\fR|\fB--hs --hskey\fR]
 
 .SH DESCRIPTION
 
@@ -38,9 +38,6 @@ In the typical Unix fashion, flags with values use the following syntax:
 
 \fB -r \fR or \fB --register \fR
         Indicates that you want to claim a domain name. Must be used with --hs to have any effect.
-
-\fB -n \fR or \fB --domain \fR
-        The domain name you want to claim. Must be used with --hs to have any effect.
 
 \fB -h \fR or \fB --help \fR
         Prints list of flags and usage examples and then quits.

@@ -16,68 +16,20 @@ RecordPtr Common::parseRecord(const std::string& json)
 
 RecordPtr Common::parseRecord(const Json::Value& rVal)
 {
-  auto cHash = rVal["cHash"].asString();
-  auto contact = rVal["contact"].asString();
-  auto nonce = rVal["nonce"].asString();
-  auto pow = rVal["pow"].asString();
-  auto pubHSKey = rVal["pubHSKey"].asString();
-  auto sig = rVal["recordSig"].asString();
-  auto timestamp = rVal["timestamp"].asString();
-  auto type = rVal["type"].asString();
-  auto name = rVal["name"].asString();
-
-  if (type != "Create")
-    throw std::invalid_argument("Record parsing: not a Create Record!");
-
-  NameList subdomains;
-  Json::Value list = rVal["subd"];
-  auto sources = list.getMemberNames();
-  for (auto source : sources)
-    subdomains.push_back(std::make_pair(source, list[source].asString()));
-
-  // std::cout << "done." << std::endl;
-
-  // std::cout << "Decoding into Record... ";
-  auto key = Utils::base64ToRSA(pubHSKey);
-  auto createR = std::make_shared<CreateR>(cHash, contact, name, subdomains,
-                                           nonce, pow, sig, key, timestamp);
-  // std::cout << "done." << std::endl;
-
-  std::cout << "Checking validity... ";
-  std::cout.flush();
-  bool tmp = false;
-  createR->computeValidity(&tmp);
-  std::cout << "done." << std::endl;
-
-  if (createR->hasValidSignature())
-    std::cout << "Record signature is valid." << std::endl;
-  else
-    throw std::runtime_error("Bad signature on Record!");
-
-  if (createR->isValid())
-    std::cout << "Record proof-of-work is valid." << std::endl;
-  else
-    throw std::runtime_error("Record is not valid!");
-
-  std::cout << "Record check complete." << std::endl;
-
-  return createR;
+  RecordPtr r = assembleRecord(rVal);
+  checkValidity(r);
+  return r;
 }
 
 
 
 Json::Value Common::toJSON(const std::string& json)
 {
-  // std::cout << "Parsing JSON... ";
-
   Json::Value rVal;
   Json::Reader reader;
 
   if (!reader.parse(json, rVal))
     throw std::invalid_argument("Failed to parse Record!");
-
-  // if (!rVal.isMember("subd"))
-  //  throw std::invalid_argument("Record parsing: missing NameList");
 
   return rVal;
 }
@@ -124,4 +76,62 @@ uint8_t* Common::computeConsensusHash()
   memcpy(cHash, sha.process(consensusStr), Environment::SHA384_LEN);
 
   return cHash;
+}
+
+
+
+// ************************** PRIVATE METHODS ****************************** //
+
+
+
+RecordPtr Common::assembleRecord(const Json::Value& rVal)
+{
+  auto cHash = rVal["cHash"].asString();
+  auto contact = rVal["contact"].asString();
+  auto nonce = rVal["nonce"].asString();
+  auto pow = rVal["pow"].asString();
+  auto pubHSKey = rVal["pubHSKey"].asString();
+  auto sig = rVal["recordSig"].asString();
+  auto timestamp = rVal["timestamp"].asString();
+  auto type = rVal["type"].asString();
+  auto name = rVal["name"].asString();
+
+  if (type != "Create")
+    throw std::invalid_argument("Record parsing: not a Create Record!");
+
+  NameList subdomains;
+  if (rVal.isMember("subd"))
+  {
+    Json::Value list = rVal["subd"];
+    auto sources = list.getMemberNames();
+    for (auto source : sources)
+      subdomains.push_back(std::make_pair(source, list[source].asString()));
+  }
+
+  auto key = Utils::base64ToRSA(pubHSKey);
+  return std::make_shared<CreateR>(cHash, contact, name, subdomains, nonce, pow,
+                                   sig, key, timestamp);
+}
+
+
+
+void Common::checkValidity(const RecordPtr& r)
+{
+  std::cout << "Checking validity... ";
+  std::cout.flush();
+  bool tmp = false;
+  r->computeValidity(&tmp);
+  std::cout << "done." << std::endl;
+
+  if (r->hasValidSignature())
+    std::cout << "Record signature is valid." << std::endl;
+  else
+    throw std::runtime_error("Bad signature on Record!");
+
+  if (r->isValid())  // todo: this does not actually check the PoW output
+    std::cout << "Record proof-of-work is valid." << std::endl;
+  else
+    throw std::runtime_error("Record is not valid!");
+
+  std::cout << "Record check complete." << std::endl;
 }

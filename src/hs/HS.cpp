@@ -9,38 +9,95 @@
 
 RecordPtr HS::createRecord()
 {
-  try
+  auto r = promptForRecord();
+
+  std::cout << "\n" << *r << "\n" << std::endl;
+  std::cout << "Record prepared. Hit Enter to begin making it valid. ";
+  std::string tmp;
+  std::getline(std::cin, tmp);
+
+  r->makeValid(4);
+
+  std::cout << std::endl;
+  std::cout << *r << std::endl;
+
+  std::cout << std::endl;
+  auto json = r->asJSON();
+  std::cout << "Final Record is " << json.length()
+            << " bytes, ready for transmission: \n\n" << json << std::endl;
+
+  return r;
+}
+
+
+
+RecordPtr HS::promptForRecord()
+{
+  std::cout
+      << "Here you can claim a domain name and multiple subdomains for your"
+         " hidden service. They can point to either a .tor or a .onion domain,"
+         " keeping it all within Tor. For example, you may claim"
+         " \"example.tor\" -> \"onions55e7yam27n.onion\", \"foo.example.tor\""
+         " -> \"foo.tor\", \"bar.example.tor\" -> \"bar.tor\", and"
+         " \"a.b.c.example.tor\" -> \"3g2upl4pq6kufc4m.onion\"."
+         " The association between these names and your hidden service is"
+         " cryptographically locked and made valid after some computational"
+         " work. This work will follow the prompts for the domains. \n";
+
+  std::string name;
+  std::cout << "The primary domain name must end in \".tor\"" << std::endl;
+  while (name.length() < 5 || !Utils::strEndsWith(name, ".tor"))
   {
-    auto r = std::make_shared<CreateR>(loadKey(), Flags::get().getDomainName(),
-                                       "AD97364FC20BEC80");
-    NameList list = r->getSubdomains();
-    list.push_back(std::make_pair("sub", "example.tor"));
-    r->setSubdomains(list);
-
-    // std::cout << std::endl;
-    // auto json = r->asJSON();
-    // std::cout << "Initial Record: (" << json.length() << " bytes) \n" << json
-    //          << std::endl;
-
-    r->makeValid(4);
-
-    std::cout << std::endl;
-    std::cout << "Result:" << std::endl;
-    std::cout << *r << std::endl;
-
-    std::cout << std::endl;
-    auto json = r->asJSON();
-    std::cout << "Final Record, ready for transmission: (" << json.length()
-              << " bytes) \n" << json << std::endl;
-
-    return r;
+    std::cout << "The primary domain name: ";
+    std::getline(std::cin, name);
   }
-  catch (std::exception& e)
+
+  std::string pgp;
+  std::cout << "You may optionally supply your PGP fingerprint, \n"
+               "which must be a power of two in length." << std::endl;
+  while (!Utils::isPowerOfTwo(pgp.length()))
   {
-    std::cerr << e.what() << "\n";
+    std::cout << "Your PGP fingerprint: ";
+    std::getline(std::cin, pgp);  //"AD97364FC20BEC80"
   }
 
-  return NULL;
+  std::cout
+      << "You may provide up to 24 subdomain-destination pairs.\n"
+         "Just provide the labels before the primary domain name. For example,"
+         " to claim \"foo.example.tor\" -> \"bar.tor\", simply provide \"foo\" "
+         "and"
+         " then \"bar.tor\". Leave the subdomain blank when finished."
+      << std::endl;
+
+  NameList list;
+  for (int n = 1; n <= 24; n++)
+  {
+    std::string src = name, dest;
+
+    while (Utils::strEndsWith(src, name))
+    {
+      std::cout << "Subdomain " << n << ": ";
+      std::getline(std::cin, src);
+    }
+
+    if (src.length() == 0)
+      break;
+
+    while ((!Utils::strEndsWith(dest, ".tor") &&
+            !Utils::strEndsWith(dest, ".onion")) ||
+           (Utils::strEndsWith(dest, ".onion") && dest.length() != (16 + 6)))
+    {
+      std::cout << "   Destination: ";
+      std::getline(std::cin, dest);
+    }
+
+    list.push_back(std::make_pair(src, dest));
+  }
+
+  std::cout << std::endl;
+  auto r = std::make_shared<CreateR>(loadKey(), name, pgp);
+  r->setSubdomains(list);
+  return r;
 }
 
 

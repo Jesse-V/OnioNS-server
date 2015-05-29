@@ -90,7 +90,6 @@ bool Flags::parse(int argc, char** argv)
   if (createRecord.isSet())
     command_ = Command::CREATE_RECORD;
 
-  domainName_ = domainName.getValue();
   keyPath_ = keyPath.getValue();
 
   return true;
@@ -115,13 +114,6 @@ Flags::Command Flags::getCommand()
 bool Flags::verbosityEnabled()
 {
   return verbosity_;
-}
-
-
-
-std::string Flags::getDomainName()
-{
-  return domainName_;
 }
 
 

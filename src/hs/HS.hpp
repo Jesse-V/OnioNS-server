@@ -15,7 +15,8 @@ class HS
   }
 
   RecordPtr createRecord();
-  void broadcastRecord(const RecordPtr&);
+  RecordPtr promptForRecord();
+  // void broadcastRecord(const RecordPtr&);
 
  private:
   HS() {}
