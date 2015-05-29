@@ -71,8 +71,8 @@ Json::Value Common::toJSON(const std::string& json)
   if (!reader.parse(json, rVal))
     throw std::invalid_argument("Failed to parse Record!");
 
-  if (!rVal.isMember("nameList"))
-    throw std::invalid_argument("Record parsing: missing NameList");
+  // if (!rVal.isMember("subd"))
+  //  throw std::invalid_argument("Record parsing: missing NameList");
 
   return rVal;
 }
@@ -114,10 +114,9 @@ uint8_t* Common::computeConsensusHash()
 
   std::cout << "done. (" << consensusStr.length() << " bytes)" << std::endl;
 
-  // uint8_t* cHash = new uint8_t[Environment::SHA384_LEN];
+  uint8_t* cHash = new uint8_t[Environment::SHA384_LEN];
   Botan::SHA_384 sha;
-  // memcpy(cHash, sha.process(consensusStr), Environment::SHA384_LEN);
+  memcpy(cHash, sha.process(consensusStr), Environment::SHA384_LEN);
 
-  // return cHash;
-  return sha.process(consensusStr);
+  return cHash;
 }

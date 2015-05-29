@@ -90,10 +90,13 @@ std::vector<std::shared_ptr<MerkleTree::Node>> MerkleTree::buildParents(
 // returns a hash of the two nodes' values
 uint8_t* MerkleTree::join(const NodePtr& a, const NodePtr& b)
 {
+  UInt8Array c = concatenate(a, b);
+
   // hash their concatenation
   Botan::SHA_384 sha;
-  UInt8Array concat = concatenate(a, b);
-  return sha.process(concat.first, concat.second);
+  uint8_t* hash = new uint8_t[Environment::SHA384_LEN];
+  memcpy(hash, sha.process(c.first, c.second), Environment::SHA384_LEN);
+  return hash;
 }
 
 

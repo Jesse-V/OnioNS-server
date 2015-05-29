@@ -2,6 +2,7 @@
 #include "Session.hpp"
 #include "../../common/tcp/MemAllocator.hpp"
 #include "../../common/utils.hpp"
+#include "../containers/Cache.hpp"
 #include <boost/bind.hpp>
 #include <algorithm>
 #include <fstream>
@@ -74,24 +75,17 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
   else if (Utils::strEndsWith(request, ".tor"))
   {  // resolve .tor -> .onion
 
-    // std::cout << "Received query for \"" << readIn << "\"" << std::endl;
-
-    std::ifstream cacheFile("/var/lib/tor-onions/cache.txt");
-    if (!cacheFile)
-      throw std::runtime_error("Cannot open Record cache!");
-
-    outputVal["response"] =
-        std::string(std::istreambuf_iterator<char>(cacheFile),
-                    std::istreambuf_iterator<char>());
-
-    std::cout << "Returning Record" << std::endl;
-
-    // response = "onions55e7yam27n.onion";
-    // response = "2v7ibl5u4pbemwiz.onion";
-    // response = "blkbook3fxhcsn3u.onion";
-    // response = "uhwikih256ynt57t.onion";
-
-    // todo: 404 if not found
+    auto record = Cache::get().get(request);
+    if (record)
+    {
+      outputVal["response"] = record->asJSON();
+      std::cout << "Found Record for \"" << request << "\"" << std::endl;
+    }
+    else
+    {
+      outputVal["response"] = "404";
+      std::cout << "404ed request for \"" << request << "\"" << std::endl;
+    }
   }
   else
     outputVal["error"] = "Unknown request.";

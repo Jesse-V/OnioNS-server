@@ -17,10 +17,10 @@ RecordPtr HS::createRecord()
     list.push_back(std::make_pair("sub", "example.tor"));
     r->setSubdomains(list);
 
-    std::cout << std::endl;
-    auto json = r->asJSON();
-    std::cout << "Initial Record: (" << json.length() << " bytes) \n" << json
-              << std::endl;
+    // std::cout << std::endl;
+    // auto json = r->asJSON();
+    // std::cout << "Initial Record: (" << json.length() << " bytes) \n" << json
+    //          << std::endl;
 
     r->makeValid(4);
 
@@ -29,7 +29,7 @@ RecordPtr HS::createRecord()
     std::cout << *r << std::endl;
 
     std::cout << std::endl;
-    json = r->asJSON();
+    auto json = r->asJSON();
     std::cout << "Final Record, ready for transmission: (" << json.length()
               << " bytes) \n" << json << std::endl;
 

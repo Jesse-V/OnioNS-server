@@ -57,26 +57,16 @@ Record::Record(const Record& other)
 }
 
 
-/*
-Record::~Record()
-{
-   delete consensusHash_;
-   delete nonce_;
-   delete scrypted_;
-   delete signature_;
-}*/
-
-
 
 void Record::setName(const std::string& name)
 {
   // todo: check for valid name characters
 
   if (name.length() < 5 || name.length() > 128)
-    throw std::invalid_argument("Invalid length of name!");
+    throw std::invalid_argument("Name \"" + name + "\" has invalid length!");
 
   if (!Utils::strEndsWith(name, ".tor"))
-    throw std::invalid_argument("Name must end with the .tor label!");
+    throw std::invalid_argument("Name \"" + name + "\" must end with .tor!");
 
   name_ = name;
   valid_ = false;
@@ -95,15 +85,11 @@ void Record::setSubdomains(const NameList& subdomains)
 {
   // todo: count/check number and length of names
 
-  std::cout << name_ << std::endl;
-
   if (subdomains.size() > 24)
     throw std::invalid_argument("Cannot have more than 24 subdomains!");
 
   for (auto pair : subdomains)
   {
-    std::cout << pair.first << std::endl;
-
     if (pair.first.length() == 0 || pair.first.length() > 128)
       throw std::invalid_argument("Invalid length of subdomain!");
     if (pair.second.length() == 0 || pair.second.length() > 128)
@@ -224,6 +210,8 @@ void Record::makeValid(uint8_t nWorkers)
 {
   if (nWorkers == 0)
     throw std::invalid_argument("Not enough workers");
+
+  std::cout << "Making the Record valid... \n\n";
 
   bool found = false;
   bool* foundSig = &found;
