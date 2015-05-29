@@ -114,9 +114,10 @@ uint8_t* Common::computeConsensusHash()
 
   std::cout << "done. (" << consensusStr.length() << " bytes)" << std::endl;
 
-  uint8_t* cHash = new uint8_t[Environment::SHA384_LEN];
+  // uint8_t* cHash = new uint8_t[Environment::SHA384_LEN];
   Botan::SHA_384 sha;
-  memcpy(cHash, sha.process(consensusStr), Environment::SHA384_LEN);
+  // memcpy(cHash, sha.process(consensusStr), Environment::SHA384_LEN);
 
-  return cHash;
+  // return cHash;
+  return sha.process(consensusStr);
 }
