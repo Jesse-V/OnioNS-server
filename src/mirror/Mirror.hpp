@@ -3,6 +3,7 @@
 #define MIRROR_HPP
 
 #include "../common/records/Record.hpp"
+#include "containers/MerkleTree.hpp"
 
 class Mirror
 {
@@ -14,11 +15,14 @@ class Mirror
   }
 
   void startServer();
+  void signMerkleRoot(Botan::RSA_PrivateKey*, const MerkleTreePtr&);
 
  private:
   Mirror() {}  // http://stackoverflow.com/questions/270947/
   Mirror(Mirror const&) = delete;
   void operator=(Mirror const&) = delete;
+
+  void loadCache();
 };
 
 #endif

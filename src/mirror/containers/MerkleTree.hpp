@@ -31,7 +31,7 @@ class MerkleTree
   // JSONObj merge(const std::vector<NodePtr>&, const std::vector<NodePtr>&);
   // void add(const std::vector<NodePtr>&);
   // void add(JSONObj range);
-  // void getRoot();
+  uint8_t* getRoot();
 
  private:
   void fill(const std::vector<RecordPtr>&);
@@ -44,5 +44,7 @@ class MerkleTree
   std::vector<std::pair<std::string, NodePtr>> leaves_;
   NodePtr root_;
 };
+
+typedef std::shared_ptr<MerkleTree> MerkleTreePtr;
 
 #endif

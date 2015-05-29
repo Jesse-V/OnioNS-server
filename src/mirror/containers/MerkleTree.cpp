@@ -3,14 +3,30 @@
 #include <botan/sha2_64.h>
 #include <botan/base64.h>
 #include <json/json.h>
+#include <iostream>
 
 
 // records must be in alphabetical order according to record.getName()
 MerkleTree::MerkleTree(const std::vector<RecordPtr>& records)
 {
+  std::cout << "Building Merkle tree..." << std::endl;
   fill(records);
   build();
+  std::cout << "Merkle tree root is "
+            << Botan::base64_encode(root_->value_.first, root_->value_.second)
+            << std::endl;
 }
+
+
+
+uint8_t* MerkleTree::getRoot()
+{
+  return root_->value_.first;
+}
+
+
+
+// ************************** PRIVATE METHODS **************************** //
 
 
 
@@ -81,6 +97,8 @@ std::vector<std::shared_ptr<MerkleTree::Node>> MerkleTree::buildParents(
     if (right)
       right->parent_ = parent;
   }
+
+  std::cout << "Merkle level width: " << parents.size() << std::endl;
 
   return parents;
 }
