@@ -63,16 +63,13 @@ def resolveOnioNS(controller, stream):
   try:
     ipc.connect(('localhost', 9053))
     ipc.send(stream.target_address)
-    dest = ipc.recv(22)
+    dest = ipc.recv(64) # OnioNS returns an invalid hostname on fail
     ipc.close()
   except socket_error as serr:
     if serr.errno != errno.ECONNREFUSED:
       raise serr
     print '[err] OnioNS client is not running!'
     dest = '<IPC_FAIL>'
-
-  if dest == 'xxxxxxxxxxxxxxxx.onion':
-    dest = '<OnioNS_FAIL>' # triggers fail due to invalid hostname
 
   r=str(controller.msg('REDIRECTSTREAM ' + stream.id + ' ' + dest))
   print '[notice] Rewrote ' + stream.target_address + ' to ' + dest + ', ' + r

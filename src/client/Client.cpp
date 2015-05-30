@@ -34,8 +34,12 @@ std::string Client::resolve(const std::string& torDomain)
         std::cout << "Sending \"" << domain << "\" to name server...\n";
         auto received = socks_->sendReceive(domain);
         if (received.isMember("error"))
-          throw std::runtime_error(received["error"].asString());
-        std::cout << "Received Record response." << std::endl;
+        {
+          std::cerr << "Err: " << received["error"].asString() << std::endl;
+          return "<Response_Error>";
+        }
+        else
+          std::cout << "Received Record response." << std::endl;
 
         auto dest = Common::get().getDestination(
             Common::get().parseRecord(received["response"].asString()), domain);
@@ -48,7 +52,11 @@ std::string Client::resolve(const std::string& torDomain)
     }
 
     if (domain.length() != 22 || !Utils::strEndsWith(domain, ".onion"))
-      throw std::runtime_error("\"" + domain + "\" is not a HS address!");
+    {
+      std::cerr << "Err: \"" + domain + "\" is not a HS address!" << std::endl;
+      return "<Invalid_Result>";
+    }
+
     return domain;
   }
   catch (std::runtime_error& re)
@@ -56,7 +64,7 @@ std::string Client::resolve(const std::string& torDomain)
     std::cerr << "Err: " << re.what() << std::endl;
   }
 
-  return "xxxxxxxxxxxxxxxx.onion";
+  return "<General_Error>";
 }
 
 
