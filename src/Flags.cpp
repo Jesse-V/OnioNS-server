@@ -28,12 +28,13 @@ bool Flags::parse(int argc, char** argv)
 
   TCLAP::SwitchArg createRecord("r", "register", "Register a domain name.",
                                 false);
-  TCLAP::ValueArg<std::string> domainName("n", "domain",
-                                          "The domain name to be claimed.",
-                                          false, "example.tor", "domain");
+
   TCLAP::ValueArg<std::string> keyPath(
       "k", "hskey", "The path to the private hidden service RSA key.", false,
       "/var/lib/tor-onions/example.key", "keypath");
+  TCLAP::ValueArg<std::string> mirrorIPVal(
+      "m", "mirror", "The IPv4 address of the Mirror name server.", false,
+      "129.123.7.8", "IPv4 addr");
 
   cmd.add(verboseFlag);
   cmd.add(licenseFlag);
@@ -43,8 +44,8 @@ bool Flags::parse(int argc, char** argv)
   cmd.add(hsMode);
 
   cmd.add(createRecord);
-  cmd.add(domainName);
   cmd.add(keyPath);
+  cmd.add(mirrorIPVal);
 
   cmd.parse(argc, argv);
 
@@ -57,25 +58,25 @@ bool Flags::parse(int argc, char** argv)
   }
 
   if (clientMode.isSet())
+  {
     mode_ = OperationMode::CLIENT;
+    if (!mirrorIPVal.isSet())
+    {
+      std::cerr << "Client mode, but missing Mirror IP!" << std::endl;
+      return false;
+    }
+    mirrorIP_ = mirrorIPVal.getValue();
+  }
+
   else if (mirrorMode.isSet())
     mode_ = OperationMode::MIRROR;
   else if (hsMode.isSet())
   {
     mode_ = OperationMode::HIDDEN_SERVICE;
 
-    if (keyPath.isSet())
+    if (!keyPath.isSet())
     {
-      if (!Utils::strEndsWith(domainName.getValue(), ".tor"))
-      {
-        std::cerr << "Domain name must end in .tor" << std::endl;
-        return false;
-      }
-    }
-    else
-    {
-      std::cerr << "HS mode, but missing path to key! Specify with --hskey"
-                << std::endl;
+      std::cerr << "HS mode, but missing path to key! Specify with --hskey\n";
       return false;
     }
     // todo: check for --register
@@ -121,4 +122,11 @@ bool Flags::verbosityEnabled()
 std::string Flags::getKeyPath()
 {
   return keyPath_;
+}
+
+
+
+std::string Flags::getMirrorIP()
+{
+  return mirrorIP_;
 }

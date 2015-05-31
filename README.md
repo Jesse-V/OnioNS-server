@@ -51,7 +51,7 @@ The code does not compile on Debian Wheezy but if you can figure out the procedu
 
 > 1. Open the Tor Browser.
 > 2. Open two terminals, A and B.
-> 3. In Terminal A, run **onions --client -v**
+> 3. In Terminal A, run **onions --client -v --mirror=129.123.7.8**
 > 4. In Terminal B, run **python /var/lib/tor-onions/client.py**
 > 5. Type "example.tor" into the Tor Browser.
 > 6. In a moment, you should arrive at a hidden service.

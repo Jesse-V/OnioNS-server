@@ -14,7 +14,7 @@ Botan::LibraryInitializer init("thread_safe");
 int main(int argc, char** argv)
 {
   if (!Flags::get().parse(argc, argv))
-    return EXIT_SUCCESS;
+    return EXIT_FAILURE;
 
   if (!Flags::get().verbosityEnabled())
   {  // https://bbs.archlinux.org/viewtopic.php?id=79378

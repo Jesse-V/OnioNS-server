@@ -42,8 +42,8 @@ Record::Record(Botan::RSA_PrivateKey* key, uint8_t* consensusHash) : Record(key)
 Record::Record(const Record& other)
     : type_(other.type_),
       name_(other.name_),
-      subdomains_(other.subdomains_),
       contact_(other.contact_),
+      subdomains_(other.subdomains_),
       privateKey_(other.privateKey_),
       publicKey_(other.publicKey_),
       timestamp_(other.timestamp_),

@@ -30,6 +30,7 @@ class Flags
   Command getCommand();
   bool verbosityEnabled();
   std::string getKeyPath();
+  std::string getMirrorIP();
 
  private:
   Flags() {}
@@ -39,7 +40,7 @@ class Flags
   OperationMode mode_;
   Command command_;
   bool verbosity_;
-  std::string keyPath_;
+  std::string keyPath_, mirrorIP_;
 };
 
 #endif

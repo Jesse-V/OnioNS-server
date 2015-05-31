@@ -2,6 +2,7 @@
 #include "Client.hpp"
 #include "tcp/IPC.hpp"
 #include "../common/Common.hpp"
+#include "../../Flags.hpp"
 #include "../common/utils.hpp"
 #include <json/json.h>
 #include <iostream>
@@ -80,7 +81,7 @@ bool Client::connectToResolver()
     // connect over Tor to remote resolver
     std::cout << "Detecting the Tor Browser..." << std::endl;
     socks_ = std::make_shared<SocksClient>("localhost", 9150);
-    socks_->connectTo("129.123.7.8", Environment::SERVER_PORT);
+    socks_->connectTo(Flags::get().getMirrorIP(), Environment::SERVER_PORT);
     std::cout << "The Tor Browser appears to be running." << std::endl;
 
     std::cout << "Testing connection to the name server..." << std::endl;
