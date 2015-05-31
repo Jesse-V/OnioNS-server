@@ -27,7 +27,7 @@ class MerkleTree
 
  public:
   MerkleTree(const std::vector<RecordPtr>&);
-  // std::vector<NodePtr> getPathTo(const std::string&);
+  std::vector<NodePtr> getPathTo(const std::string&);
   // JSONObj merge(const std::vector<NodePtr>&, const std::vector<NodePtr>&);
   // void add(const std::vector<NodePtr>&);
   // void add(JSONObj range);
@@ -39,6 +39,7 @@ class MerkleTree
   std::vector<NodePtr> buildParents(std::vector<NodePtr>&);
   uint8_t* join(const NodePtr&, const NodePtr&);
   UInt8Array concatenate(const NodePtr&, const NodePtr&);
+  NodePtr getLeaf(const std::string&);
 
   // tree is built bottom-up but can be accessed either way
   std::vector<std::pair<std::string, NodePtr>> leaves_;

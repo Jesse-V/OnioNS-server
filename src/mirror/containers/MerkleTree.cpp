@@ -5,6 +5,8 @@
 #include <json/json.h>
 #include <iostream>
 
+#define NodePtr std::shared_ptr<MerkleTree::Node>
+
 
 // records must be in alphabetical order according to record.getName()
 MerkleTree::MerkleTree(const std::vector<RecordPtr>& records)
@@ -15,6 +17,26 @@ MerkleTree::MerkleTree(const std::vector<RecordPtr>& records)
   std::cout << "Merkle tree root is "
             << Botan::base64_encode(root_->value_.first, root_->value_.second)
             << std::endl;
+}
+
+
+
+std::vector<NodePtr> MerkleTree::getPathTo(const std::string& name)
+{
+  std::vector<NodePtr> path;
+
+  NodePtr node = getLeaf(name);
+  if (!node)
+    return path;
+
+  while (node->parent_ != nullptr)
+  {
+    path.push_back(node);
+    node = node->parent_;
+  }
+
+  std::reverse(path.begin(), path.end());
+  return path;
 }
 
 
@@ -75,8 +97,7 @@ void MerkleTree::build()
 
 
 // builds the level above the children, updates parent_ for the nodes
-std::vector<std::shared_ptr<MerkleTree::Node>> MerkleTree::buildParents(
-    std::vector<NodePtr>& nodes)
+std::vector<NodePtr> MerkleTree::buildParents(std::vector<NodePtr>& nodes)
 {
   std::vector<NodePtr> parents;
 
@@ -131,6 +152,16 @@ UInt8Array MerkleTree::concatenate(const NodePtr& a, const NodePtr& b)
     memcpy(concat + a->value_.second, b->value_.first, b->value_.second);
 
   return std::make_pair(concat, aLen + bLen);
+}
+
+
+
+NodePtr MerkleTree::getLeaf(const std::string& name)
+{  // todo: binary search
+  for (auto l : leaves_)
+    if (l.first == name)
+      return l.second;
+  return nullptr;
 }
 
 
