@@ -50,8 +50,7 @@ void Mirror::loadCache()
 
   // interpret JSON as Records and load into cache
   std::cout << "Preparing Records... " << std::endl;
-  std::vector<RecordPtr> records;
   for (uint n = 0; n < cacheValue.size(); n++)
-    records.push_back(Common::get().parseRecord(cacheValue[n]));
-  Cache::get().add(records);
+    if (!Cache::get().add(Common::get().parseRecord(cacheValue[n])))
+      throw std::runtime_error("Invalid Record inside cache!");
 }

@@ -3,10 +3,24 @@
 #include <algorithm>
 
 
-void Cache::add(const std::vector<RecordPtr>& records)
+bool Cache::add(const RecordPtr& record)
 {  // todo: delete Records should cause deletion/replacement, etc
+  if (get(record->getName()))
+    return false;  // cannot add record, name is already taken
+
+  records_.push_back(record);
+  return true;
+}
+
+
+
+bool Cache::add(const std::vector<RecordPtr>& records)
+{  // todo: push all at once
+  bool allSucceeded = true;
   for (auto r : records)
-    records_.push_back(r);  // todo: push all at once
+    if (!add(r))
+      allSucceeded = false;
+  return allSucceeded;
 }
 
 

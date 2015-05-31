@@ -15,10 +15,16 @@ class Session : public boost::enable_shared_from_this<Session>
   Session(boost::asio::io_service&);
   boost::asio::ip::tcp::socket& getSocket();
   void start();
+
+ private:
+  void handlePing(Json::Value&, Json::Value&);
+  void handleProveKnowledge(Json::Value&, Json::Value&);
+  void handleUpload(Json::Value&, Json::Value&);
+  void handleDomainQuery(Json::Value&, Json::Value&);
+
   void processRead(const boost::system::error_code&, size_t);
   void processWrite(const boost::system::error_code&);
 
- private:
   void asyncRead();
   void asyncWrite(const Json::Value&);
   void asyncWrite(const std::string&);

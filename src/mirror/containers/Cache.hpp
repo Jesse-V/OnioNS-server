@@ -14,7 +14,8 @@ class Cache
     return instance;
   }
 
-  void add(const std::vector<RecordPtr>&);
+  bool add(const RecordPtr& record);
+  bool add(const std::vector<RecordPtr>&);
   std::vector<RecordPtr> getSortedList();
   RecordPtr get(const std::string&);
 

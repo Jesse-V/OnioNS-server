@@ -1,8 +1,11 @@
 
 #include "Session.hpp"
+#include "../../common/Common.hpp"
 #include "../../common/tcp/MemAllocator.hpp"
 #include "../../common/utils.hpp"
 #include "../containers/Cache.hpp"
+#include <botan/sha2_64.h>
+#include <botan/base64.h>
 #include <boost/bind.hpp>
 #include <algorithm>
 #include <fstream>
@@ -47,50 +50,97 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
     return;
   }
 
-  std::string inputStr(buffer_.begin(), buffer_.begin() + n);
-  Json::Value inputVal, outputVal;
-
+  Json::Value in, out;
   Json::Reader reader;
-  if (!reader.parse(inputStr, inputVal))
+  std::string inputStr(buffer_.begin(), buffer_.begin() + n);
+
+  if (!reader.parse(inputStr, in))
+    out["error"] = "Failed to parse message!";
+  else if (!in.isMember("command"))
+    out["error"] = "Message is missing the \"command\" field!";
+  else
   {
-    outputVal["error"] = "Failed to parse message!";
-    asyncWrite(outputVal);
-    return;
+    std::string command(in["command"].asString());
+
+    if (command == "ping")
+      handlePing(in, out);
+    else if (command == "proveKnowledge")
+      handleProveKnowledge(in, out);
+    else if (command == "upload")
+      handleUpload(in, out);
+    else if (command == "domainQuery")
+      handleDomainQuery(in, out);
+    else
+      out["error"] = "Unknown command \"" + command + "\"\n";
   }
 
-  if (!inputVal.isMember("request"))
+  if (!out.isMember("error"))
+    out["response"] = "success";
+  asyncWrite(out);
+}
+
+
+
+// ***************************** PRIVATE METHODS *****************************
+
+
+
+void Session::handlePing(Json::Value& in, Json::Value& out)
+{
+  out["response"] = "pong";
+}
+
+
+
+void Session::handleProveKnowledge(Json::Value& in, Json::Value& out)
+{
+  auto r = Cache::get().get(in["domain"].asString());
+  if (r)
   {
-    outputVal["error"] = "Message is missing the request field!";
-    asyncWrite(outputVal);
-    return;
+    Botan::SHA_384 sha;
+    out["response"] =
+        Botan::base64_encode(sha.process(r->asJSON()), Environment::SHA384_LEN);
+  }
+  else
+    out["response"] = "404";
+}
+
+
+
+void Session::handleUpload(Json::Value& in, Json::Value& out)
+{
+  if (in.isMember("record"))
+  {
+    if (!Cache::get().add(Common::get().parseRecord(in["record"])))
+      out["error"] = "Name already taken.";
   }
 
-  // todo: can confirm that it can be casted to string
-  std::string request(inputVal["request"].asString());
+  else
+    out["error"] = "Missing Record.";
+}
 
-  if (request == "ping")
-  {
-    outputVal["response"] = "pong";
-  }
-  else if (Utils::strEndsWith(request, ".tor"))
+
+
+void Session::handleDomainQuery(Json::Value& in, Json::Value& out)
+{
+  std::string domain = in["domain"].asString();
+  if (Utils::strEndsWith(domain, ".tor"))
   {  // resolve .tor -> .onion
 
-    auto record = Cache::get().get(request);
+    auto record = Cache::get().get(domain);
     if (record)
     {
-      outputVal["response"] = record->asJSON();
-      std::cout << "Found Record for \"" << request << "\"" << std::endl;
+      out["response"] = record->asJSON();
+      std::cout << "Found Record for \"" << domain << "\"" << std::endl;
     }
     else
     {
-      outputVal["response"] = "404";
-      std::cout << "404ed request for \"" << request << "\"" << std::endl;
+      out["response"] = "404";
+      std::cout << "404ed request for \"" << domain << "\"" << std::endl;
     }
   }
   else
-    outputVal["error"] = "Unknown request.";
-
-  asyncWrite(outputVal);
+    out["error"] = "Invalid request.";
 }
 
 
@@ -107,10 +157,6 @@ void Session::processWrite(const boost::system::error_code& error)
   // std::cout << "done." << std::endl;
   asyncRead();
 }
-
-
-
-// ***************************** PRIVATE METHODS *****************************
 
 
 
