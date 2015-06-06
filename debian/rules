@@ -10,4 +10,12 @@
 #export DH_VERBOSE=1
 
 %:
-	dh $@ 
+	dh $@
+
+# https://wiki.debian.org/DebugPackage
+# https://bazaar.launchpad.net/~andrewsomething/imagination/debian/view/head:/debian/control
+# https://askubuntu.com/questions/17508/how-to-have-debian-packaging-generate-two-packages-given-an-upstream-source-arch
+# https://askubuntu.com/questions/182703/how-and-why-to-create-dbg-dev-doc-packages
+.PHONY: override_dh_strip
+override_dh_strip:
+        dh_strip --dbg-package=giblib1-dbg

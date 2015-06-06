@@ -2,21 +2,44 @@ Source: tor-onions
 Section: net
 Priority: optional
 Maintainer: Jesse Victors <kernelcorn@riseup.net>
-Build-Depends: debhelper (>= 8.0.0), libbotan1.10-dev, g++ (>= 4.7), cmake (>= 0.0.0), make (>= 3.80), dpkg-dev (>= 1.15), libasio-dev (>= 1.4), libboost-system-dev (>= 1.48), python-stem (>= 1.1)
+Build-Depends: debhelper (>= 7), libbotan1.10-dev, g++ (>= 4.7), make (>= 3.80), dpkg-dev (>= 1.15), libasio-dev (>= 1.4), libboost-system-dev (>= 1.48)
 Standards-Version: 3.9.5
 Homepage: http://onions.jessevictors.com
 Bugs: https://github.com/Jesse-V/OnioNS/issues
 Vcs-Git: https://github.com/Jesse-V/OnioNS.git
+Vcs-Browser: https://github.com/Jesse-V/OnioNS
 
 Package: tor-onions
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: python-stem (>= 1.1), ${shlibs:Depends}, ${misc:Depends}
 Conflicts: tor-onions
 Replaces: libscrypt-dev, libscrypt0
-Description: Tor-powered distributed DNS for Tor hidden services.
- The Onion Name System (OnioNS) is a privacy-enhanced distributed DNS for Tor
- hidden services. It provides a mapping between .tor domains and .onion hidden
- service addresses. OnioNS enables hidden service operators to claim a unique
- meaningful domain name for their service, which clients can then easily use to
- access the hidden service. This package provides client, server, and hidden
- service protocols and is intended to be installed and used alongside Tor.
+Description: Tor-powered distributed DNS for Tor hidden services
+ The Onion Name System (OnioNS) is a privacy-enhanced, distributed, and highly
+ usable DNS for Tor hidden services. It allows users to reference a hidden
+ service by a meaningful globally-unique domain name chosen by the hidden
+ service operator. The system is powered by the Tor network and relies on a
+ distributed database. This project aims to address the major usability issue
+ that has been with Tor hidden services since their introduction in 2002.
+ OnioNS reserves the .tor TLD. The official project page is
+ onions55e7yam27n.onion, which is example.tor under OnioNS.
+ .
+ This package provides client, server, and hidden service protocols and is
+ intended to be used alongside the Tor Browser.
+
+Package: tor-onions-dbg
+Section: debug
+Priority: optional
+Architecture: any
+Depends: tor-onions (= ${binary:Version}), ${misc:Depends}
+Conflicts: tor-onions-dbg
+Description: Debugging symbols for tor-onions
+ The Onion Name System (OnioNS) is a privacy-enhanced, distributed, and highly
+ usable DNS for Tor hidden services. It allows users to reference a hidden
+ service by a meaningful globally-unique domain name chosen by the hidden
+ service operator. The system is powered by the Tor network and relies on a
+ distributed database. This project aims to address the major usability issue
+ that has been with Tor hidden services since their introduction in 2002.
+ OnioNS reserves the .tor TLD.
+ .
+ This package contains the debugging symbols for tor-onions.
