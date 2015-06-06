@@ -4,6 +4,7 @@
 
 #include "../../common/records/Record.hpp"
 #include "../../common/Environment.hpp"
+#include <json/json.h>
 #include <vector>
 #include <memory>
 #include <string>
@@ -18,6 +19,8 @@ class MerkleTree
     Node(const UInt8Array& value);
     Node(const NodePtr&, const NodePtr&, const NodePtr&, const UInt8Array&);
     ~Node();
+    Json::Value asJSON();
+    bool operator==(const NodePtr&) const;
 
     UInt8Array value_;
     NodePtr parent_, left_, right_;
@@ -27,10 +30,7 @@ class MerkleTree
 
  public:
   MerkleTree(const std::vector<RecordPtr>&);
-  std::vector<NodePtr> getPathTo(const std::string&);
-  // JSONObj merge(const std::vector<NodePtr>&, const std::vector<NodePtr>&);
-  // void add(const std::vector<NodePtr>&);
-  // void add(JSONObj range);
+  Json::Value getPathTo(const std::string&);
   uint8_t* getRoot();
 
  private:
@@ -39,7 +39,11 @@ class MerkleTree
   std::vector<NodePtr> buildParents(std::vector<NodePtr>&);
   uint8_t* join(const NodePtr&, const NodePtr&);
   UInt8Array concatenate(const NodePtr&, const NodePtr&);
-  NodePtr getLeaf(const std::string&);
+  std::pair<NodePtr, NodePtr> getBounds(const std::string&);
+  std::vector<NodePtr> getPath(const NodePtr&);
+  uint findCommonPath(const std::vector<NodePtr>&,
+                      const std::vector<NodePtr>&,
+                      Json::Value&);
 
   // tree is built bottom-up but can be accessed either way
   std::vector<std::pair<std::string, NodePtr>> leaves_;

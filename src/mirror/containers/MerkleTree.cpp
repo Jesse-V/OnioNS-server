@@ -5,6 +5,7 @@
 #include <json/json.h>
 #include <iostream>
 
+// the compiler dislikes NodePtr in return statements, this fixes it
 #define NodePtr std::shared_ptr<MerkleTree::Node>
 
 
@@ -21,22 +22,27 @@ MerkleTree::MerkleTree(const std::vector<RecordPtr>& records)
 
 
 
-std::vector<NodePtr> MerkleTree::getPathTo(const std::string& name)
+// either the path to the existing Record, or to a subtree that spans the name
+Json::Value MerkleTree::getPathTo(const std::string& name)
 {
-  std::vector<NodePtr> path;
+  auto bounds = getBounds(name);
+  auto lPath = getPath(bounds.first);
+  auto rPath = getPath(bounds.second);
 
-  NodePtr node = getLeaf(name);
-  if (!node)
-    return path;
+  Json::Value jsonObj;
+  uint split = findCommonPath(lPath, rPath, jsonObj);  // sets jsonObj["common"]
 
-  while (node->parent_ != nullptr)
-  {
-    path.push_back(node);
-    node = node->parent_;
-  }
+  Json::Value leftBranch;
+  for (int n = split; n < lPath.size(); n++)
+    leftBranch[split - n] = lPath[n]->asJSON();
+  jsonObj["left"] = leftBranch;
 
-  std::reverse(path.begin(), path.end());
-  return path;
+  Json::Value rightBranch;
+  for (int n = split; n < rPath.size(); n++)
+    rightBranch[split - n] = rPath[n]->asJSON();
+  jsonObj["right"] = leftBranch;
+
+  return jsonObj;
 }
 
 
@@ -156,12 +162,62 @@ UInt8Array MerkleTree::concatenate(const NodePtr& a, const NodePtr& b)
 
 
 
-NodePtr MerkleTree::getLeaf(const std::string& name)
+// returns either <name, name> or two leaves that span name
+std::pair<NodePtr, NodePtr> MerkleTree::getBounds(const std::string& name)
 {  // todo: binary search
-  for (auto l : leaves_)
-    if (l.first == name)
-      return l.second;
-  return nullptr;
+
+  if (leaves_.size() == 0)
+    return std::make_pair(nullptr, nullptr);
+
+  // find left bound
+  ulong left = 0;
+  while (left < leaves_.size() && leaves_[left].first < name)
+    left++;
+
+  if (leaves_[left].first == name)  // if name has been found
+    return std::make_pair(leaves_[left].second, leaves_[left].second);
+
+  // not found, so find right bound
+  ulong right = leaves_.size() - 1;
+  while (right > 0 && leaves_[right].first > name)
+    right--;
+
+  // return bounds
+  return std::make_pair(leaves_[left].second, leaves_[right].second);
+}
+
+
+
+std::vector<NodePtr> MerkleTree::getPath(const NodePtr& leaf)
+{
+  std::vector<NodePtr> path;
+  NodePtr node = leaf;
+  while (node->parent_ != nullptr)
+  {
+    path.push_back(node);
+    node = node->parent_;
+  }
+
+  std::reverse(path.begin(), path.end());
+  return path;
+}
+
+
+
+uint MerkleTree::findCommonPath(const std::vector<NodePtr>& lPath,
+                                const std::vector<NodePtr>& rPath,
+                                Json::Value& pathObj)
+{
+  uint index = 0;
+
+  while (index < lPath.size() && index < rPath.size() &&
+         lPath[index] == rPath[index])
+  {
+    pathObj[index] = lPath[index]->asJSON();
+    index++;
+  }
+
+  return index;
 }
 
 
@@ -190,4 +246,33 @@ MerkleTree::Node::Node(const NodePtr& parent,
 MerkleTree::Node::~Node()
 {
   delete value_.first;
+}
+
+
+
+Json::Value MerkleTree::Node::asJSON()
+{
+  auto lValue = left_->value_.first;
+  auto rValue = right_->value_.first;
+  auto lValueLen = left_->value_.second;
+  auto rValueLen = right_->value_.second;
+
+  Json::Value json;
+  json[0] = Botan::base64_encode(lValue, lValueLen);
+  if (rValueLen == Environment::SHA384_LEN)  // if is leaf
+    json[1] = Botan::base64_encode(rValue, rValueLen);
+  return json;
+}
+
+
+
+bool MerkleTree::Node::operator==(const NodePtr& other) const
+{  // todo: I'm sure there's a C method for this
+  if (value_.second != other->value_.second)
+    return false;
+
+  for (ulong n = 0; n < value_.second; n++)
+    if (value_.first[n] != other->value_.first[n])
+      return false;
+  return true;
 }
