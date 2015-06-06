@@ -7,7 +7,7 @@
 #include <iostream>
 
 
-RecordPtr HS::createRecord()
+RecordPtr HS::createRecord() const
 {
   auto r = promptForRecord();
 
@@ -31,7 +31,7 @@ RecordPtr HS::createRecord()
 
 
 
-RecordPtr HS::promptForRecord()
+RecordPtr HS::promptForRecord() const
 {
   std::cout
       << "Here you can claim a domain name and multiple subdomains for your"
@@ -106,7 +106,7 @@ RecordPtr HS::promptForRecord()
 
 
 
-Botan::RSA_PrivateKey* HS::loadKey()
+Botan::RSA_PrivateKey* HS::loadKey() const
 {
   std::cout << "Opening HS key... ";
 

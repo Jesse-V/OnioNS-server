@@ -14,8 +14,8 @@ class HS
     return instance;
   }
 
-  RecordPtr createRecord();
-  RecordPtr promptForRecord();
+  RecordPtr createRecord() const;
+  RecordPtr promptForRecord() const;
   // void broadcastRecord(const RecordPtr&);
 
  private:
@@ -23,7 +23,7 @@ class HS
   HS(HS const&) = delete;
   void operator=(HS const&) = delete;
 
-  Botan::RSA_PrivateKey* loadKey();
+  Botan::RSA_PrivateKey* loadKey() const;
 };
 
 #endif

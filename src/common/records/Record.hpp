@@ -33,18 +33,18 @@ class Record
   Record(const Record&);
 
   void setName(const std::string&);
-  std::string getName();
+  std::string getName() const;
 
   void setSubdomains(const NameList&);
-  NameList getSubdomains();
+  NameList getSubdomains() const;
 
   void setContact(const std::string&);
-  std::string getContact();
+  std::string getContact() const;
 
   bool setKey(Botan::RSA_PrivateKey*);
   UInt8Array getPublicKey() const;
   std::string getOnion() const;
-  uint8_t* getHash();
+  uint8_t* getHash() const;
 
   bool refresh();
   void makeValid(uint8_t);
@@ -53,7 +53,7 @@ class Record
   bool hasValidSignature() const;
 
   // virtual bool makeValid(uint8_t);
-  std::string getType();
+  std::string getType() const;
   virtual uint32_t getDifficulty() const;
   virtual std::string asJSON() const;
   friend std::ostream& operator<<(std::ostream&, const Record&);

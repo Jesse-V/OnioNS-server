@@ -37,7 +37,7 @@ std::vector<RecordPtr> Cache::getSortedList()
 
 
 
-RecordPtr Cache::get(const std::string& name)
+RecordPtr Cache::get(const std::string& name) const
 {
   for (auto r : records_)
     if (r->getName() == name)

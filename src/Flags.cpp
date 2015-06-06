@@ -98,35 +98,35 @@ bool Flags::parse(int argc, char** argv)
 
 
 
-Flags::OperationMode Flags::getMode()
+Flags::OperationMode Flags::getMode() const
 {
   return mode_;
 }
 
 
 
-Flags::Command Flags::getCommand()
+Flags::Command Flags::getCommand() const
 {
   return command_;
 }
 
 
 
-bool Flags::verbosityEnabled()
+bool Flags::verbosityEnabled() const
 {
   return verbosity_;
 }
 
 
 
-std::string Flags::getKeyPath()
+std::string Flags::getKeyPath() const
 {
   return keyPath_;
 }
 
 
 
-std::string Flags::getMirrorIP()
+std::string Flags::getMirrorIP() const
 {
   return mirrorIP_;
 }

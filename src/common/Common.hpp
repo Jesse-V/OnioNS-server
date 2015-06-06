@@ -15,20 +15,20 @@ class Common
     return instance;
   }
 
-  RecordPtr parseRecord(const std::string&);
-  RecordPtr parseRecord(const Json::Value&);
-  Json::Value toJSON(const std::string&);
-  std::string getDestination(const RecordPtr&, const std::string&);
+  RecordPtr parseRecord(const std::string&) const;
+  RecordPtr parseRecord(const Json::Value&) const;
+  Json::Value toJSON(const std::string&) const;
+  std::string getDestination(const RecordPtr&, const std::string&) const;
 
-  uint8_t* computeConsensusHash();
+  uint8_t* computeConsensusHash() const;
 
  private:
   Common() {}
   Common(Common const&) = delete;
   void operator=(Common const&) = delete;
 
-  RecordPtr assembleRecord(const Json::Value&);
-  void checkValidity(const RecordPtr&);
+  RecordPtr assembleRecord(const Json::Value&) const;
+  void checkValidity(const RecordPtr&) const;
 };
 
 #endif

@@ -74,7 +74,7 @@ void Record::setName(const std::string& name)
 
 
 
-std::string Record::getName()
+std::string Record::getName() const
 {
   return name_;
 }
@@ -108,7 +108,7 @@ void Record::setSubdomains(const NameList& subdomains)
 
 
 
-NameList Record::getSubdomains()
+NameList Record::getSubdomains() const
 {
   return subdomains_;
 }
@@ -126,7 +126,7 @@ void Record::setContact(const std::string& contactInfo)
 
 
 
-std::string Record::getContact()
+std::string Record::getContact() const
 {
   return contact_;
 }
@@ -185,7 +185,7 @@ std::string Record::getOnion() const
 
 
 
-uint8_t* Record::getHash()
+uint8_t* Record::getHash() const
 {
   Botan::SHA_384 sha;
   uint8_t* hash = new uint8_t[Environment::SHA384_LEN];
@@ -271,7 +271,7 @@ bool Record::hasValidSignature() const
 
 
 
-std::string Record::getType()
+std::string Record::getType() const
 {
   return type_;
 }

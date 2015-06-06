@@ -15,14 +15,14 @@ class Mirror
   }
 
   void startServer();
-  void signMerkleRoot(Botan::RSA_PrivateKey*, const MerkleTreePtr&);
+  void signMerkleRoot(Botan::RSA_PrivateKey*, const MerkleTreePtr&) const;
 
  private:
   Mirror() {}  // http://stackoverflow.com/questions/270947/
   Mirror(Mirror const&) = delete;
   void operator=(Mirror const&) = delete;
 
-  void loadCache();
+  void loadCache() const;
 };
 
 #endif

@@ -26,11 +26,11 @@ class Flags
   };
 
   bool parse(int argc, char** argv);
-  OperationMode getMode();
-  Command getCommand();
-  bool verbosityEnabled();
-  std::string getKeyPath();
-  std::string getMirrorIP();
+  OperationMode getMode() const;
+  Command getCommand() const;
+  bool verbosityEnabled() const;
+  std::string getKeyPath() const;
+  std::string getMirrorIP() const;
 
  private:
   Flags() {}

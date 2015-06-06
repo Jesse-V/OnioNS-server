@@ -23,7 +23,7 @@ MerkleTree::MerkleTree(const std::vector<RecordPtr>& records)
 
 
 // either the path to the existing Record, or to a subtree that spans the name
-Json::Value MerkleTree::getPathTo(const std::string& name)
+Json::Value MerkleTree::getPathTo(const std::string& name) const
 {
   auto bounds = getBounds(name);
   auto lPath = getPath(bounds.first);
@@ -47,7 +47,7 @@ Json::Value MerkleTree::getPathTo(const std::string& name)
 
 
 
-uint8_t* MerkleTree::getRoot()
+uint8_t* MerkleTree::getRoot() const
 {
   return root_->value_.first;
 }
@@ -163,7 +163,7 @@ UInt8Array MerkleTree::concatenate(const NodePtr& a, const NodePtr& b)
 
 
 // returns either <name, name> or two leaves that span name
-std::pair<NodePtr, NodePtr> MerkleTree::getBounds(const std::string& name)
+std::pair<NodePtr, NodePtr> MerkleTree::getBounds(const std::string& name) const
 {  // todo: binary search
 
   if (leaves_.size() == 0)
@@ -188,7 +188,7 @@ std::pair<NodePtr, NodePtr> MerkleTree::getBounds(const std::string& name)
 
 
 
-std::vector<NodePtr> MerkleTree::getPath(const NodePtr& leaf)
+std::vector<NodePtr> MerkleTree::getPath(const NodePtr& leaf) const
 {
   std::vector<NodePtr> path;
   NodePtr node = leaf;
@@ -206,7 +206,7 @@ std::vector<NodePtr> MerkleTree::getPath(const NodePtr& leaf)
 
 uint MerkleTree::findCommonPath(const std::vector<NodePtr>& lPath,
                                 const std::vector<NodePtr>& rPath,
-                                Json::Value& pathObj)
+                                Json::Value& pathObj) const
 {
   uint index = 0;
 
@@ -250,7 +250,7 @@ MerkleTree::Node::~Node()
 
 
 
-Json::Value MerkleTree::Node::asJSON()
+Json::Value MerkleTree::Node::asJSON() const
 {
   auto lValue = left_->value_.first;
   auto rValue = right_->value_.first;

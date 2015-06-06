@@ -20,7 +20,8 @@ void Mirror::startServer()
 
 
 
-void Mirror::signMerkleRoot(Botan::RSA_PrivateKey* key, const MerkleTreePtr& mt)
+void Mirror::signMerkleRoot(Botan::RSA_PrivateKey* key,
+                            const MerkleTreePtr& mt) const
 {
   static Botan::AutoSeeded_RNG rng;
 
@@ -30,7 +31,7 @@ void Mirror::signMerkleRoot(Botan::RSA_PrivateKey* key, const MerkleTreePtr& mt)
 
 
 
-void Mirror::loadCache()
+void Mirror::loadCache() const
 {
   std::cout << "Loading Record cache... " << std::endl;
   std::fstream cacheFile("/var/lib/tor-onions/cache.txt");
