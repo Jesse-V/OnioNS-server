@@ -14,7 +14,7 @@ class IPC
   void start();
 
  private:
-  void handleAccept(boost::shared_ptr<IPCSession>,
+  void handleAccept(std::shared_ptr<IPCSession>,
                     const boost::system::error_code&);
 
   std::shared_ptr<boost::asio::io_service> ios_;

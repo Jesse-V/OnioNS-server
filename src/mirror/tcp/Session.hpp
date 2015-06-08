@@ -34,6 +34,4 @@ class Session : public boost::enable_shared_from_this<Session>
   HandleAlloc allocator_;
 };
 
-typedef boost::shared_ptr<Session> session_ptr;
-
 #endif

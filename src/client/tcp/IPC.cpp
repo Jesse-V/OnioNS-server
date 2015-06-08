@@ -13,7 +13,7 @@ IPC::IPC(ushort port)
                         port))
 {
   std::cout << "Initiating Tor-OnioNS IPC socket..." << std::endl;
-  boost::shared_ptr<IPCSession> session(new IPCSession(*ios_));
+  std::shared_ptr<IPCSession> session(new IPCSession(*ios_));
   acceptor_.async_accept(session->getSocket(),
                          boost::bind(&IPC::handleAccept, this, session,
                                      boost::asio::placeholders::error));
@@ -37,7 +37,7 @@ void IPC::start()
 
 
 
-void IPC::handleAccept(boost::shared_ptr<IPCSession> session,
+void IPC::handleAccept(std::shared_ptr<IPCSession> session,
                        const boost::system::error_code& error)
 {
   std::cout << "IPC connection accepted." << std::endl;
