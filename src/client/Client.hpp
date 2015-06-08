@@ -2,7 +2,7 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
-#include "tcp/SocksClient.hpp"
+#include "../common/tcp/SocksClient.hpp"
 #include <botan/rsa.h>
 #include <unordered_map>
 #include <memory>

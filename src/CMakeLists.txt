@@ -32,13 +32,11 @@ add_executable(onions
 
     client/Client.cpp
 
-    client/tcp/SocksClient.cpp
-    client/tcp/SocksRequest.cpp
-    client/tcp/SocksReply.cpp
     client/tcp/IPC.cpp
     client/tcp/IPCSession.cpp
 
     mirror/Mirror.cpp
+
     mirror/tcp/Server.cpp
     mirror/tcp/Session.cpp
 
@@ -53,6 +51,10 @@ add_executable(onions
 
     common/records/Record.cpp
     common/records/CreateR.cpp
+
+    common/tcp/SocksClient.cpp
+    common/tcp/SocksRequest.cpp
+    common/tcp/SocksReply.cpp
 
     ${JSONCPP_CPP}
 
