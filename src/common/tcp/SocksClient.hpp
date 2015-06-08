@@ -5,16 +5,18 @@
 #include <string>
 #include <json/json.h>
 #include <boost/asio.hpp>
+#include <memory>
 
 class SocksClient
 {
  public:
   SocksClient(const std::string&, short);
-  void connectTo(const std::string&, short);
+  static std::shared_ptr<SocksClient> getCircuitTo(const std::string&);
   Json::Value sendReceive(const std::string& send);
 
  private:
-  bool checkSOCKS();
+  void connectTo(const std::string&, short);
+  bool checkConnection();
 
   std::shared_ptr<boost::asio::io_service> ios_;
   boost::asio::ip::tcp::endpoint endpoint_;

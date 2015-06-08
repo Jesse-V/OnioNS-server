@@ -4,16 +4,19 @@
 #include "../common/Common.hpp"
 #include "../../Flags.hpp"
 #include "../common/utils.hpp"
-#include <json/json.h>
 #include <iostream>
+
+
+Client::Client()
+{
+  socks_ = SocksClient::getCircuitTo(Flags::get().getMirrorIP());
+  if (!socks_)
+    throw std::runtime_error("Unable to connect!");
+}
 
 
 void Client::listenForDomains()
 {
-  // establish connection with remote resolver over Tor
-  if (!connectToResolver())
-    return;
-
   IPC ipc(Environment::IPC_PORT);
   ipc.start();
 }
@@ -66,41 +69,4 @@ std::string Client::resolve(const std::string& torDomain)
   }
 
   return "<General_Error>";
-}
-
-
-
-// ***************************** PRIVATE METHODS *****************************
-
-
-
-bool Client::connectToResolver()
-{
-  try
-  {
-    // connect over Tor to remote resolver
-    std::cout << "Detecting the Tor Browser..." << std::endl;
-    socks_ = std::make_shared<SocksClient>("localhost", 9150);
-    socks_->connectTo(Flags::get().getMirrorIP(), Environment::SERVER_PORT);
-    std::cout << "The Tor Browser appears to be running." << std::endl;
-
-    std::cout << "Testing connection to the name server..." << std::endl;
-    auto r = socks_->sendReceive("ping");
-    if (r == "pong")
-      std::cout << "Name server confirmed up." << std::endl;
-    else
-    {
-      std::cout << r << std::endl;
-      std::cerr << "Name server did not return a valid response!" << std::endl;
-      return false;
-    }
-  }
-  catch (boost::system::system_error const& ex)
-  {
-    std::cerr << ex.what() << std::endl;
-    std::cerr << "Test failed. Cannot continue." << std::endl;
-    return false;
-  }
-
-  return true;
 }

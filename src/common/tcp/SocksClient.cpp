@@ -2,6 +2,7 @@
 #include "SocksClient.hpp"
 #include "SocksRequest.hpp"
 #include "SocksReply.hpp"
+#include "../Environment.hpp"
 #include <iostream>
 
 using boost::asio::ip::tcp;
@@ -20,14 +21,36 @@ SocksClient::SocksClient(const std::string& socksIP, short socksPort)
 
 
 
-void SocksClient::connectTo(const std::string& host, short port)
+std::shared_ptr<SocksClient> SocksClient::getCircuitTo(const std::string& host)
 {
-  std::cout << "Resolving address of remote host..." << std::endl;
-  tcp::resolver::query query(tcp::v4(), host, std::to_string(port));
-  endpoint_ = *resolver_.resolve(query);
+  try
+  {
+    // connect over Tor to remote resolver
+    std::cout << "Detecting the Tor Browser..." << std::endl;
+    auto socks = std::make_shared<SocksClient>("localhost", 9150);
+    socks->connectTo(host, Environment::SERVER_PORT);
+    std::cout << "The Tor Browser appears to be running." << std::endl;
 
-  if (!checkSOCKS())
-    throw std::runtime_error("Remote host refused connection.");
+    std::cout << "Testing connection to the server..." << std::endl;
+    auto r = socks->sendReceive("ping");
+    if (r == "pong")
+    {
+      std::cout << "Server confirmed up." << std::endl;
+      return socks;
+    }
+    else
+    {
+      std::cout << r << std::endl;
+      std::cerr << "Server did not return a valid response!" << std::endl;
+      return nullptr;
+    }
+  }
+  catch (boost::system::system_error const& ex)
+  {
+    std::cerr << ex.what() << std::endl;
+    std::cerr << "Test failed. Cannot continue." << std::endl;
+    return nullptr;
+  }
 }
 
 
@@ -70,7 +93,24 @@ Json::Value SocksClient::sendReceive(const std::string& output)
 }
 
 
-bool SocksClient::checkSOCKS()
+
+// ***************************** PRIVATE METHODS *****************************
+
+
+
+void SocksClient::connectTo(const std::string& host, short port)
+{
+  std::cout << "Resolving address of remote host..." << std::endl;
+  tcp::resolver::query query(tcp::v4(), host, std::to_string(port));
+  endpoint_ = *resolver_.resolve(query);
+
+  if (!checkConnection())
+    throw std::runtime_error("Remote host refused connection.");
+}
+
+
+
+bool SocksClient::checkConnection()
 {
   // std::cout << "Connecting via Tor..." << std::endl;
 

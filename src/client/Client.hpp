@@ -17,15 +17,11 @@ class Client
     return instance;
   }
 
-  /*
-     Accepts requests for .tor domains, resolves them, and write a .onion.
-     Listens on an incoming named pipe, and writes to an outgoing named pipe.
-  */
   void listenForDomains();
   std::string resolve(const std::string&);
 
  private:
-  Client() {}
+  Client();
   Client(Client const&) = delete;
   void operator=(Client const&) = delete;
   bool connectToResolver();
