@@ -20,7 +20,7 @@ class Mirror
   UInt8Array signMerkleRoot(Botan::RSA_PrivateKey*, const MerkleTreePtr&) const;
 
   void addConnection(const std::shared_ptr<Session>&);
-  void sendToSubscribers(const Json::Value&);
+  void broadcastEvent(const std::string&, const Json::Value&);
 
  private:
   Mirror() {}  // http://stackoverflow.com/questions/270947/

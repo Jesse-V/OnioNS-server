@@ -4,11 +4,11 @@
 #include "../../common/tcp/MemAllocator.hpp"
 #include "../../common/utils.hpp"
 #include "../containers/Cache.hpp"
+#include "../Mirror.hpp"
 #include <botan/sha2_64.h>
 #include <botan/base64.h>
 #include <boost/bind.hpp>
-#include <algorithm>
-#include <fstream>
+//#include <algorithm>
 
 
 template <typename Handler>
@@ -88,7 +88,7 @@ void Session::handlePing(Json::Value& in, Json::Value& out)
 
 
 void Session::handleProveKnowledge(Json::Value& in, Json::Value& out)
-{
+{  // todo: no need for this, since subscribers get Record anyway
   auto r = Cache::get().get(in["domain"].asString());
   if (r)
   {
@@ -106,7 +106,10 @@ void Session::handleUpload(Json::Value& in, Json::Value& out)
 {
   if (in.isMember("record"))
   {
-    if (!Cache::get().add(Common::get().parseRecord(in["record"])))
+    auto r = Common::get().parseRecord(in["record"]);
+    if (Cache::get().add(r))  // if successfully added to the Cache
+      Mirror::get().broadcastEvent("record", in["record"]);
+    else
       out["error"] = "Name already taken.";
   }
 

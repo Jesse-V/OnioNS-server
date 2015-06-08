@@ -41,11 +41,15 @@ void Mirror::addConnection(const std::shared_ptr<Session>& session)
 
 
 
-void Mirror::sendToSubscribers(const Json::Value& value)
+void Mirror::broadcastEvent(const std::string& type, const Json::Value& value)
 {
+  Json::Value event;
+  event["type"] = type;
+  event["value"] = value;
+
   for (auto s : connections_)
     if (s->isSubscriber())
-      s->asyncWrite(value);
+      s->asyncWrite(event);
 }
 
 
