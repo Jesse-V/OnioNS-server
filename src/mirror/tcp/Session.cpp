@@ -19,7 +19,8 @@ inline MemAllocator<Handler> makeHandler(HandleAlloc& a, Handler h)
 
 
 
-Session::Session(boost::asio::io_service& ios) : socket_(ios)
+Session::Session(boost::asio::io_service& ios)
+    : socket_(ios), subscribed_(false)
 {
 }
 
@@ -32,51 +33,45 @@ boost::asio::ip::tcp::socket& Session::getSocket()
 
 
 
-void Session::start()
+void Session::asyncRead()
 {
-  std::cout << "Starting session..." << std::endl;
-  asyncRead();
+  // std::cout << "Reading... ";
+  socket_.async_read_some(
+      boost::asio::buffer(buffer_),
+      makeHandler(allocator_,
+                  boost::bind(&Session::processRead, shared_from_this(),
+                              boost::asio::placeholders::error,
+                              boost::asio::placeholders::bytes_transferred)));
 }
 
 
 
-// called by Asio whenever the socket has been read into the buffer
-void Session::processRead(const boost::system::error_code& error, size_t n)
+void Session::asyncWrite(const Json::Value& val)
 {
-  if (error || n <= 0)
-  {
-    std::cout << std::endl;
-    std::cerr << error.message() << std::endl;
-    return;
-  }
+  Json::FastWriter writer;
+  asyncWrite(writer.write(val));
+}
 
-  Json::Value in, out;
-  Json::Reader reader;
-  std::string inputStr(buffer_.begin(), buffer_.begin() + n);
 
-  if (!reader.parse(inputStr, in))
-    out["error"] = "Failed to parse message!";
-  else if (!in.isMember("command"))
-    out["error"] = "Message is missing the \"command\" field!";
-  else
-  {
-    std::string command(in["command"].asString());
 
-    if (command == "ping")
-      handlePing(in, out);
-    else if (command == "proveKnowledge")
-      handleProveKnowledge(in, out);
-    else if (command == "upload")
-      handleUpload(in, out);
-    else if (command == "domainQuery")
-      handleDomainQuery(in, out);
-    else
-      out["error"] = "Unknown command \"" + command + "\"\n";
-  }
+void Session::asyncWrite(const std::string& str)
+{
+  for (std::size_t j = 0; j < str.size(); j++)
+    buffer_[j] = str[j];
 
-  if (!out.isMember("error"))
-    out["response"] = "success";
-  asyncWrite(out);
+  // std::cout << "Writing... ";
+  boost::asio::async_write(
+      socket_, boost::asio::buffer(buffer_, str.size()),
+      makeHandler(allocator_,
+                  boost::bind(&Session::processWrite, shared_from_this(),
+                              boost::asio::placeholders::error)));
+}
+
+
+
+bool Session::isSubscriber()
+{
+  return subscribed_;
 }
 
 
@@ -135,12 +130,62 @@ void Session::handleDomainQuery(Json::Value& in, Json::Value& out)
     }
     else
     {
-      out["response"] = "404";
+      out["error"] = "404";
       std::cout << "404ed request for \"" << domain << "\"" << std::endl;
     }
   }
   else
     out["error"] = "Invalid request.";
+}
+
+
+
+void Session::handleSubscribe(Json::Value& in, Json::Value& out)
+{
+  subscribed_ = true;
+}
+
+
+
+// called by Asio whenever the socket has been read into the buffer
+void Session::processRead(const boost::system::error_code& error, size_t n)
+{
+  if (error || n <= 0)
+  {
+    std::cout << std::endl;
+    std::cerr << error.message() << std::endl;
+    return;
+  }
+
+  Json::Value in, out;
+  Json::Reader reader;
+  std::string inputStr(buffer_.begin(), buffer_.begin() + n);
+
+  if (!reader.parse(inputStr, in))
+    out["error"] = "Failed to parse message!";
+  else if (!in.isMember("command"))
+    out["error"] = "Message is missing the \"command\" field!";
+  else
+  {
+    std::string command(in["command"].asString());
+
+    if (command == "ping")
+      handlePing(in, out);
+    else if (command == "proveKnowledge")
+      handleProveKnowledge(in, out);
+    else if (command == "upload")
+      handleUpload(in, out);
+    else if (command == "domainQuery")
+      handleDomainQuery(in, out);
+    else if (command == "subscribe")
+      handleSubscribe(in, out);
+    else
+      out["error"] = "Unknown command \"" + command + "\"\n";
+  }
+
+  if (!out.isMember("error"))
+    out["response"] = "success";
+  asyncWrite(out);
 }
 
 
@@ -156,40 +201,4 @@ void Session::processWrite(const boost::system::error_code& error)
 
   // std::cout << "done." << std::endl;
   asyncRead();
-}
-
-
-
-void Session::asyncRead()
-{
-  // std::cout << "Reading... ";
-  socket_.async_read_some(
-      boost::asio::buffer(buffer_),
-      makeHandler(allocator_,
-                  boost::bind(&Session::processRead, shared_from_this(),
-                              boost::asio::placeholders::error,
-                              boost::asio::placeholders::bytes_transferred)));
-}
-
-
-
-void Session::asyncWrite(const Json::Value& val)
-{
-  Json::FastWriter writer;
-  asyncWrite(writer.write(val));
-}
-
-
-
-void Session::asyncWrite(const std::string& str)
-{
-  for (std::size_t j = 0; j < str.size(); j++)
-    buffer_[j] = str[j];
-
-  // std::cout << "Writing... ";
-  boost::asio::async_write(
-      socket_, boost::asio::buffer(buffer_, str.size()),
-      makeHandler(allocator_,
-                  boost::bind(&Session::processWrite, shared_from_this(),
-                              boost::asio::placeholders::error)));
 }

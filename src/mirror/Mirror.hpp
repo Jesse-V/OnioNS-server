@@ -4,6 +4,8 @@
 
 #include "../common/records/Record.hpp"
 #include "containers/MerkleTree.hpp"
+#include "tcp/Session.hpp"
+#include <json/json.h>
 
 class Mirror
 {
@@ -15,7 +17,10 @@ class Mirror
   }
 
   void startServer();
-  void signMerkleRoot(Botan::RSA_PrivateKey*, const MerkleTreePtr&) const;
+  UInt8Array signMerkleRoot(Botan::RSA_PrivateKey*, const MerkleTreePtr&) const;
+
+  void addConnection(const std::shared_ptr<Session>&);
+  void sendToSubscribers(const Json::Value&);
 
  private:
   Mirror() {}  // http://stackoverflow.com/questions/270947/
@@ -23,6 +28,8 @@ class Mirror
   void operator=(Mirror const&) = delete;
 
   void loadCache() const;
+
+  std::vector<std::shared_ptr<Session>> connections_;
 };
 
 #endif

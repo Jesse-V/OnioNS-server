@@ -1,5 +1,6 @@
 
 #include "Server.hpp"
+#include "../Mirror.hpp"
 #include <boost/bind.hpp>
 
 using boost::asio::ip::tcp;
@@ -50,7 +51,9 @@ void Server::handleAccept(std::shared_ptr<Session> session,
     return;
   }
 
-  session->start();
+  Mirror::get().addConnection(session);
+  session->asyncRead();
+
   session.reset(new Session(*ios_));
   acceptor_.async_accept(session->getSocket(),
                          boost::bind(&Server::handleAccept, this, session,

@@ -20,13 +20,32 @@ void Mirror::startServer()
 
 
 
-void Mirror::signMerkleRoot(Botan::RSA_PrivateKey* key,
-                            const MerkleTreePtr& mt) const
+UInt8Array Mirror::signMerkleRoot(Botan::RSA_PrivateKey* key,
+                                  const MerkleTreePtr& mt) const
 {
   static Botan::AutoSeeded_RNG rng;
 
   Botan::PK_Signer signer(*key, "EMSA-PSS(SHA-384)");
   auto sig = signer.sign_message(mt->getRoot(), Environment::SHA384_LEN, rng);
+  uint8_t* bin = new uint8_t[sig.size()];
+  memcpy(bin, sig, sig.size());
+  return std::make_pair(bin, sig.size());
+}
+
+
+
+void Mirror::addConnection(const std::shared_ptr<Session>& session)
+{
+  connections_.push_back(session);
+}
+
+
+
+void Mirror::sendToSubscribers(const Json::Value& value)
+{
+  for (auto s : connections_)
+    if (s->isSubscriber())
+      s->asyncWrite(value);
 }
 
 
