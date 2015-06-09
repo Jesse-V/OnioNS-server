@@ -69,7 +69,7 @@ void MerkleTree::fill(const std::vector<RecordPtr>& records)
     // encode authentication information as JSON
     val["name"] = r->getName();
     val["hash"] =
-        Botan::base64_encode(sha.process(r->asJSON()), Environment::SHA384_LEN);
+        Botan::base64_encode(sha.process(r->asJSON()), Env::SHA384_LEN);
 
     Json::FastWriter writer;
     std::string json = writer.write(val);
@@ -114,7 +114,7 @@ std::vector<NodePtr> MerkleTree::buildParents(std::vector<NodePtr>& nodes)
 
     // create parent node
     uint8_t* hash = join(left, right);
-    auto hashLen = Environment::SHA384_LEN;
+    auto hashLen = Env::SHA384_LEN;
     NodePtr parent = std::make_shared<MerkleTree::Node>(
         nullptr, left, right, std::make_pair(hash, hashLen));
     parents.push_back(parent);
@@ -139,8 +139,8 @@ uint8_t* MerkleTree::join(const NodePtr& a, const NodePtr& b)
 
   // hash their concatenation
   Botan::SHA_384 sha;
-  uint8_t* hash = new uint8_t[Environment::SHA384_LEN];
-  memcpy(hash, sha.process(c.first, c.second), Environment::SHA384_LEN);
+  uint8_t* hash = new uint8_t[Env::SHA384_LEN];
+  memcpy(hash, sha.process(c.first, c.second), Env::SHA384_LEN);
   return hash;
 }
 
@@ -259,7 +259,7 @@ Json::Value MerkleTree::Node::asJSON() const
 
   Json::Value json;
   json[0] = Botan::base64_encode(lValue, lValueLen);
-  if (rValueLen == Environment::SHA384_LEN)  // if is leaf
+  if (rValueLen == Env::SHA384_LEN)  // if is leaf
     json[1] = Botan::base64_encode(rValue, rValueLen);
   return json;
 }

@@ -31,19 +31,13 @@ In the typical Unix fashion, flags with values use the following syntax:
         Prints list of flags and usage examples and then quits.
 
 \fB -d \fR or \fB --hs \fR
-        Enables hidden service mode, useful for registering claims on domain names (-r) and managing DNS information. You must specify --hskey as well.
+        Enables hidden service mode, useful for registering claims on domain names and managing DNS information. You must specify --hskey as well.
 
 \fB -k \fR or \fB --hskey \fR
         The path to the hidden service private RSA key. Used with --hs.
 
 \fB -l \fR or \fB --license \fR
         Prints license information and then quit.
-
-\fB -m \fR or \fB --mirror \fR
-        The IPv4 address of the Mirror name server.
-
-\fB -r \fR or \fB --register \fR
-        Indicates that you want to claim a domain name. Used with --hs.
 
 \fB -s \fR or \fB --server \fR
         Enables name server mode, which resolves queries for remote clients.

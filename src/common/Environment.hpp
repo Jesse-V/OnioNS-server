@@ -4,12 +4,12 @@
 
 #include <string>
 
-class Environment
+class Env
 {
  public:
-  static Environment& get()
+  static Env& get()
   {
-    static Environment instance;
+    static Env instance;
     return instance;
   }
 
@@ -22,10 +22,13 @@ class Environment
   static const ushort IPC_PORT = 9053;
   static const ushort SERVER_PORT = 10053;
 
+  std::string getMirrorIP();
+  // void getQuorum();
+
  private:
-  Environment() {}
-  Environment(Environment const&) = delete;
-  void operator=(Environment const&) = delete;
+  Env() {}
+  Env(Env const&) = delete;
+  void operator=(Env const&) = delete;
 };
 
 #endif

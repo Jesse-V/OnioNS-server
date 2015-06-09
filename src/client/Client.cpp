@@ -2,14 +2,14 @@
 #include "Client.hpp"
 #include "tcp/IPC.hpp"
 #include "../common/Common.hpp"
-#include "../../Flags.hpp"
+#include "../common/Environment.hpp"
 #include "../common/utils.hpp"
 #include <iostream>
 
 
 Client::Client()
 {
-  socks_ = SocksClient::getCircuitTo(Flags::get().getMirrorIP());
+  socks_ = SocksClient::getCircuitTo(Env::get().getMirrorIP());
   if (!socks_)
     throw std::runtime_error("Unable to connect!");
 }
@@ -17,7 +17,7 @@ Client::Client()
 
 void Client::listenForDomains()
 {
-  IPC ipc(Environment::IPC_PORT);
+  IPC ipc(Env::IPC_PORT);
   ipc.start();
 }
 

@@ -14,7 +14,7 @@ void Mirror::startServer()
 
   // auto mt = std::make_shared<MerkleTree>(Cache::get().getSortedList());
 
-  Server s(Environment::SERVER_PORT);
+  Server s(Env::SERVER_PORT);
   s.start();
 }
 
@@ -26,7 +26,7 @@ UInt8Array Mirror::signMerkleRoot(Botan::RSA_PrivateKey* key,
   static Botan::AutoSeeded_RNG rng;
 
   Botan::PK_Signer signer(*key, "EMSA-PSS(SHA-384)");
-  auto sig = signer.sign_message(mt->getRoot(), Environment::SHA384_LEN, rng);
+  auto sig = signer.sign_message(mt->getRoot(), Env::SHA384_LEN, rng);
   uint8_t* bin = new uint8_t[sig.size()];
   memcpy(bin, sig, sig.size());
   return std::make_pair(bin, sig.size());

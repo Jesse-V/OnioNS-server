@@ -84,5 +84,7 @@ install(FILES ${ASSETS}/cache.txt           DESTINATION /var/lib/tor-onions/)
 install(FILES ${ASSETS}/cached-certs        DESTINATION /var/lib/tor-onions/)
 install(FILES ${ASSETS}/cached-microdesc-consensus  DESTINATION /var/lib/tor-onions/)
 install(FILES ${ASSETS}/cached-microdescs.new       DESTINATION /var/lib/tor-onions/)
+install(FILES ${ASSETS}/mirrors.txt                 DESTINATION /var/lib/tor-onions/)
+install(FILES ${ASSETS}/quorum.txt                  DESTINATION /var/lib/tor-onions/)
 
 #http://www.itk.org/Wiki/CMake_FAQ#Can_I_do_.22make_uninstall.22_with_CMake.3F

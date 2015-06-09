@@ -29,7 +29,6 @@ class Flags
   OperationMode getMode() const;
   Command getCommand() const;
   std::string getKeyPath() const;
-  std::string getMirrorIP() const;
 
  private:
   Flags() {}
@@ -38,7 +37,7 @@ class Flags
 
   OperationMode mode_;
   Command command_;
-  std::string keyPath_, mirrorIP_;
+  std::string keyPath_;
 };
 
 #endif

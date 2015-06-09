@@ -4,6 +4,7 @@
 #include "../common/records/CreateR.hpp"
 #include "../common/tcp/SocksClient.hpp"
 #include "../common/utils.hpp"
+#include "../common/Environment.hpp"
 #include "../Flags.hpp"
 #include <iostream>
 
@@ -105,7 +106,7 @@ RecordPtr HS::promptForRecord() const
 
 bool HS::sendRecord(const RecordPtr& r) const
 {
-  auto socks = SocksClient::getCircuitTo(Flags::get().getMirrorIP());
+  auto socks = SocksClient::getCircuitTo(Env::get().getMirrorIP());
   if (!socks)
     throw std::runtime_error("Unable to connect!");
 

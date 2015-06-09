@@ -71,10 +71,10 @@ class Record
   Botan::RSA_PrivateKey* privateKey_;
   Botan::RSA_PublicKey* publicKey_;
 
-  uint8_t consensusHash_[Environment::SHA384_LEN];
+  uint8_t consensusHash_[Env::SHA384_LEN];
   uint8_t nonce_[NONCE_LEN];
   uint8_t scrypted_[SCRYPTED_LEN];
-  uint8_t signature_[Environment::SIGNATURE_LEN];
+  uint8_t signature_[Env::SIGNATURE_LEN];
   long timestamp_;
   bool valid_, validSig_;
 };

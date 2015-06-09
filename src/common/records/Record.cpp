@@ -25,16 +25,16 @@ Record::Record(Botan::RSA_PublicKey* pubKey)
   memset(consensusHash_, 0, NONCE_LEN);
   memset(nonce_, 0, NONCE_LEN);
   memset(scrypted_, 0, SCRYPTED_LEN);
-  memset(signature_, 0, Environment::SIGNATURE_LEN);
+  memset(signature_, 0, Env::SIGNATURE_LEN);
 }
 
 
 
 Record::Record(Botan::RSA_PrivateKey* key, uint8_t* consensusHash) : Record(key)
 {
-  assert(key->get_n().bits() == Environment::RSA_LEN);
+  assert(key->get_n().bits() == Env::RSA_LEN);
   setKey(key);
-  memcpy(consensusHash_, consensusHash, Environment::SHA384_LEN);
+  memcpy(consensusHash_, consensusHash, Env::SHA384_LEN);
 }
 
 
@@ -50,10 +50,10 @@ Record::Record(const Record& other)
       valid_(other.valid_),
       validSig_(other.validSig_)
 {
-  memcpy(consensusHash_, other.consensusHash_, Environment::SHA384_LEN);
+  memcpy(consensusHash_, other.consensusHash_, Env::SHA384_LEN);
   memcpy(nonce_, other.nonce_, NONCE_LEN);
   memcpy(scrypted_, other.scrypted_, SCRYPTED_LEN);
-  memcpy(signature_, other.signature_, Environment::SIGNATURE_LEN);
+  memcpy(signature_, other.signature_, Env::SIGNATURE_LEN);
 }
 
 
@@ -174,8 +174,8 @@ std::string Record::getOnion() const
   delete derEncoded;
 
   // perform base32 encoding
-  char onionB32[Environment::SHA1_LEN * 4];
-  CyoEncode::Base32::Encode(onionB32, hash, Environment::SHA1_LEN);
+  char onionB32[Env::SHA1_LEN * 4];
+  CyoEncode::Base32::Encode(onionB32, hash, Env::SHA1_LEN);
 
   // truncate, make lowercase, and return result
   auto addr = std::string(onionB32, 16);
@@ -188,7 +188,7 @@ std::string Record::getOnion() const
 uint8_t* Record::getHash() const
 {
   Botan::SHA_384 sha;
-  uint8_t* hash = new uint8_t[Environment::SHA384_LEN];
+  uint8_t* hash = new uint8_t[Env::SHA384_LEN];
   hash = sha.process(asJSON());
   return hash;
 }
@@ -234,11 +234,10 @@ void Record::makeValid(uint8_t nWorkers)
             std::cout << "Success from " << name << std::endl;
 
             // save successful answer
-            memcpy(consensusHash_, record->consensusHash_,
-                   Environment::SHA384_LEN);
+            memcpy(consensusHash_, record->consensusHash_, Env::SHA384_LEN);
             memcpy(nonce_, record->nonce_, NONCE_LEN);
             memcpy(scrypted_, record->scrypted_, SCRYPTED_LEN);
-            memcpy(signature_, record->signature_, Environment::SIGNATURE_LEN);
+            memcpy(signature_, record->signature_, Env::SIGNATURE_LEN);
             valid_ = true;
           }
 
@@ -292,7 +291,7 @@ std::string Record::asJSON() const
   obj["type"] = type_;
   obj["contact"] = contact_;
   obj["timestamp"] = std::to_string(timestamp_);
-  obj["cHash"] = Botan::base64_encode(consensusHash_, Environment::SHA384_LEN);
+  obj["cHash"] = Botan::base64_encode(consensusHash_, Env::SHA384_LEN);
   obj["name"] = name_;
 
   // add subdomains
@@ -308,8 +307,7 @@ std::string Record::asJSON() const
   {
     obj["nonce"] = Botan::base64_encode(nonce_, NONCE_LEN);
     obj["pow"] = Botan::base64_encode(scrypted_, SCRYPTED_LEN);
-    obj["recordSig"] =
-        Botan::base64_encode(signature_, Environment::SIGNATURE_LEN);
+    obj["recordSig"] = Botan::base64_encode(signature_, Env::SIGNATURE_LEN);
   }
 
   // output in compressed (non-human-friendly) format
@@ -335,8 +333,7 @@ std::ostream& operator<<(std::ostream& os, const Record& dt)
   os << "   Validation:" << std::endl;
 
   os << "      Last Consensus: "
-     << Botan::base64_encode(dt.consensusHash_, Environment::SHA384_LEN)
-     << std::endl;
+     << Botan::base64_encode(dt.consensusHash_, Env::SHA384_LEN) << std::endl;
 
   os << "      Nonce: ";
   if (dt.isValid())
@@ -352,8 +349,8 @@ std::ostream& operator<<(std::ostream& os, const Record& dt)
 
   os << "      Signature: ";
   if (dt.isValid())
-    os << Botan::base64_encode(dt.signature_, Environment::SIGNATURE_LEN / 4)
-       << " ..." << std::endl;
+    os << Botan::base64_encode(dt.signature_, Env::SIGNATURE_LEN / 4) << " ..."
+       << std::endl;
   else
     os << "<regeneration required>" << std::endl;
 
@@ -448,15 +445,15 @@ UInt8Array Record::computeCentral()
   int index = 0;
   auto pubKey = getPublicKey();
   const size_t centralLen =
-      str.length() + Environment::SHA384_LEN + NONCE_LEN + pubKey.second;
+      str.length() + Env::SHA384_LEN + NONCE_LEN + pubKey.second;
   uint8_t* central =
-      new uint8_t[centralLen + SCRYPTED_LEN + Environment::SIGNATURE_LEN];
+      new uint8_t[centralLen + SCRYPTED_LEN + Env::SIGNATURE_LEN];
 
   memcpy(central + index, str.c_str(), str.size());  // copy string into array
   index += str.size();
 
-  memcpy(central + index, consensusHash_, Environment::SHA384_LEN);
-  index += Environment::SHA384_LEN;
+  memcpy(central + index, consensusHash_, Env::SHA384_LEN);
+  index += Env::SHA384_LEN;
 
   memcpy(central + index, nonce_, NONCE_LEN);
   index += NONCE_LEN;
@@ -482,19 +479,19 @@ void Record::updateAppendSignature(UInt8Array& buffer)
     auto sig = signer.sign_message(buffer.first, buffer.second, rng);
     validSig_ = true;
 
-    assert(sig.size() == Environment::SIGNATURE_LEN);
+    assert(sig.size() == Env::SIGNATURE_LEN);
     memcpy(signature_, sig, sig.size());
   }
   else
   {  // we are validating a public Record, so confirm the signature
     Botan::PK_Verifier verifier(*publicKey_, "EMSA-PKCS1-v1_5(SHA-384)");
     validSig_ = verifier.verify_message(buffer.first, buffer.second, signature_,
-                                        Environment::SIGNATURE_LEN);
+                                        Env::SIGNATURE_LEN);
   }
 
   // append into buffer
-  memcpy(buffer.first + buffer.second, signature_, Environment::SIGNATURE_LEN);
-  buffer.second += Environment::SIGNATURE_LEN;
+  memcpy(buffer.first + buffer.second, signature_, Env::SIGNATURE_LEN);
+  buffer.second += Env::SIGNATURE_LEN;
 }
 
 

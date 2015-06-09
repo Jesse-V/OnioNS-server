@@ -94,7 +94,7 @@ void Session::handleProveKnowledge(Json::Value& in, Json::Value& out)
   {
     Botan::SHA_384 sha;
     out["response"] =
-        Botan::base64_encode(sha.process(r->asJSON()), Environment::SHA384_LEN);
+        Botan::base64_encode(sha.process(r->asJSON()), Env::SHA384_LEN);
   }
   else
     out["response"] = "404";
