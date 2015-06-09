@@ -89,7 +89,7 @@ void Session::handlePing(Json::Value& in, Json::Value& out)
 
 void Session::handleProveKnowledge(Json::Value& in, Json::Value& out)
 {  // todo: no need for this, since subscribers get Record anyway
-  auto r = Cache::get().get(in["domain"].asString());
+  auto r = Cache::get().get(in["value"].asString());
   if (r)
   {
     Botan::SHA_384 sha;
@@ -104,24 +104,18 @@ void Session::handleProveKnowledge(Json::Value& in, Json::Value& out)
 
 void Session::handleUpload(Json::Value& in, Json::Value& out)
 {
-  if (in.isMember("record"))
-  {
-    auto r = Common::get().parseRecord(in["record"]);
-    if (Cache::get().add(r))  // if successfully added to the Cache
-      Mirror::get().broadcastEvent("record", in["record"]);
-    else
-      out["error"] = "Name already taken.";
-  }
-
+  auto r = Common::get().parseRecord(in["value"]);
+  if (Cache::get().add(r))  // if successfully added to the Cache
+    Mirror::get().broadcastEvent("record", in["value"]);
   else
-    out["error"] = "Missing Record.";
+    out["error"] = "Name already taken.";
 }
 
 
 
 void Session::handleDomainQuery(Json::Value& in, Json::Value& out)
 {
-  std::string domain = in["domain"].asString();
+  std::string domain = in["value"].asString();
   if (Utils::strEndsWith(domain, ".tor"))
   {  // resolve .tor -> .onion
 
@@ -168,6 +162,8 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
     out["error"] = "Failed to parse message!";
   else if (!in.isMember("command"))
     out["error"] = "Message is missing the \"command\" field!";
+  else if (!in.isMember("value"))
+    out["error"] = "Message is missing the \"value\" field!";
   else
   {
     std::string command(in["command"].asString());
@@ -183,7 +179,7 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
     else if (command == "subscribe")
       handleSubscribe(in, out);
     else
-      out["error"] = "Unknown command \"" + command + "\"\n";
+      out["error"] = "Unknown command \"" + command + "\"";
   }
 
   if (!out.isMember("error"))

@@ -16,14 +16,6 @@ int main(int argc, char** argv)
   if (!Flags::get().parse(argc, argv))
     return EXIT_FAILURE;
 
-  if (!Flags::get().verbosityEnabled())
-  {  // https://bbs.archlinux.org/viewtopic.php?id=79378
-    // https://groups.google.com/forum/#!topic/comp.lang.c++.moderated/ggl_2Ii3aVM
-    // http://www.velocityreviews.com/forums/showpost.php?p=1501892&postcount=2
-    std::ofstream nullOut("/dev/null");
-    std::cout.rdbuf(nullOut.rdbuf());
-  }
-
   if (Flags::get().getMode() == Flags::OperationMode::CLIENT)
   {
     Client::get().listenForDomains();

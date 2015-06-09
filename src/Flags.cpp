@@ -16,8 +16,6 @@ bool Flags::parse(int argc, char** argv)
       ).",
                      '=', "<unknown>");
 
-  TCLAP::SwitchArg verboseFlag("v", "verbose", "Verbose printing to stdout.",
-                               false);
   TCLAP::SwitchArg licenseFlag("l", "license",
                                "Prints license information and exits.", false);
 
@@ -36,7 +34,6 @@ bool Flags::parse(int argc, char** argv)
       "m", "mirror", "The IPv4 address of the Mirror name server.", false,
       "129.123.7.8", "IPv4 addr");
 
-  cmd.add(verboseFlag);
   cmd.add(licenseFlag);
 
   cmd.add(clientMode);
@@ -48,8 +45,6 @@ bool Flags::parse(int argc, char** argv)
   cmd.add(mirrorIPVal);
 
   cmd.parse(argc, argv);
-
-  verbosity_ = verboseFlag.isSet();
 
   if (licenseFlag.isSet())
   {
@@ -65,9 +60,9 @@ bool Flags::parse(int argc, char** argv)
       std::cerr << "Client mode, but missing Mirror IP!" << std::endl;
       return false;
     }
+
     mirrorIP_ = mirrorIPVal.getValue();
   }
-
   else if (mirrorMode.isSet())
     mode_ = OperationMode::MIRROR;
   else if (hsMode.isSet())
@@ -108,13 +103,6 @@ Flags::OperationMode Flags::getMode() const
 Flags::Command Flags::getCommand() const
 {
   return command_;
-}
-
-
-
-bool Flags::verbosityEnabled() const
-{
-  return verbosity_;
 }
 
 

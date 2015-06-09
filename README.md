@@ -1,4 +1,4 @@
-#OnioNS - the Onion Name Service
+#OnioNS - the Onion Name System
 ### Tor-Powered Distributed DNS for Tor Hidden Services
 
 The Onion Name System (OnioNS) is a privacy-enhanced, distributed, and highly usable DNS for Tor hidden services. It allows users to reference a hidden service by a meaningful globally-unique domain name chosen by the hidden service operator. The system is powered by the Tor network and relies on a distributed database. This project aims to address the major usability issue that has been with Tor hidden services since their introduction in 2002. The official project page is onions55e7yam27n.onion, which is example.tor under OnioNS.
@@ -37,7 +37,7 @@ Please see the [Releases section](https://github.com/Jesse-V/OnioNS/releases) at
 
 * **Install from source**
 
-> 1. Fetch the .zip from the Releases page, or clone this repo if you want the cutting edge. I ensure that the code compiles before committing.
+> 1. Fetch the .zip from the Releases page, or clone this repo if you want the cutting edge. I ensure that the code compiles at every commit, although I offer no guarantee that it works as intended.
 > 2. **sudo apt-get install python-stem botan1.10-dev g++ cmake make libasio-dev libboost-system-dev**
 > 3. **./build.sh**
 > 4. **cd build/**
@@ -51,7 +51,7 @@ The code does not compile on Debian Wheezy but if you can figure out the procedu
 
 > 1. Open the Tor Browser.
 > 2. Open two terminals, A and B.
-> 3. In Terminal A, run **onions --client -v --mirror=129.123.7.8**
+> 3. In Terminal A, run **onions --client --mirror=129.123.7.8**
 > 4. In Terminal B, run **python /var/lib/tor-onions/client.py**
 > 5. Type "example.tor" into the Tor Browser.
 > 6. In a moment, you should arrive at a hidden service.
@@ -60,7 +60,7 @@ The code does not compile on Debian Wheezy but if you can figure out the procedu
 
 ### Registering a Domain Name
 
-> 1. **onions --hs -r --hskey=/var/lib/tor-onions/example.key -v**
+> 1. **sudo -u debian-tor onions --hs --hskey=/var/lib/tor-onions/example.key**
 > 2. Answer the prompts for the primary domain name and any subdomains.
 > 3. Wait for the computational work to complete.
 > 4. Send the final JSON to me over IRC or email (see below).
@@ -72,3 +72,7 @@ A manpage is available for your convenience. You can also type **onions --help**
 ### Bug Reporting
 
 Please open a ticket on Github. If you do not have a Github account, please contact kernelcorn on #tor-dev on OFTC IRC, or email kernelcorn at riseup dot net. Please follow the same process for filing enhancement requests. I use PGP key 0xC20BEC80. I accept pull requests if you want to contribute.
+
+### Security Vulnerabilities
+
+Usually, security vulnerabilities may be reported through the same communication channels as bug reports. However, if the impact is significant and you wish to report it privately, please contact me on IRC and I'll open a private conversation with you, or you can send me an email (PGP 0xC20BEC80). Please allow me time to respond, patch, and push out an update before reporting it publicly, which shouldn't take long. I don't have the resources for a bug bounty, but I can optionally provide credit you for the find if you so desire.

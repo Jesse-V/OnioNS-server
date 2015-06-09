@@ -48,9 +48,6 @@ In the typical Unix fashion, flags with values use the following syntax:
 \fB -s \fR or \fB --server \fR
         Enables name server mode, which resolves queries for remote clients.
 
-\fB -v \fR or \fB --verbose \fR
-        Increases the verbosity to stdout. This is highly recommended.
-
 .\"  .SH SEE ALSO
 
 .SH BUGS

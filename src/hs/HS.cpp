@@ -2,6 +2,7 @@
 #include "HS.hpp"
 #include "../common/Common.hpp"
 #include "../common/records/CreateR.hpp"
+#include "../common/tcp/SocksClient.hpp"
 #include "../common/utils.hpp"
 #include "../Flags.hpp"
 #include <iostream>
@@ -98,6 +99,25 @@ RecordPtr HS::promptForRecord() const
   auto r = std::make_shared<CreateR>(loadKey(), name, pgp);
   r->setSubdomains(list);
   return r;
+}
+
+
+
+bool HS::sendRecord(const RecordPtr& r) const
+{
+  auto socks = SocksClient::getCircuitTo(Flags::get().getMirrorIP());
+  if (!socks)
+    throw std::runtime_error("Unable to connect!");
+
+  std::cout << "Uploading Record..." << std::endl;
+  auto received = socks->sendReceive("upload", r->asJSON());
+  if (received.isMember("error"))
+  {
+    std::cerr << "Err: " << received["error"].asString() << std::endl;
+    return false;
+  }
+
+  return true;
 }
 
 

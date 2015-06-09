@@ -16,7 +16,7 @@ class HS
 
   RecordPtr createRecord() const;
   RecordPtr promptForRecord() const;
-  // void broadcastRecord(const RecordPtr&);
+  bool sendRecord(const RecordPtr&) const;
 
  private:
   HS() {}

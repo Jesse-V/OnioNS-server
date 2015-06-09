@@ -32,7 +32,7 @@ std::shared_ptr<SocksClient> SocksClient::getCircuitTo(const std::string& host)
     std::cout << "The Tor Browser appears to be running." << std::endl;
 
     std::cout << "Testing connection to the server..." << std::endl;
-    auto r = socks->sendReceive("ping");
+    auto r = socks->sendReceive("ping", "");
     if (r == "pong")
     {
       std::cout << "Server confirmed up." << std::endl;
@@ -55,14 +55,16 @@ std::shared_ptr<SocksClient> SocksClient::getCircuitTo(const std::string& host)
 
 
 
-Json::Value SocksClient::sendReceive(const std::string& output)
+Json::Value SocksClient::sendReceive(const std::string& type,
+                                     const std::string& msg)
 {
   std::cout << "Sending... ";
   std::cout.flush();
 
   // send as JSON
   Json::Value outVal;
-  outVal["request"] = output;
+  outVal["command"] = type;
+  outVal["value"] = msg;
   Json::FastWriter writer;
   boost::asio::write(socket_, boost::asio::buffer(writer.write(outVal)));
 

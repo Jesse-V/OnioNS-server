@@ -36,7 +36,7 @@ std::string Client::resolve(const std::string& torDomain)
       if (iterator == cache_.end())
       {
         std::cout << "Sending \"" << domain << "\" to name server...\n";
-        auto received = socks_->sendReceive(domain);
+        auto received = socks_->sendReceive("domainQuery", domain);
         if (received.isMember("error"))
         {
           std::cerr << "Err: " << received["error"].asString() << std::endl;

@@ -28,7 +28,6 @@ class Flags
   bool parse(int argc, char** argv);
   OperationMode getMode() const;
   Command getCommand() const;
-  bool verbosityEnabled() const;
   std::string getKeyPath() const;
   std::string getMirrorIP() const;
 
@@ -39,7 +38,6 @@ class Flags
 
   OperationMode mode_;
   Command command_;
-  bool verbosity_;
   std::string keyPath_, mirrorIP_;
 };
 
