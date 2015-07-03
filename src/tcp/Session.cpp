@@ -1,14 +1,9 @@
 
 #include "Session.hpp"
-#include "../../common/Common.hpp"
-#include "../../common/tcp/MemAllocator.hpp"
-#include "../../common/utils.hpp"
-#include "../containers/Cache.hpp"
 #include "../Mirror.hpp"
 #include <botan/sha2_64.h>
 #include <botan/base64.h>
 #include <boost/bind.hpp>
-//#include <algorithm>
 
 
 template <typename Handler>

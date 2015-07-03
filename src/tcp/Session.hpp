@@ -2,7 +2,6 @@
 #ifndef SESSION_HPP
 #define SESSION_HPP
 
-#include "../../common/tcp/HandleAlloc.hpp"
 #include <json/json.h>
 #include <boost/array.hpp>
 #include <boost/asio.hpp>

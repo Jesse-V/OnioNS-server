@@ -2,8 +2,6 @@
 #ifndef MIRROR_HPP
 #define MIRROR_HPP
 
-#include "../common/records/Record.hpp"
-#include "containers/MerkleTree.hpp"
 #include "tcp/Session.hpp"
 #include <json/json.h>
 
