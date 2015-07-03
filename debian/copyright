@@ -1,6 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: OnioNS
-Source: https://github.com/Jesse-V/OnioNS
+Upstream-Name: OnioNS-server
+Source: https://github.com/Jesse-V/OnioNS-server
 
 Files: *
 Copyright: 2015 Jesse Victors <kernelcorn@riseup.net>
