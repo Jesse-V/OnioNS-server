@@ -3,6 +3,10 @@
 
 The Onion Name System (OnioNS) is a privacy-enhanced, distributed, and highly usable DNS for Tor hidden services. It allows users to reference a hidden service by a meaningful globally-unique domain name chosen by the hidden service operator. The system is powered by the Tor network and relies on a distributed database. This project aims to address the major usability issue that has been with Tor hidden services since their introduction in 2002. The official project page is onions55e7yam27n.onion, which is example.tor under OnioNS.
 
+### Repository Details
+
+This repository provides the networking infrastructure for OnioNS nodes.
+
 ### Supported Systems
 
 #### Linux
@@ -13,7 +17,7 @@ i386, amd64, and armhf architectures are supported, so it should run on most 32-
 
 #### Windows
 
-Not currently supported at the moment, though the **client** functionality will land there eventually. I do not have any plans of porting nor supporting the **server** software on Windows; you probably shouldn't be running Tor relays on Windows anyway.
+Not currently supported, I have no intention of porting this package to Windows; you probably shouldn't run Tor relays on Windows anyway.
 
 #### OS-X and *BSD
 
@@ -27,47 +31,27 @@ There are several methods to install the OnioNS software. The method of choice d
 
 > 1. **sudo add-apt-repository ppa:jvictors/tor-dev**
 > 2. **sudo apt-get update**
-> 3. **sudo apt-get install tor-onions**
+> 3. **sudo apt-get install tor-onions-server**
 
 This is the recommended method as it's very easy to stay up-to-date with my releases.
 
 * **Install from .deb file**
 
-Please see the [Releases section](https://github.com/Jesse-V/OnioNS/releases) at the top of this Github repo. I provide amd64 .deb builds there. For other architectures, you may download them from [my PPA](https://launchpad.net/~jvictors/+archive/tor-dev/+packages). They are equivalent.
+Please see the [Releases section](https://github.com/Jesse-V/OnioNS/releases) at the top of this Github repo. I provide amd64 .deb builds there, which should work for you. Otherwise, you may also download them from [my PPA](https://launchpad.net/~jvictors/+archive/tor-dev/+packages).
 
 * **Install from source**
 
-> 1. Fetch the .zip from the Releases page, or clone this repo if you want the cutting edge. I ensure that the code compiles at every commit, although I offer no guarantee that it works as intended.
-> 2. **sudo apt-get install python-stem botan1.10-dev g++ cmake make libasio-dev libboost-system-dev**
+> 1. Download the latest .zip or .tar.gz archive from the Releases page and unzip it.
+> 2. **sudo apt-get install g++ cmake make**
 > 3. **./build.sh**
 > 4. **cd build/**
 > 5. **sudo make install**
 
 The ClangBuild.sh script is available if you prefer the Clang compiler. This script is recommended if you are developing or hacking OnioNS. You will need to run **sudo apt-get install clang-format-3.6** before running the script as the script will also re-style your code to the official development style, which is based on Chromium.
 
-The code does not compile on Debian Wheezy but if you can figure out the procedures, please let me know. Including wheezy-backports and upgrading GCC is probably necessary there. If you successfully compile OnioNS on any other Linux distribution, please describe the procedures in a Github ticket and I'll try to support it going forward.
-
-### Usage
-
-> 1. Open the Tor Browser.
-> 2. Open two terminals, A and B.
-> 3. In Terminal A, run **onions --client --mirror=129.123.7.8**
-> 4. In Terminal B, run **python /var/lib/tor-onions/client.py**
-> 5. Type "example.tor" into the Tor Browser.
-> 6. In a moment, you should arrive at a hidden service.
-> 7. Close the Tor Browser.
-> 8. Control-C the processes in both terminals.
-
-### Registering a Domain Name
-
-> 1. **sudo -u debian-tor onions --hs --hskey=/var/lib/tor-onions/example.key**
-> 2. Answer the prompts for the primary domain name and any subdomains.
-> 3. Wait for the computational work to complete.
-> 4. Send the final JSON to me over IRC or email (see below).
-
 ### Getting Help
 
-A manpage is available for your convenience. You can also type **onions --help** for a list of flags and usage examples. Contact me on IRC or by email (see below) if you need further assistance.
+A manpage is available for your convenience. You can also type **onions-server --help** for a list of flags and usage examples. Contact me on IRC or by email (see below) if you need further assistance.
 
 ### Bug Reporting
 
@@ -75,4 +59,4 @@ Please open a ticket on Github. If you do not have a Github account, please cont
 
 ### Security Vulnerabilities
 
-Usually, security vulnerabilities may be reported through the same communication channels as bug reports. However, if the impact is significant and you wish to report it privately, please contact me on IRC and I'll open a private conversation with you, or you can send me an email (PGP 0xC20BEC80). Please allow me time to respond, patch, and push out an update before reporting it publicly, which shouldn't take long. I don't have the resources for a bug bounty, but I can optionally provide credit you for the find if you so desire.
+Usually, security vulnerabilities may be reported through the same communication channels as bug reports. However, if the impact is significant and you wish to report it privately, please contact me on IRC and I'll open a private conversation with you, or you can send me an email (PGP 0xC20BEC80). Please allow me time to respond, patch, and push out an update before reporting it publicly, which shouldn't take long.
