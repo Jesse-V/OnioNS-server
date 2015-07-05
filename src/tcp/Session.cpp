@@ -1,6 +1,10 @@
 
 #include "Session.hpp"
 #include "../Mirror.hpp"
+#include <onions-common/Common.hpp>
+#include <onions-common/containers/Cache.hpp>
+#include <onions-common/utils.hpp>
+#include <onions-common/tcp/MemAllocator.hpp>
 #include <botan/sha2_64.h>
 #include <botan/base64.h>
 #include <boost/bind.hpp>
@@ -89,7 +93,7 @@ void Session::handleProveKnowledge(Json::Value& in, Json::Value& out)
   {
     Botan::SHA_384 sha;
     out["response"] =
-        Botan::base64_encode(sha.process(r->asJSON()), Env::SHA384_LEN);
+        Botan::base64_encode(sha.process(r->asJSON()), Const::SHA384_LEN);
   }
   else
     out["response"] = "404";

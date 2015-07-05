@@ -1,4 +1,4 @@
-tor-onions-client (0.3.1.1~trusty) trusty; urgency=medium
+tor-onions-server (0.3.1.1~trusty) trusty; urgency=medium
 
   * Initial build of server functionality.
   * Removed debugging symbols.

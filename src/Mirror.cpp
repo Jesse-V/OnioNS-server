@@ -1,8 +1,9 @@
 
 #include "Mirror.hpp"
 #include "tcp/Server.hpp"
-#include "containers/Cache.hpp"
-#include "../common/Common.hpp"
+#include <onions-common/containers/Cache.hpp>
+#include <onions-common/Common.hpp>
+#include <onions-common/Constants.hpp>
 #include <botan/pubkey.h>
 #include <fstream>
 #include <iostream>
@@ -14,7 +15,7 @@ void Mirror::startServer()
 
   // auto mt = std::make_shared<MerkleTree>(Cache::get().getSortedList());
 
-  Server s(Env::SERVER_PORT);
+  Server s(Const::SERVER_PORT);
   s.start();
 }
 
@@ -26,7 +27,7 @@ UInt8Array Mirror::signMerkleRoot(Botan::RSA_PrivateKey* key,
   static Botan::AutoSeeded_RNG rng;
 
   Botan::PK_Signer signer(*key, "EMSA-PSS(SHA-384)");
-  auto sig = signer.sign_message(mt->getRoot(), Env::SHA384_LEN, rng);
+  auto sig = signer.sign_message(mt->getRoot(), Const::SHA384_LEN, rng);
   uint8_t* bin = new uint8_t[sig.size()];
   memcpy(bin, sig, sig.size());
   return std::make_pair(bin, sig.size());

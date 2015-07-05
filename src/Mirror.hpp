@@ -3,6 +3,8 @@
 #define MIRROR_HPP
 
 #include "tcp/Session.hpp"
+#include <onions-common/containers/MerkleTree.hpp>
+#include <onions-common/containers/records/Record.hpp>
 #include <json/json.h>
 
 class Mirror
