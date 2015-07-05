@@ -1,3 +1,10 @@
+tor-onions-server (0.3.2.4~trusty) trusty; urgency=medium
+
+  * Initial build against onions-common library.
+  * Fixed compilation against onions-common headers.
+
+ -- Jesse Victors <kernelcorn@riseup.net>  Sun, 5 July 2015 15:32:00 -0400
+
 tor-onions-server (0.3.1.1~trusty) trusty; urgency=medium
 
   * Initial build of server functionality.
