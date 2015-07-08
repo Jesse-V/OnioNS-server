@@ -1,3 +1,10 @@
+tor-onions-server (0.3.2.6~trusty) trusty; urgency=medium
+
+  * Fixed missing dependency on tor-onions-common.
+  * Fixed missing linkage against pthread, necessary for armhf builds.
+
+ -- Jesse Victors <kernelcorn@riseup.net>  Mon, 06 Jul 2015 01:00:00 -0400
+
 tor-onions-server (0.3.2.4~trusty) trusty; urgency=medium
 
   * Initial build against onions-common library.

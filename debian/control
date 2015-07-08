@@ -11,7 +11,7 @@ Vcs-Browser: https://github.com/Jesse-V/OnioNS-server
 
 Package: tor-onions-server
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, tor-onions-common (>= 0.3.3)
 Conflicts: tor-onions-server
 Description: Tor-powered distributed DNS for Tor hidden services
  The Onion Name System (OnioNS) is a privacy-enhanced, distributed, and highly

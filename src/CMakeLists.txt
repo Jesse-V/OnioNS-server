@@ -21,7 +21,7 @@ add_executable(onions-server
   tcp/Session.cpp
 )
 
-target_link_libraries(onions-server onions-common onions-jsoncpp onions-cyoencode botan-1.10 ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_LIBRARIES})
+target_link_libraries(onions-server onions-common onions-jsoncpp onions-cyoencode botan-1.10  pthread ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_LIBRARIES})
 
 #installation of files
 set(DEB_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/debian/extra_includes")
