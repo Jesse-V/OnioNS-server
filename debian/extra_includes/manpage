@@ -1,0 +1,52 @@
+.\" Manpage for OnioNS-Server
+.\" Visit github.com/Jesse-V/OnioNS-client to report bugs, errors, or typos.
+.TH man 1 "July 9, 2015" "<VERSION>" "OnioNS-Server man page"
+
+.SH NAME
+
+The Onion Name System (OnioNS) \- Tor-powered Distributed DNS for Tor Hidden
+Services \- Server Edition
+
+.SH SYNOPSIS
+
+onions-server\fR [\fB--help\fR|\fB--license\fR]
+
+.SH DESCRIPTION
+
+Tor a third-generation onion router that acts as anonymizing communication
+service. Users choose a path through a set of three Tor nodes and negotiate a
+"virtual circuit" through the network, in which each node knows its predecessor
+and successor, but no others. Tor also supports hidden services: anonymous
+servers that intentionally hide their IP address through Tor circuits.
+Traditionally, hidden services have major usability issues because their
+addresses are algorithmically generated. OnioNS allows clients to access hidden
+services by a meaningful, globally-unique domain name chosen by the hidden
+service operator.
+
+This package provides the networking and data processing functionality for
+OnioNS servers.
+
+.SH OPTIONS
+
+OnioNS-HS is primarily a command-line utility.
+
+\fB -h \fR or \fB --help \fR
+  Prints list of flags and usage examples and then quits.
+
+\fB -l \fR or \fB --license \fR
+  Prints license information and then quit.
+
+.\"  .SH SEE ALSO
+  tor(1)
+
+.SH BUGS
+
+Please visit https://github.com/Jesse-V/OnioNS-server/issues for the list
+of known bugs or to open a ticket on a new bug. If you do not have a Github
+account, please contact kernelcorn on #tor-dev on OFTC IRC, or email
+kernelcorn at riseup dot net. Please follow the same process for filing
+enhancement requests.
+
+.SH AUTHOR
+
+Jesse Victors (kernelcorn@riseup.net, PGP 0xC20BEC80)
