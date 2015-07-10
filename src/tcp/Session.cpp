@@ -3,7 +3,7 @@
 #include "../Mirror.hpp"
 #include <onions-common/Common.hpp>
 #include <onions-common/containers/Cache.hpp>
-#include <onions-common/utils.hpp>
+#include <onions-common/Utils.hpp>
 #include <onions-common/tcp/MemAllocator.hpp>
 #include <botan/sha2_64.h>
 #include <botan/base64.h>
@@ -88,7 +88,7 @@ void Session::handlePing(Json::Value& in, Json::Value& out)
 
 void Session::handleProveKnowledge(Json::Value& in, Json::Value& out)
 {  // todo: no need for this, since subscribers get Record anyway
-  auto r = Cache::get().get(in["value"].asString());
+  auto r = Cache::get(in["value"].asString());
   if (r)
   {
     Botan::SHA_384 sha;
@@ -103,9 +103,9 @@ void Session::handleProveKnowledge(Json::Value& in, Json::Value& out)
 
 void Session::handleUpload(Json::Value& in, Json::Value& out)
 {
-  auto r = Common::get().parseRecord(in["value"]);
-  if (Cache::get().add(r))  // if successfully added to the Cache
-    Mirror::get().broadcastEvent("record", in["value"]);
+  auto r = Common::parseRecord(in["value"]);
+  if (Cache::add(r))  // if successfully added to the Cache
+    Mirror::broadcastEvent("record", in["value"]);
   else
     out["error"] = "Name already taken.";
 }
@@ -118,7 +118,7 @@ void Session::handleDomainQuery(Json::Value& in, Json::Value& out)
   if (Utils::strEndsWith(domain, ".tor"))
   {  // resolve .tor -> .onion
 
-    auto record = Cache::get().get(domain);
+    auto record = Cache::get(domain);
     if (record)
     {
       out["response"] = record->asJSON();

@@ -2,6 +2,7 @@
 
 echo "Preparing assets..."
 cp -rl debian src # this cannot be a symlink
+gzip --best -c debian/extra_includes/manpage > src/debian/extra_includes/onions-server.1.gz
 
 echo "Preparing build..."
 mkdir -p build/

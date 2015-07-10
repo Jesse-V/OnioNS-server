@@ -8,6 +8,8 @@
 #include <fstream>
 #include <iostream>
 
+std::vector<std::shared_ptr<Session>> Mirror::connections_;
+
 
 void Mirror::startServer()
 {
@@ -15,14 +17,14 @@ void Mirror::startServer()
 
   // auto mt = std::make_shared<MerkleTree>(Cache::get().getSortedList());
 
-  Server s(Const::SERVER_PORT);
+  Server s(10053);
   s.start();
 }
 
 
 
 UInt8Array Mirror::signMerkleRoot(Botan::RSA_PrivateKey* key,
-                                  const MerkleTreePtr& mt) const
+                                  const MerkleTreePtr& mt)
 {
   static Botan::AutoSeeded_RNG rng;
 
@@ -55,11 +57,12 @@ void Mirror::broadcastEvent(const std::string& type, const Json::Value& value)
 
 
 
-void Mirror::loadCache() const
+void Mirror::loadCache()
 {
   std::cout << "Loading Record cache... " << std::endl;
-  std::fstream cacheFile("/var/lib/tor-onions/cache.txt");
-  if (!cacheFile)
+  std::ifstream cacheFile;
+  cacheFile.open("/var/lib/tor-onions/cache.json", std::fstream::in);
+  if (!cacheFile.is_open())
     throw std::runtime_error("Cannot open cache!");
 
   // parse cache file into JSON object
@@ -76,6 +79,6 @@ void Mirror::loadCache() const
   // interpret JSON as Records and load into cache
   std::cout << "Preparing Records... " << std::endl;
   for (uint n = 0; n < cacheValue.size(); n++)
-    if (!Cache::get().add(Common::get().parseRecord(cacheValue[n])))
+    if (!Cache::add(Common::parseRecord(cacheValue[n])))
       throw std::runtime_error("Invalid Record inside cache!");
 }

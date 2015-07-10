@@ -51,7 +51,7 @@ void Server::handleAccept(std::shared_ptr<Session> session,
     return;
   }
 
-  Mirror::get().addConnection(session);
+  Mirror::addConnection(session);
   session->asyncRead();
 
   session.reset(new Session(*ios_));
