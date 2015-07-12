@@ -87,21 +87,6 @@ void Session::handlePing(Json::Value& in, Json::Value& out)
 
 
 
-void Session::handleProveKnowledge(Json::Value& in, Json::Value& out)
-{  // todo: no need for this, since subscribers get Record anyway
-  auto r = Cache::get(in["value"].asString());
-  if (r)
-  {
-    Botan::SHA_384 sha;
-    out["response"] =
-        Botan::base64_encode(sha.process(r->asJSON()), Const::SHA384_LEN);
-  }
-  else
-    out["response"] = "404";
-}
-
-
-
 void Session::handleUpload(Json::Value& in, Json::Value& out)
 {
   auto r = Common::parseRecord(in["value"]);
@@ -169,8 +154,6 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
 
     if (command == "ping")
       handlePing(in, out);
-    else if (command == "proveKnowledge")
-      handleProveKnowledge(in, out);
     else if (command == "upload")
       handleUpload(in, out);
     else if (command == "domainQuery")
@@ -181,8 +164,11 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
       out["error"] = "Unknown command \"" + command + "\"";
   }
 
-  if (!out.isMember("error"))
+  if (out.isMember("error"))
+    Log::get().warn(out["error"].asString());
+  else if (!out.isMember("response"))
     out["response"] = "success";
+
   asyncWrite(out);
 }
 

@@ -4,12 +4,16 @@
 #include <onions-common/containers/Cache.hpp>
 #include <onions-common/Common.hpp>
 #include <onions-common/Log.hpp>
+#include <onions-common/Config.hpp>
 #include <onions-common/Constants.hpp>
 #include <botan/pubkey.h>
 #include <fstream>
 #include <iostream>
 
+// definitions for static variables
 std::vector<std::shared_ptr<Session>> Mirror::connections_;
+boost::asio::io_service Mirror::io_service;
+boost::asio::ip::tcp::socket Mirror::socket_(io_service);
 
 
 void Mirror::startServer(ushort port, bool isAuthority)
@@ -22,6 +26,14 @@ void Mirror::startServer(ushort port, bool isAuthority)
     Log::get().notice("Running as normal server.");
 
   // auto mt = std::make_shared<MerkleTree>(Cache::get().getSortedList());
+
+  if (!isAuthority)
+  {
+    auto addr = Config::getAuthority()[0];  // addr["ip"].asString()
+    openSocketTo("127.0.0.1", addr["port"].asInt());
+    auto rStr = serverSendReceive("subscribe", "");
+    Log::get().notice("Authority response: " + rStr);
+  }
 
   try
   {
@@ -96,4 +108,65 @@ void Mirror::loadCache()
   for (uint n = 0; n < cacheValue.size(); n++)
     if (!Cache::add(Common::parseRecord(cacheValue[n])))
       Log::get().error("Invalid Record inside cache!");
+}
+
+
+
+void Mirror::openSocketTo(const std::string& host, ushort port)
+{
+  using boost::asio::ip::tcp;
+
+  Log::get().notice("Connecting to authority server... ");
+
+  tcp::resolver resolver(io_service);
+  tcp::resolver::query query(host, std::to_string(port));
+  tcp::resolver::iterator iterator = resolver.resolve(query);
+  boost::asio::connect(socket_, iterator);
+
+  Log::get().notice("Connected!");
+}
+
+
+
+std::string Mirror::serverSendReceive(const std::string& type,
+                                      const std::string& msg)
+{  // similar to -common's SocksClient::sendReceive
+
+  Log::get().notice("Server-server send... ");
+
+  // send as JSON
+  Json::Value outVal;
+  outVal["command"] = type;
+  outVal["value"] = msg;
+  Json::FastWriter writer;
+  boost::asio::write(socket_, boost::asio::buffer(writer.write(outVal)));
+
+  // read from socket until newline
+  Log::get().notice("Server-server receive... ");
+  boost::asio::streambuf response;
+  boost::asio::read_until(socket_, response, "\n");
+
+  // convert to string
+  std::string responseStr;
+  std::istream is(&response);
+  is >> responseStr;
+
+  // parse into JSON object
+  Json::Reader reader;
+  Json::Value responseVal;
+  if (!reader.parse(responseStr, responseVal))
+  {
+    Log::get().warn("Failed to parse response from server.");
+    return "failure";
+  }
+
+  if (!responseVal.isMember("error") && !responseVal.isMember("response"))
+  {
+    Log::get().warn("Invalid response from server.");
+    return "failure";
+  }
+
+  Log::get().notice("Server-server communication complete.");
+
+  return responseVal["response"].asString();
 }

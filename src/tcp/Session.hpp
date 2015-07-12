@@ -22,7 +22,6 @@ class Session : public boost::enable_shared_from_this<Session>
 
  private:
   void handlePing(Json::Value&, Json::Value&);
-  void handleProveKnowledge(Json::Value&, Json::Value&);
   void handleUpload(Json::Value&, Json::Value&);
   void handleDomainQuery(Json::Value&, Json::Value&);
   void handleSubscribe(Json::Value&, Json::Value&);
