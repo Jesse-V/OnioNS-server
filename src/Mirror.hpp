@@ -10,7 +10,7 @@
 class Mirror
 {
  public:
-  static void startServer(bool);
+  static void startServer(ushort, bool);
   static UInt8Array signMerkleRoot(Botan::RSA_PrivateKey*,
                                    const MerkleTreePtr&);
 

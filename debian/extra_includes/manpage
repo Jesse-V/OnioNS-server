@@ -51,6 +51,12 @@ Specifies a filepath for event logging. If not specified or if "-" is given as a
 .RE
 
 .PP
+\fB-p\fR, \fB--port\fR
+.RS 4
+TCP port to bind the server to on all interfaces. By default this is 10053.
+.RE
+
+.PP
 \fB --usage \fR
 .RS 4
 Displays a brief usage message and then exits.

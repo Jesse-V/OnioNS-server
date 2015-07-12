@@ -11,6 +11,7 @@ int main(int argc, char** argv)
 {
   char* logPath = NULL;
   bool license = false, authority = false;
+  short port = 10053;
 
   struct poptOption po[] = {
       {"authority",
@@ -29,12 +30,19 @@ int main(int argc, char** argv)
        "Specifies the filepath for event logging.",
        "<path>",
       },
+      {"port",
+       'p',
+       POPT_ARG_SHORT,
+       &port,
+       11003,
+       "TCP port to bind the server to on all interfaces.",
+       "<port>"},
       {
        "license",
        'L',
        POPT_ARG_NONE,
        &license,
-       11003,
+       11004,
        "Prints software license and exit.",
       },
       POPT_AUTOHELP{NULL}};
@@ -51,7 +59,7 @@ int main(int argc, char** argv)
   if (logPath && std::string(logPath) != "-")
     Log::setLogPath(std::string(logPath));
 
-  Mirror::startServer(authority);
+  Mirror::startServer(port, authority);
 
   return EXIT_SUCCESS;
 }

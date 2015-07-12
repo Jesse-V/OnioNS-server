@@ -12,7 +12,7 @@
 std::vector<std::shared_ptr<Session>> Mirror::connections_;
 
 
-void Mirror::startServer(bool isAuthority)
+void Mirror::startServer(ushort port, bool isAuthority)
 {
   loadCache();
 
@@ -25,7 +25,7 @@ void Mirror::startServer(bool isAuthority)
 
   try
   {
-    Server s(10053, isAuthority);
+    Server s(port, isAuthority);
     s.start();
   }
   catch (boost::exception_detail::clone_impl<
