@@ -27,6 +27,12 @@ OnioNS servers.
 .SH "COMMAND-LINE OPTIONS"
 
 .PP
+\fB-a\fR, \fB--authority\fR
+.RS 4
+Causes the server to run as an authoritative server. The default is to run as a normal name server.
+.RE
+
+.PP
 \fB-?\fR, \fB--help\fR
 .RS 4
 Prints a list of flags, their descriptions, and then exits.

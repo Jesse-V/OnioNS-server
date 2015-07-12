@@ -12,14 +12,28 @@
 std::vector<std::shared_ptr<Session>> Mirror::connections_;
 
 
-void Mirror::startServer()
+void Mirror::startServer(bool isAuthority)
 {
   loadCache();
 
+  if (isAuthority)
+    Log::get().notice("Running as authoritative server.");
+  else
+    Log::get().notice("Running as normal server.");
+
   // auto mt = std::make_shared<MerkleTree>(Cache::get().getSortedList());
 
-  Server s(10053);
-  s.start();
+  try
+  {
+    Server s(10053, isAuthority);
+    s.start();
+  }
+  catch (boost::exception_detail::clone_impl<
+      boost::exception_detail::error_info_injector<
+          boost::system::system_error>> const& ex)
+  {
+    Log::get().error(ex.what());
+  }
 }
 
 

@@ -10,26 +10,34 @@ Botan::LibraryInitializer init("thread_safe");
 int main(int argc, char** argv)
 {
   char* logPath = NULL;
-  bool license = false;
+  bool license = false, authority = false;
 
-  struct poptOption po[] = {{
-                             "output",
-                             'o',
-                             POPT_ARG_STRING,
-                             &logPath,
-                             11001,
-                             "Specifies the filepath for event logging.",
-                             "<path>",
-                            },
-                            {
-                             "license",
-                             'L',
-                             POPT_ARG_NONE,
-                             &license,
-                             11002,
-                             "Print software license and exit.",
-                            },
-                            POPT_AUTOHELP{NULL}};
+  struct poptOption po[] = {
+      {"authority",
+       'a',
+       POPT_ARG_NONE,
+       &authority,
+       11001,
+       "Causes the server to run as an authoritative server. The default is "
+       "to run as a normal name server."},
+      {
+       "output",
+       'o',
+       POPT_ARG_STRING,
+       &logPath,
+       11002,
+       "Specifies the filepath for event logging.",
+       "<path>",
+      },
+      {
+       "license",
+       'L',
+       POPT_ARG_NONE,
+       &license,
+       11003,
+       "Prints software license and exit.",
+      },
+      POPT_AUTOHELP{NULL}};
 
   bool b = Utils::parse(
       argc, poptGetContext(NULL, argc, const_cast<const char**>(argv), po, 0));
@@ -40,10 +48,10 @@ int main(int argc, char** argv)
     return EXIT_SUCCESS;
   }
 
-  if (logPath && logPath != "-")
+  if (logPath && std::string(logPath) != "-")
     Log::setLogPath(std::string(logPath));
 
-  Mirror::startServer();
+  Mirror::startServer(authority);
 
   return EXIT_SUCCESS;
 }
