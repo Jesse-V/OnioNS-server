@@ -3,6 +3,7 @@
 #include "tcp/Server.hpp"
 #include <onions-common/containers/Cache.hpp>
 #include <onions-common/Common.hpp>
+#include <onions-common/Log.hpp>
 #include <onions-common/Constants.hpp>
 #include <botan/pubkey.h>
 #include <fstream>
@@ -59,11 +60,11 @@ void Mirror::broadcastEvent(const std::string& type, const Json::Value& value)
 
 void Mirror::loadCache()
 {
-  std::cout << "Loading Record cache... " << std::endl;
+  Log::get().notice("Loading Record cache... ");
   std::ifstream cacheFile;
   cacheFile.open("/var/lib/tor-onions/cache.json", std::fstream::in);
   if (!cacheFile.is_open())
-    throw std::runtime_error("Cannot open cache!");
+    Log::get().error("Cannot open cache!");
 
   // parse cache file into JSON object
   Json::Value cacheValue;
@@ -72,13 +73,13 @@ void Mirror::loadCache()
                    std::istreambuf_iterator<char>());
   if (!reader.parse(json, cacheValue))
   {
-    std::cerr << "Failed to parse cache!" << std::endl;
+    Log::get().error("Failed to parse cache!");
     return;
   }
 
   // interpret JSON as Records and load into cache
-  std::cout << "Preparing Records... " << std::endl;
+  Log::get().notice("Preparing Records... ");
   for (uint n = 0; n < cacheValue.size(); n++)
     if (!Cache::add(Common::parseRecord(cacheValue[n])))
-      throw std::runtime_error("Invalid Record inside cache!");
+      Log::get().error("Invalid Record inside cache!");
 }

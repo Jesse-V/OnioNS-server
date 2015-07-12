@@ -39,6 +39,12 @@ Prints license information and then exits.
 .RE
 
 .PP
+\fB-o\fR, \fB--output\fR
+.RS 4
+Specifies a filepath for event logging. If not specified or if "-" is given as an argument, output will go to stdout.
+.RE
+
+.PP
 \fB --usage \fR
 .RS 4
 Displays a brief usage message and then exits.

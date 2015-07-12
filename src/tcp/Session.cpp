@@ -3,6 +3,7 @@
 #include "../Mirror.hpp"
 #include <onions-common/Common.hpp>
 #include <onions-common/containers/Cache.hpp>
+#include <onions-common/Log.hpp>
 #include <onions-common/Utils.hpp>
 #include <onions-common/tcp/MemAllocator.hpp>
 #include <botan/sha2_64.h>
@@ -122,12 +123,12 @@ void Session::handleDomainQuery(Json::Value& in, Json::Value& out)
     if (record)
     {
       out["response"] = record->asJSON();
-      std::cout << "Found Record for \"" << domain << "\"" << std::endl;
+      Log::get().notice("Found Record for \"" + domain + "\"");
     }
     else
     {
       out["error"] = "404";
-      std::cout << "404ed request for \"" << domain << "\"" << std::endl;
+      Log::get().notice("404ed request for \"" + domain + "\"");
     }
   }
   else
@@ -148,8 +149,7 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
 {
   if (error || n <= 0)
   {
-    std::cout << std::endl;
-    std::cerr << error.message() << std::endl;
+    Log::get().warn(error.message());
     return;
   }
 
@@ -193,7 +193,7 @@ void Session::processWrite(const boost::system::error_code& error)
 {
   if (error)
   {
-    std::cerr << error.message() << std::endl;
+    Log::get().warn(error.message());
     return;
   }
 
