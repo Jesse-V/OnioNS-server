@@ -9,11 +9,13 @@ This repository provides the networking infrastructure for OnioNS nodes.
 
 ### Supported Systems
 
+**Debian 7 and 8, Ubuntu 14.04 - 15.10, Mint 17 - 17.2, Fedora 21 - 23**
+
 Please see the [OnioNS-common README](https://github.com/Jesse-V/OnioNS-common#supported-systems) for more information.
 
 ### Installation
 
-There are several methods to install the OnioNS software. The method of choice depends on your system. If you are on Ubuntu or an Ubuntu-based system (Lubuntu, Kubuntu, Mint) please use the PPA method. If you are running Debian or prefer not to use my PPA, please use the .deb method. Otherwise, for all other distributions, please install from source.
+There are several methods to install the OnioNS software. The method of choice depends on your system. If you are on Ubuntu or an Ubuntu-based system (Lubuntu, Kubuntu, Mint) please use the PPA method. If you are running Debian Wheezy, please use the .deb method. Otherwise, for all other distributions, please install from source.
 
 * **Install from PPA**
 
@@ -25,17 +27,17 @@ This is the recommended method as it's very easy to stay up-to-date with my rele
 
 * **Install from .deb file**
 
-I provide amd64 .deb builds in the [Releases section](https://github.com/Jesse-V/OnioNS/releases), which should work for you. For other architectures, you may download from [my PPA](https://launchpad.net/~jvictors/+archive/tor-dev/+packages).
+I provide builds for Debian Wheezy in the [Releases section](https://github.com/Jesse-V/OnioNS-server/releases) for several architectures. For other architectures, you may download from [my PPA](https://launchpad.net/~jvictors/+archive/tor-dev/+packages).
 
 * **Install from source**
 
-> 1. Follow [the instructions in the OnioNS-common repository](https://github.com/Jesse-V/OnioNS-common#installation) to install the tor-onions-common package.
-> 2. Download the latest .zip or .tar.gz archive from the Releases page and unzip it.
-> 3. **./build.sh**
-> 4. **cd build/**
-> 5. **sudo make install**
+> 1. Install tor-onions-common by following [these instructions](https://github.com/Jesse-V/OnioNS-common#installation).
+> 2. Download and extract the latest release from the [Releases page](https://github.com/Jesse-V/OnioNS-server/releases).
+> 3. **(mkdir build; cd build; cmake ../src; make; sudo make install)**
 
-The ClangBuild.sh script is available if you prefer the Clang compiler. This script is recommended if you are developing or hacking OnioNS. You will need to install *clang-format-3.6* before running that as ClangBuild.sh will also re-style your code to the official development style, which is based on Chromium.
+The rebuild.sh script is available if you are actively developing OnioNS. You will need to install *clang-format-3.6* and *cppcheck* as the script also styles the code and performs a static analysis check.
+
+You can cleanup your build with **rm -rf build**
 
 ### Getting Help
 

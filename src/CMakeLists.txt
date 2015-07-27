@@ -24,7 +24,7 @@ add_executable(onions-server
 target_link_libraries(onions-server onions-common onions-jsoncpp onions-cyoencode popt botan-1.10 pthread ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_LIBRARIES})
 
 #installation of files
-set(DEB_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/debian/extra_includes")
+set(DEB_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/assets")
 install(TARGETS onions-server                   DESTINATION /usr/bin/)
 install(FILES ${DEB_FOLDER}/onions-server.1.gz  DESTINATION /usr/share/man/man1)
 
