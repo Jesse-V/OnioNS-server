@@ -18,7 +18,6 @@ boost::asio::ip::tcp::socket Mirror::socket_(io_service);
 
 void Mirror::startServer(const std::string& host, ushort port, bool isAuthority)
 {
-  std::cout << "*" << host << "*" << std::endl;
   loadCache();
 
   if (isAuthority)
