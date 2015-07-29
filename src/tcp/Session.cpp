@@ -134,7 +134,7 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
 {
   if (n == 0)
   {
-    Log::get().warn("Received empty message.");
+    Log::get().notice("Connection closed.");
     return;
   }
   else if (error)
