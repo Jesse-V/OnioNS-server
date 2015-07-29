@@ -132,7 +132,12 @@ void Session::handleSubscribe(Json::Value& in, Json::Value& out)
 // called by Asio whenever the socket has been read into the buffer
 void Session::processRead(const boost::system::error_code& error, size_t n)
 {
-  if (error || n <= 0)
+  if (n == 0)
+  {
+    Log::get().warn("Received empty message.");
+    return;
+  }
+  else if (error)
   {
     Log::get().warn(error.message());
     return;
