@@ -15,7 +15,8 @@ class Server
   void stop();
 
  private:
-  void handleAccept(std::shared_ptr<Session>, const boost::system::error_code&);
+  void handleAccept(boost::shared_ptr<Session>,
+                    const boost::system::error_code&);
 
   std::shared_ptr<boost::asio::io_service> ios_;
   boost::asio::ip::tcp::acceptor acceptor_;

@@ -16,7 +16,7 @@ Server::Server(const std::string& host, ushort port, bool isAuthority)
       isAuthorative_(isAuthority)
 {
   Log::get().notice("Initiating server...");
-  std::shared_ptr<Session> session(new Session(*ios_));
+  boost::shared_ptr<Session> session(new Session(*ios_));
   acceptor_.async_accept(session->getSocket(),
                          boost::bind(&Server::handleAccept, this, session,
                                      boost::asio::placeholders::error));
@@ -47,7 +47,7 @@ void Server::stop()
 
 
 
-void Server::handleAccept(std::shared_ptr<Session> session,
+void Server::handleAccept(boost::shared_ptr<Session> session,
                           const boost::system::error_code& error)
 {
   Log::get().notice("Connection accepted.");

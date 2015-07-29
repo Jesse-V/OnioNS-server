@@ -11,7 +11,7 @@
 #include <iostream>
 
 // definitions for static variables
-std::vector<std::shared_ptr<Session>> Mirror::connections_;
+std::vector<boost::shared_ptr<Session>> Mirror::connections_;
 boost::asio::io_service Mirror::io_service;
 boost::asio::ip::tcp::socket Mirror::socket_(io_service);
 
@@ -64,7 +64,7 @@ UInt8Array Mirror::signMerkleRoot(Botan::RSA_PrivateKey* key,
 
 
 
-void Mirror::addConnection(const std::shared_ptr<Session>& session)
+void Mirror::addConnection(const boost::shared_ptr<Session>& session)
 {
   connections_.push_back(session);
 }
