@@ -92,7 +92,7 @@ void Session::handleUpload(Json::Value& in, Json::Value& out)
   {
     Log::get().notice(std::to_string(id_) +
                       ": Cached new Record. Broadcasting...");
-    Mirror::broadcastEvent("record", in["value"]);
+    Mirror::broadcastEvent("upload", in["value"]);
     Log::get().notice(std::to_string(id_) + ": Finished broadcasting Record.");
   }
   else

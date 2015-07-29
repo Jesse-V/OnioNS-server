@@ -74,7 +74,7 @@ void Mirror::addConnection(const boost::shared_ptr<Session>& session)
 void Mirror::broadcastEvent(const std::string& type, const Json::Value& value)
 {
   Json::Value event;
-  event["type"] = type;
+  event["command"] = type;
   event["value"] = value;
 
   for (auto s : connections_)
