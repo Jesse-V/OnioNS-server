@@ -89,7 +89,12 @@ void Session::handleUpload(Json::Value& in, Json::Value& out)
 {
   auto r = Common::parseRecord(in["value"]);
   if (Cache::add(r))  // if successfully added to the Cache
+  {
+    Log::get().notice(std::to_string(id_) +
+                      ": cached new Record. Broadcasting...");
     Mirror::broadcastEvent("record", in["value"]);
+    Log::get().notice(std::to_string(id_) + ": finished broadcasting Record.");
+  }
   else
     out["error"] = "Name already taken.";
 }
