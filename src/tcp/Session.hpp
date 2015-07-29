@@ -12,7 +12,7 @@
 class Session : public boost::enable_shared_from_this<Session>
 {
  public:
-  Session(boost::asio::io_service&);
+  Session(boost::asio::io_service&, int);
   boost::asio::ip::tcp::socket& getSocket();
 
   void asyncRead();
@@ -33,6 +33,7 @@ class Session : public boost::enable_shared_from_this<Session>
   boost::array<char, 2048> buffer_;
   HandleAlloc allocator_;
   bool subscribed_;
+  int id_;
 };
 
 #endif

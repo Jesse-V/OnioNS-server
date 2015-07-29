@@ -19,8 +19,8 @@ inline MemAllocator<Handler> makeHandler(HandleAlloc& a, Handler h)
 
 
 
-Session::Session(boost::asio::io_service& ios)
-    : socket_(ios), subscribed_(false)
+Session::Session(boost::asio::io_service& ios, int id)
+    : socket_(ios), subscribed_(false), id_(id)
 {
 }
 
@@ -35,7 +35,6 @@ boost::asio::ip::tcp::socket& Session::getSocket()
 
 void Session::asyncRead()
 {
-  // std::cout << "Reading... ";
   socket_.async_read_some(
       boost::asio::buffer(buffer_),
       makeHandler(allocator_,
@@ -59,7 +58,6 @@ void Session::asyncWrite(const std::string& str)
   for (std::size_t j = 0; j < str.size(); j++)
     buffer_[j] = str[j];
 
-  // std::cout << "Writing... ";
   boost::asio::async_write(
       socket_, boost::asio::buffer(buffer_, str.size()),
       makeHandler(allocator_,
@@ -108,12 +106,14 @@ void Session::handleDomainQuery(Json::Value& in, Json::Value& out)
     if (record)
     {
       out["response"] = record->asJSON();
-      Log::get().notice("Found Record for \"" + domain + "\"");
+      Log::get().notice(std::to_string(id_) + ": found Record for \"" + domain +
+                        "\"");
     }
     else
     {
       out["error"] = "404";
-      Log::get().notice("404ed request for \"" + domain + "\"");
+      Log::get().notice(std::to_string(id_) + ": 404ed request for \"" +
+                        domain + "\"");
     }
   }
   else
@@ -134,12 +134,12 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
 {
   if (n == 0)
   {
-    Log::get().notice("Connection closed.");
+    Log::get().notice(std::to_string(id_) + ": connection closed.");
     return;
   }
   else if (error)
   {
-    Log::get().warn(error.message());
+    Log::get().warn(std::to_string(id_) + ": " + error.message());
     return;
   }
 
@@ -157,7 +157,8 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
   {
     std::string command(in["command"].asString());
 
-    Log::get().notice("Received \"" + command + "\" command.");
+    Log::get().notice(std::to_string(id_) + ": received \"" + command +
+                      "\" command.");
 
     if (command == "ping")
       handlePing(in, out);
@@ -172,7 +173,10 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
   }
 
   if (out.isMember("error"))
-    Log::get().warn(out["error"].asString());
+  {
+    Log::get().warn(std::to_string(id_) + ":     \"" + inputStr + "\"");
+    Log::get().warn(std::to_string(id_) + ": " + out["error"].asString());
+  }
   else if (!out.isMember("response"))
     out["response"] = "success";
 
@@ -186,10 +190,9 @@ void Session::processWrite(const boost::system::error_code& error)
 {
   if (error)
   {
-    Log::get().warn(error.message());
+    Log::get().warn(std::to_string(id_) + ": " + error.message());
     return;
   }
 
-  // std::cout << "done." << std::endl;
   asyncRead();
 }
