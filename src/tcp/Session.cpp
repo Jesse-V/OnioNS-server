@@ -157,6 +157,8 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
   {
     std::string command(in["command"].asString());
 
+    Log::get().notice("Received \"" + command + "\" command.");
+
     if (command == "ping")
       handlePing(in, out);
     else if (command == "upload")
