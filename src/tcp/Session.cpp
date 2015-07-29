@@ -87,7 +87,7 @@ void Session::handlePing(Json::Value& in, Json::Value& out)
 
 void Session::handleUpload(Json::Value& in, Json::Value& out)
 {
-  auto r = Common::parseRecord(in["value"]);
+  auto r = Common::parseRecord(in["value"].asString());
   if (Cache::add(r))  // if successfully added to the Cache
   {
     Log::get().notice(std::to_string(id_) +
