@@ -91,9 +91,9 @@ void Session::handleUpload(Json::Value& in, Json::Value& out)
   if (Cache::add(r))  // if successfully added to the Cache
   {
     Log::get().notice(std::to_string(id_) +
-                      ": cached new Record. Broadcasting...");
+                      ": Cached new Record. Broadcasting...");
     Mirror::broadcastEvent("record", in["value"]);
-    Log::get().notice(std::to_string(id_) + ": finished broadcasting Record.");
+    Log::get().notice(std::to_string(id_) + ": Finished broadcasting Record.");
   }
   else
     out["error"] = "Name already taken.";
@@ -111,7 +111,7 @@ void Session::handleDomainQuery(Json::Value& in, Json::Value& out)
     if (record)
     {
       out["response"] = record->asJSON();
-      Log::get().notice(std::to_string(id_) + ": found Record for \"" + domain +
+      Log::get().notice(std::to_string(id_) + ": Found Record for \"" + domain +
                         "\"");
     }
     else
@@ -139,7 +139,7 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
 {
   if (n == 0)
   {
-    Log::get().notice(std::to_string(id_) + ": connection closed.");
+    Log::get().notice(std::to_string(id_) + ": Connection closed.");
     return;
   }
   else if (error)
@@ -162,7 +162,7 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
   {
     std::string command(in["command"].asString());
 
-    Log::get().notice(std::to_string(id_) + ": received \"" + command +
+    Log::get().notice(std::to_string(id_) + ": Received \"" + command +
                       "\" command.");
 
     if (command == "ping")
