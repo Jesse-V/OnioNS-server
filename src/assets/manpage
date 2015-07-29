@@ -27,9 +27,9 @@ OnioNS servers.
 .SH "COMMAND-LINE OPTIONS"
 
 .PP
-\fB-a\fR, \fB--authority\fR
+\fB-a\fR, \fB--address\fR
 .RS 4
-Causes the server to run as an authoritative server. The default is to run as a normal name server.
+Specifies a TCP IPv4 address to bind to. If this flag is not provided, OnioNS defaults to 0.0.0.0, the "this" network on all interfaces (RFC 1700).
 .RE
 
 .PP
@@ -54,6 +54,12 @@ Specifies a filepath for event logging. If not specified or if "-" is given as a
 \fB-p\fR, \fB--port\fR
 .RS 4
 TCP port to bind the server to on all interfaces. By default this is 10053.
+.RE
+
+.PP
+\fB-q\fR, \fB--quorum\fR
+.RS 4
+Causes the server to run as an authoritative server. The default is to run as a normal name server.
 .RE
 
 .PP

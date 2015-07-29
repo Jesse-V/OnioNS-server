@@ -7,9 +7,12 @@
 using boost::asio::ip::tcp;
 
 
-Server::Server(ushort port, bool isAuthority)
+Server::Server(const std::string& host, ushort port, bool isAuthority)
     : ios_(std::make_shared<boost::asio::io_service>()),
-      acceptor_(*ios_, tcp::endpoint(tcp::v4(), port)),
+      acceptor_(
+          *ios_,
+          tcp::endpoint(boost::asio::ip::address::from_string(host.c_str()),
+                        port)),
       isAuthorative_(isAuthority)
 {
   Log::get().notice("Initiating server...");

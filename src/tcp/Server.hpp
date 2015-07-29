@@ -9,7 +9,7 @@
 class Server
 {
  public:
-  Server(ushort, bool);
+  Server(const std::string&, ushort, bool);
   ~Server();
   void start();
   void stop();

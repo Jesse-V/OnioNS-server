@@ -16,8 +16,9 @@ boost::asio::io_service Mirror::io_service;
 boost::asio::ip::tcp::socket Mirror::socket_(io_service);
 
 
-void Mirror::startServer(ushort port, bool isAuthority)
+void Mirror::startServer(const std::string& host, ushort port, bool isAuthority)
 {
+  std::cout << "*" << host << "*" << std::endl;
   loadCache();
 
   if (isAuthority)
@@ -37,7 +38,7 @@ void Mirror::startServer(ushort port, bool isAuthority)
 
   try
   {
-    Server s(port, isAuthority);
+    Server s(host, port, isAuthority);
     s.start();
   }
   catch (boost::exception_detail::clone_impl<
