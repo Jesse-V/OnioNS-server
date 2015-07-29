@@ -30,7 +30,7 @@ void Mirror::startServer(const std::string& host, ushort port, bool isAuthority)
   if (!isAuthority)
   {
     auto addr = Config::getAuthority()[0];  // addr["ip"].asString()
-    openSocketTo("127.0.0.1", addr["port"].asInt());
+    openSocketTo(addr["ip"].asString(), addr["port"].asInt());
     auto rStr = serverSendReceive("subscribe", "");
     Log::get().notice("Authority response: " + rStr);
   }
