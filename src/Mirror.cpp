@@ -11,6 +11,8 @@
 #include <fstream>
 #include <iostream>
 
+typedef boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::system::system_error>> BoostSystemError;
+
 
 // definitions for static variables
 std::vector<boost::shared_ptr<Session>> Mirror::connections_;
@@ -37,9 +39,7 @@ void Mirror::startServer(const std::string& host, ushort port, bool isAuthority)
     Server s(host, port, isAuthority);
     s.start();
   }
-  catch (boost::exception_detail::clone_impl<
-      boost::exception_detail::error_info_injector<
-          boost::system::system_error>> const& ex)
+  catch (const BoostSystemError& ex)
   {
     Log::get().error(ex.what());
   }
@@ -127,20 +127,39 @@ void Mirror::subscribeToAuthority()
 
 void Mirror::receiveEvents()
 {
-  auto addr = Config::getAuthority()[0];
+  const static RECONNECT_DELAY = 10;
 
-  authIO_ = std::make_shared<boost::asio::io_service>();
-  boost::shared_ptr<Session> session(new Session(*authIO_, 0));
-  authSession_ = session;
+  while (true)  // reestablish lost network connection
+  {
+    auto addr = Config::getAuthority()[0];
 
-  Log::get().notice("Connecting to authority server... ");
-  using boost::asio::ip::tcp;
-  tcp::resolver resolver(*authIO_);
-  tcp::resolver::query query(addr["ip"].asString(), addr["port"].asString());
-  tcp::resolver::iterator iterator = resolver.resolve(query);
-  boost::asio::connect(authSession_->getSocket(), iterator);
-  Log::get().notice("Connected! Subscribing to events...");
+    authIO_ = std::make_shared<boost::asio::io_service>();
+    boost::shared_ptr<Session> session(new Session(*authIO_, 0));
+    authSession_ = session;
 
-  authSession_->asyncWrite("subscribe", "");
-  authIO_->run();
+    try
+    {
+      // https://stackoverflow.com/questions/15687016/ may be useful later
+      Log::get().notice("Connecting to authority server... ");
+      using boost::asio::ip::tcp;
+      tcp::resolver resolver(*authIO_);
+      tcp::resolver::query query(addr["ip"].asString(),
+                                 addr["port"].asString());
+      tcp::resolver::iterator iterator = resolver.resolve(query);
+      boost::asio::connect(authSession_->getSocket(), iterator);
+    }
+    catch (const BoostSystemError& ex)
+    {
+      Log::get().warn("Connection error, " + std::string(ex.what()));
+      std::this_thread::sleep_for(std::chrono::seconds(RECONNECT_DELAY));
+      continue;
+    }
+
+    Log::get().notice("Connected! Subscribing to events...");
+    authSession_->asyncWrite("subscribe", "");
+    authIO_->run();
+
+    Log::get().warn("Lost connection to authority server.");
+    std::this_thread::sleep_for(std::chrono::seconds(RECONNECT_DELAY));
+  }
 }
