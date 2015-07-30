@@ -11,7 +11,9 @@
 #include <fstream>
 #include <iostream>
 
-typedef boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::system::system_error>> BoostSystemError;
+typedef boost::exception_detail::clone_impl<
+    boost::exception_detail::error_info_injector<boost::system::system_error>>
+    BoostSystemError;
 
 
 // definitions for static variables
@@ -127,7 +129,7 @@ void Mirror::subscribeToAuthority()
 
 void Mirror::receiveEvents()
 {
-  const static RECONNECT_DELAY = 10;
+  const static int RECONNECT_DELAY = 10;
 
   while (true)  // reestablish lost network connection
   {
