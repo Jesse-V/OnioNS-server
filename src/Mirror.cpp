@@ -7,13 +7,15 @@
 #include <onions-common/Config.hpp>
 #include <onions-common/Constants.hpp>
 #include <botan/pubkey.h>
+#include <thread>
 #include <fstream>
 #include <iostream>
 
+
 // definitions for static variables
 std::vector<boost::shared_ptr<Session>> Mirror::connections_;
-boost::asio::io_service Mirror::io_service;
-boost::asio::ip::tcp::socket Mirror::socket_(io_service);
+boost::shared_ptr<Session> Mirror::authSession_;
+std::shared_ptr<boost::asio::io_service> Mirror::authIO_;
 
 
 void Mirror::startServer(const std::string& host, ushort port, bool isAuthority)
@@ -27,16 +29,11 @@ void Mirror::startServer(const std::string& host, ushort port, bool isAuthority)
 
   // auto mt = std::make_shared<MerkleTree>(Cache::get().getSortedList());
 
-  if (!isAuthority)
-  {
-    auto addr = Config::getAuthority()[0];  // addr["ip"].asString()
-    openSocketTo(addr["ip"].asString(), addr["port"].asInt());
-    auto rStr = serverSendReceive("subscribe", "");
-    Log::get().notice("Authority response: " + rStr);
-  }
-
   try
   {
+    if (!isAuthority)
+      subscribeToAuthority();
+
     Server s(host, port, isAuthority);
     s.start();
   }
@@ -74,12 +71,20 @@ void Mirror::addConnection(const boost::shared_ptr<Session>& session)
 void Mirror::broadcastEvent(const std::string& type, const Json::Value& value)
 {
   Json::Value event;
-  event["command"] = type;
+  event["type"] = type;
   event["value"] = value;
 
+  uint n = 0;
   for (auto s : connections_)
+  {
     if (s->isSubscriber())
+    {
       s->asyncWrite(event);
+      n++;
+    }
+  }
+
+  Log::get().notice("Broadcasted to " + std::to_string(n) + " subscribers.");
 }
 
 
@@ -112,61 +117,30 @@ void Mirror::loadCache()
 
 
 
-void Mirror::openSocketTo(const std::string& host, ushort port)
+void Mirror::subscribeToAuthority()
 {
-  using boost::asio::ip::tcp;
-
-  Log::get().notice("Connecting to authority server... ");
-
-  tcp::resolver resolver(io_service);
-  tcp::resolver::query query(host, std::to_string(port));
-  tcp::resolver::iterator iterator = resolver.resolve(query);
-  boost::asio::connect(socket_, iterator);
-
-  Log::get().notice("Connected!");
+  std::thread t(receiveEvents);
+  t.detach();
 }
 
 
 
-std::string Mirror::serverSendReceive(const std::string& type,
-                                      const std::string& msg)
-{  // similar to -common's SocksClient::sendReceive
+void Mirror::receiveEvents()
+{
+  auto addr = Config::getAuthority()[0];
 
-  Log::get().notice("Server-server send... ");
+  authIO_ = std::make_shared<boost::asio::io_service>();
+  boost::shared_ptr<Session> session(new Session(*authIO_, 0));
+  authSession_ = session;
 
-  // send as JSON
-  Json::Value outVal;
-  outVal["command"] = type;
-  outVal["value"] = msg;
-  Json::FastWriter writer;
-  boost::asio::write(socket_, boost::asio::buffer(writer.write(outVal)));
+  Log::get().notice("Connecting to authority server... ");
+  using boost::asio::ip::tcp;
+  tcp::resolver resolver(*authIO_);
+  tcp::resolver::query query(addr["ip"].asString(), addr["port"].asString());
+  tcp::resolver::iterator iterator = resolver.resolve(query);
+  boost::asio::connect(authSession_->getSocket(), iterator);
+  Log::get().notice("Connected! Subscribing to events...");
 
-  // read from socket until newline
-  Log::get().notice("Server-server receive... ");
-  boost::asio::streambuf response;
-  boost::asio::read_until(socket_, response, "\n");
-
-  // convert to string
-  std::string responseStr;
-  std::istream is(&response);
-  is >> responseStr;
-
-  // parse into JSON object
-  Json::Reader reader;
-  Json::Value responseVal;
-  if (!reader.parse(responseStr, responseVal))
-  {
-    Log::get().warn("Failed to parse response from server.");
-    return "failure";
-  }
-
-  if (!responseVal.isMember("error") && !responseVal.isMember("response"))
-  {
-    Log::get().warn("Invalid response from server.");
-    return "failure";
-  }
-
-  Log::get().notice("Server-server communication complete.");
-
-  return responseVal["response"].asString();
+  authSession_->asyncWrite("subscribe", "");
+  authIO_->run();
 }

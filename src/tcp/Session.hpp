@@ -13,11 +13,12 @@ class Session : public boost::enable_shared_from_this<Session>
 {
  public:
   Session(boost::asio::io_service&, int);
+  ~Session();
   boost::asio::ip::tcp::socket& getSocket();
 
   void asyncRead();
+  void asyncWrite(const std::string&, const std::string&);
   void asyncWrite(const Json::Value&);
-  void asyncWrite(const std::string&);
   bool isSubscriber();
 
  private:
@@ -28,6 +29,7 @@ class Session : public boost::enable_shared_from_this<Session>
 
   void processRead(const boost::system::error_code&, size_t);
   void processWrite(const boost::system::error_code&);
+  void asyncWrite(const std::string&);
 
   boost::asio::ip::tcp::socket socket_;
   boost::array<char, 2048> buffer_;

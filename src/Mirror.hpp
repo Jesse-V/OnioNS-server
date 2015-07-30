@@ -19,12 +19,14 @@ class Mirror
 
  private:
   static void loadCache();
-  static void openSocketTo(const std::string& host, ushort port);
-  static std::string serverSendReceive(const std::string&, const std::string&);
+  static void subscribeToAuthority();
+  static void receiveEvents();
 
   static std::vector<boost::shared_ptr<Session>> connections_;
-  static boost::asio::io_service io_service;
-  static boost::asio::ip::tcp::socket socket_;
+  static std::shared_ptr<boost::asio::io_service> authIO_;
+  static boost::shared_ptr<Session> authSession_;
+  // static boost::asio::ip::tcp::socket authSocket_;
+  // static boost::shared_ptr<Session> authSession_;
 };
 
 #endif
