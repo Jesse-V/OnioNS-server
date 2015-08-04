@@ -13,7 +13,9 @@ done
 
 echo "Creating manpage...       ----------------------------------------------"
 
-gzip --best -c src/assets/manpage > src/assets/onions-server.1.gz
+#date style to match Tor's manpage
+date=$(date +%m\\/%d\\/%Y)
+gzip --best -c src/assets/manpage | sed "s/<DATE>/$date/g" > src/assets/onions-server.1.gz
 
 echo "Preparing build...        ----------------------------------------------"
 

@@ -1,3 +1,20 @@
+tor-onions-server (0.4.0.0~trusty) trusty; urgency=medium
+
+  * Capability to bind to a specific IPv4 address.
+  * Mirrors now attempt to reestablish a lost connection to a Quorum server.
+  * Logging of all events to a file or to standard out.
+  * Improved logging and diagnostic information.
+  * Added identification numbers to the logs from each network session.
+  * Introduced a flag to specify the log filepath.
+  * Introduced onions-server manpage.
+  * Fixed all servers being unable to send Records to subscribers.
+  * Standardized the build process.
+  * Improved git commit styles to match common standard.
+  * Clarified README.
+  * Many bug fixes.
+
+ -- Jesse Victors <kernelcorn@riseup.net>  Tues, 04 Aug 2015 09:00:00 -0800
+
 tor-onions-server (0.3.2.6~trusty) trusty; urgency=medium
 
   * Fixed missing dependency on tor-onions-common.
