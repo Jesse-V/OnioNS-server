@@ -27,9 +27,11 @@ cd build
 cmake ../src # -DCMAKE_BUILD_TYPE=Debug
 
 echo "Compiling...              ----------------------------------------------"
-make -j $(grep -c ^processor /proc/cpuinfo)
-
-echo "Static analysis...        ----------------------------------------------"
-
-cd ..
-cppcheck --enable=all --platform=unix64 --inconclusive src/*
+if (make -j $(grep -c ^processor /proc/cpuinfo)) then
+  echo "Static analysis...        ----------------------------------------------"
+  cd ..
+  cppcheck --enable=all --platform=unix64 --inconclusive src/*
+else
+  rm -f onions-server
+  cd ..
+fi

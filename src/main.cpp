@@ -5,16 +5,16 @@
 #include <botan/botan.h>
 #include <popt.h>
 
-Botan::LibraryInitializer init("thread_safe");
+// Botan::LibraryInitializer init("thread_safe");
 
 int main(int argc, char** argv)
 {
   // do not rearrange or compact these declarations or strange popt errors occur
   bool authority = false;
   char* logPath = NULL;
-  char* address = "0.0.0.0";
+  char* address = const_cast<char*>("0.0.0.0");
   bool license = false;
-  short port = 10053;
+  ushort port = 10053;
 
   struct poptOption po[] = {
       {"address",
@@ -24,14 +24,13 @@ int main(int argc, char** argv)
        0,
        "Specifies a TCP IPv4 address to bind to.",
        "<address>"},
-      {
-       "license",
+      {"license",
        'L',
        POPT_ARG_NONE,
        &license,
        0,
        "Prints software license and exit.",
-      },
+       NULL},
       {
        "output",
        'o',
@@ -54,13 +53,16 @@ int main(int argc, char** argv)
        &authority,
        0,
        "Causes the server to run as an authoritative server. The default is "
-       "to run as a normal name server."},
-      POPT_AUTOHELP{NULL}};
+       "to run as a normal name server.",
+       NULL},
+      POPT_AUTOHELP{NULL, 0, 0, NULL, 0, NULL, NULL}};
 
   if (!Utils::parse(
-          argc,
           poptGetContext(NULL, argc, const_cast<const char**>(argv), po, 0)))
+  {
+    std::cout << "Failed to parse command-line arguments. Aborting.\n";
     return EXIT_FAILURE;
+  }
 
   if (license)
   {

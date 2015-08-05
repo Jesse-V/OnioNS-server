@@ -105,10 +105,7 @@ void Mirror::loadCache()
   std::string json((std::istreambuf_iterator<char>(cacheFile)),
                    std::istreambuf_iterator<char>());
   if (!reader.parse(json, cacheValue))
-  {
     Log::get().error("Failed to parse cache!");
-    return;
-  }
 
   // interpret JSON as Records and load into cache
   Log::get().notice("Preparing Records... ");
