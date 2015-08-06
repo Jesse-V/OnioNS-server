@@ -19,7 +19,7 @@ class Mirror
 
  private:
   static void loadCache();
-  static void subscribeToAuthority();
+  static void subscribeToQuorum();
   [[noreturn]] static void receiveEvents();
 
   static std::vector<boost::shared_ptr<Session>> connections_;

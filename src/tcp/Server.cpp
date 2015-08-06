@@ -7,13 +7,13 @@
 using boost::asio::ip::tcp;
 
 
-Server::Server(const std::string& host, ushort port, bool isAuthority)
+Server::Server(const std::string& host, ushort port, bool isQNode)
     : ios_(std::make_shared<boost::asio::io_service>()),
       acceptor_(
           *ios_,
           tcp::endpoint(boost::asio::ip::address::from_string(host.c_str()),
                         port)),
-      isAuthorative_(isAuthority)
+      isQNode_(isQNode)
 {
   Log::get().notice("Initiating server...");
   boost::shared_ptr<Session> session(new Session(*ios_, 0));

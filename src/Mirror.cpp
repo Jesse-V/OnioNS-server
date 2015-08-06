@@ -22,12 +22,12 @@ boost::shared_ptr<Session> Mirror::authSession_;
 std::shared_ptr<boost::asio::io_service> Mirror::authIO_;
 
 
-void Mirror::startServer(const std::string& host, ushort port, bool isAuthority)
+void Mirror::startServer(const std::string& host, ushort port, bool isQNode)
 {
   loadCache();
 
-  if (isAuthority)
-    Log::get().notice("Running as authoritative server.");
+  if (isQNode)
+    Log::get().notice("Running as a Quorum server.");
   else
     Log::get().notice("Running as normal server.");
 
@@ -35,10 +35,10 @@ void Mirror::startServer(const std::string& host, ushort port, bool isAuthority)
 
   try
   {
-    if (!isAuthority)
-      subscribeToAuthority();
+    if (!isQNode)
+      subscribeToQuorum();
 
-    Server s(host, port, isAuthority);
+    Server s(host, port, isQNode);
     s.start();
   }
   catch (const BoostSystemError& ex)
@@ -116,7 +116,7 @@ void Mirror::loadCache()
 
 
 
-void Mirror::subscribeToAuthority()
+void Mirror::subscribeToQuorum()
 {
   std::thread t(receiveEvents);
   t.detach();
@@ -130,7 +130,7 @@ void Mirror::receiveEvents()
 
   while (true)  // reestablish lost network connection
   {
-    auto addr = Config::getAuthority()[0];
+    auto addr = Config::getQuorumNode()[0];
 
     authIO_ = std::make_shared<boost::asio::io_service>();
     boost::shared_ptr<Session> session(new Session(*authIO_, 0));
@@ -139,7 +139,7 @@ void Mirror::receiveEvents()
     try
     {
       // https://stackoverflow.com/questions/15687016/ may be useful later
-      Log::get().notice("Connecting to authority server... ");
+      Log::get().notice("Connecting to Quorum server... ");
       using boost::asio::ip::tcp;
       tcp::resolver resolver(*authIO_);
       tcp::resolver::query query(addr["ip"].asString(),
@@ -158,7 +158,7 @@ void Mirror::receiveEvents()
     authSession_->asyncWrite("subscribe", "");
     authIO_->run();
 
-    Log::get().warn("Lost connection to authority server.");
+    Log::get().warn("Lost connection to Quorum server.");
     std::this_thread::sleep_for(std::chrono::seconds(RECONNECT_DELAY));
   }
 }

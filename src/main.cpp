@@ -10,7 +10,7 @@
 int main(int argc, char** argv)
 {
   // do not rearrange or compact these declarations or strange popt errors occur
-  bool authority = false;
+  bool quorumNode = false;
   char* logPath = NULL;
   char* address = const_cast<char*>("0.0.0.0");
   bool license = false;
@@ -50,10 +50,10 @@ int main(int argc, char** argv)
       {"quorum",
        'q',
        POPT_ARG_NONE,
-       &authority,
+       &quorumNode,
        0,
-       "Causes the server to run as an authoritative server. The default is "
-       "to run as a normal name server.",
+       "Causes the server to run as an authoritative Quorum server. The "
+       "default is to run as a normal name server.",
        NULL},
       POPT_AUTOHELP{NULL, 0, 0, NULL, 0, NULL, NULL}};
 
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
   if (logPath && std::string(logPath) != "-")
     Log::setLogPath(std::string(logPath));
 
-  Mirror::startServer(std::string(address), port, authority);
+  Mirror::startServer(std::string(address), port, quorumNode);
 
   return EXIT_SUCCESS;
 }

@@ -20,7 +20,7 @@ class Server
 
   std::shared_ptr<boost::asio::io_service> ios_;
   boost::asio::ip::tcp::acceptor acceptor_;
-  bool isAuthorative_;
+  bool isQNode_;
 };
 
 #endif
