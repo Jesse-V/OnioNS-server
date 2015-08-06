@@ -1,4 +1,4 @@
-tor-onions-server (0.4.0.0~trusty) trusty; urgency=medium
+tor-onions-server (0.4.0.2~trusty) trusty; urgency=medium
 
   * Capability to bind to a specific IPv4 address.
   * Mirrors now attempt to reestablish a lost connection to a Quorum server.
