@@ -28,7 +28,7 @@ Session::Session(boost::asio::io_service& ios, int id)
 
 Session::~Session()
 {
-  std::cout << "Session " << id_ << " deallocating." << std::endl;
+  Log::get().notice("Session " + std::to_string(id_) + " deallocating.");
 }
 
 
@@ -83,7 +83,7 @@ bool Session::isSubscriber()
 
 void Session::handlePing(Json::Value& in, Json::Value& out)
 {
-  out["value"] = "pong";
+  out["value"] = "ACK";
 }
 
 
@@ -101,7 +101,10 @@ void Session::handleUpload(Json::Value& in, Json::Value& out)
     out["value"] = "success";
   }
   else
-    out["error"] = "Name already taken.";
+  {
+    out["type"] = "error";
+    out["value"] = "Name already taken.";
+  }
 }
 
 
@@ -121,13 +124,17 @@ void Session::handleDomainQuery(Json::Value& in, Json::Value& out)
     }
     else
     {
-      out["error"] = "404";
+      out["type"] = "error";
+      out["value"] = "404";
       Log::get().notice(std::to_string(id_) + ": 404ed request for \"" +
                         domain + "\"");
     }
   }
   else
-    out["error"] = "Invalid request.";
+  {
+    out["type"] = "error";
+    out["value"] = "Invalid request.";
+  }
 }
 
 
@@ -158,22 +165,23 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
   Json::Value in, out;
   Json::Reader reader;
   std::string inputStr(buffer_.begin(), buffer_.begin() + n);
-  out["type"] = "response";
+  out["type"] = "error";
   out["value"] = "";
 
   if (!reader.parse(inputStr, in))
-    out["error"] = "Failed to parse message!";
+    out["value"] = "Failed to parse message!";
   else if (!in.isMember("type"))
-    out["error"] = "Message is missing the \"type\" field!";
+    out["value"] = "Message is missing the \"type\" field!";
   else if (!in.isMember("value"))
-    out["error"] = "Message is missing the \"value\" field!";
+    out["value"] = "Message is missing the \"value\" field!";
   else
   {
     std::string type(in["type"].asString());
+    out["type"] = "success";
 
     Log::get().notice(std::to_string(id_) + ": Received " + type);
 
-    if (type == "ping")
+    if (type == "SYN")
       handlePing(in, out);
     else if (type == "upload")
       handleUpload(in, out);
@@ -181,7 +189,7 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
       handleDomainQuery(in, out);
     else if (type == "subscribe")
       handleSubscribe(in, out);
-    else if (type == "response")
+    else if (type == "success")
     {
       Log::get().notice(std::to_string(id_) + ": Response: \"" +
                         in["value"].asString() + "\"");
@@ -192,11 +200,10 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
       out["error"] = "Unknown type \"" + type + "\"";
   }
 
-  if (out.isMember("error"))
+  if (out["type"].asString() == "error")
   {
     Log::get().warn(std::to_string(id_) + ":     \"" + inputStr + "\"");
-    Log::get().warn(std::to_string(id_) + ": " + out["error"].asString());
-    out["value"] = "error";
+    Log::get().warn(std::to_string(id_) + ": " + out["value"].asString());
   }
 
   asyncWrite(out);
