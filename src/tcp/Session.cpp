@@ -103,7 +103,7 @@ void Session::handleUpload(Json::Value& in, Json::Value& out)
   else
   {
     out["type"] = "error";
-    out["value"] = "Name already taken.";
+    out["value"] = "Name-already-taken.";
   }
 }
 
