@@ -1,9 +1,11 @@
-tor-onions-server (0.5.0.0~trusty) trusty; urgency=medium
+tor-onions-server (0.5.0.1~trusty) trusty; urgency=medium
 
   * Reduced most compiler and static analysis warnings.
   * Added popt-dev as a missing dependency.
   * Updated network protocol.
   * Workaround for a communications issue. (#68)
+
+ -- Jesse Victors <kernelcorn@riseup.net>  Fri, 07 Aug 2015 16:00:00 -0800
 
 tor-onions-server (0.4.0.2~trusty) trusty; urgency=medium
 
