@@ -1,3 +1,10 @@
+tor-onions-server (0.5.0.0~trusty) trusty; urgency=medium
+
+  * Reduced most compiler and static analysis warnings.
+  * Added popt-dev as a missing dependency.
+  * Updated network protocol.
+  * Workaround for a communications issue. (#68)
+
 tor-onions-server (0.4.0.2~trusty) trusty; urgency=medium
 
   * Capability to bind to a specific IPv4 address.
