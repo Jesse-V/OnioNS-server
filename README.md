@@ -39,6 +39,26 @@ The rebuild.sh script is available if you are actively developing OnioNS. You wi
 
 You can cleanup your build with **rm -rf build**
 
+### Administration
+
+First, enable communication to your server by adding the following to your Tor's configuration file (torrc), typically found at /etc/tor/torrc:
+
+> * HiddenServiceDir OnioNS_Mirror
+> * HiddenServicePort 10053 127.53.53.53:10053
+> * HiddenServiceAuthorizeClient basic OnioNS_Mirror
+
+Reload or restart Tor, then send me the output of
+
+> **awk '{print $1 " " $2}' /var/lib/tor/OnioNS_Mirror/hostname**
+
+The first value is a hidden service address and the second is an authorization cookie. I will add them to the OnioNS-common repository, enabling clients to use your server for lookups. If you would like to do this yourself for your own lookups, carefully replace the values in /var/lib/tor-onions/mirrors.json with these values.
+
+Launch the onions-server executable in the following way. Root is not necessary and the --output flag is optional.
+
+> **onions-server --output onions.log**
+
+Your server should now be online. No user interaction should be necessary, but you can keep an eye on the log in case anything goes wrong.
+
 ### Getting Help
 
 A manpage is available for your convenience. You can also type **onions-server --help** for a list of flags and usage examples. Contact me on IRC or by email (see below) if you need further assistance.

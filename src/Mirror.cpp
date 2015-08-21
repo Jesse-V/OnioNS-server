@@ -22,7 +22,7 @@ boost::shared_ptr<Session> Mirror::authSession_;
 std::shared_ptr<boost::asio::io_service> Mirror::authIO_;
 
 
-void Mirror::startServer(const std::string& host, ushort port, bool isQNode)
+void Mirror::startServer(bool isQNode)
 {
   loadCache();
 
@@ -38,7 +38,7 @@ void Mirror::startServer(const std::string& host, ushort port, bool isQNode)
     if (!isQNode)
       subscribeToQuorum();
 
-    Server s(host, port, isQNode);
+    Server s(isQNode);
     s.start();
   }
   catch (const BoostSystemError& ex)

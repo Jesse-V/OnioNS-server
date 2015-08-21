@@ -27,12 +27,6 @@ OnioNS servers.
 .SH "COMMAND-LINE OPTIONS"
 
 .PP
-\fB-a\fR, \fB--address\fR
-.RS 4
-Specifies a TCP IPv4 address to bind to. If this flag is not provided, OnioNS defaults to 0.0.0.0, the "this" network on all interfaces (RFC 1700).
-.RE
-
-.PP
 \fB-?\fR, \fB--help\fR
 .RS 4
 Prints a list of flags, their descriptions, and then exits.
@@ -48,12 +42,6 @@ Prints license information and then exits.
 \fB-o\fR, \fB--output\fR
 .RS 4
 Specifies a filepath for event logging. If not specified or if "-" is given as an argument, output will go to stdout.
-.RE
-
-.PP
-\fB-p\fR, \fB--port\fR
-.RS 4
-TCP port to bind the server to on all interfaces. By default this is 10053.
 .RE
 
 .PP

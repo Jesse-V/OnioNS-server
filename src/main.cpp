@@ -12,18 +12,9 @@ int main(int argc, char** argv)
   // do not rearrange or compact these declarations or strange popt errors occur
   bool quorumNode = false;
   char* logPath = NULL;
-  char* address = const_cast<char*>("0.0.0.0");
   bool license = false;
-  ushort port = 10053;
 
   struct poptOption po[] = {
-      {"address",
-       'a',
-       POPT_ARG_STRING,
-       &address,
-       0,
-       "Specifies a TCP IPv4 address to bind to.",
-       "<address>"},
       {"license",
        'L',
        POPT_ARG_NONE,
@@ -40,13 +31,6 @@ int main(int argc, char** argv)
        "Specifies the filepath for event logging.",
        "<path>",
       },
-      {"port",
-       'p',
-       POPT_ARG_SHORT,
-       &port,
-       0,
-       "TCP port to bind the server to on all interfaces.",
-       "<port>"},
       {"quorum",
        'q',
        POPT_ARG_NONE,
@@ -73,7 +57,7 @@ int main(int argc, char** argv)
   if (logPath && std::string(logPath) != "-")
     Log::setLogPath(std::string(logPath));
 
-  Mirror::startServer(std::string(address), port, quorumNode);
+  Mirror::startServer(quorumNode);
 
   return EXIT_SUCCESS;
 }
