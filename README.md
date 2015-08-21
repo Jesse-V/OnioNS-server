@@ -45,15 +45,14 @@ First, enable communication to your server by adding the following to your Tor's
 
 > * HiddenServiceDir OnioNS_Mirror
 > * HiddenServicePort 10053 127.53.53.53:10053
-> * HiddenServiceAuthorizeClient basic OnioNS_Mirror
 
-Reload or restart Tor, then send me the output of
+Reload or restart Tor, then get your server's address with:
 
-> **awk '{print $1 " " $2}' /var/lib/tor/OnioNS_Mirror/hostname**
+> **cat /var/lib/tor/OnioNS_Mirror/hostname**
 
-The first value is a hidden service address and the second is an authorization cookie. I will add them to the OnioNS-common repository, enabling clients to use your server for lookups. If you would like to do this yourself for your own lookups, carefully replace the values in /var/lib/tor-onions/mirrors.json with these values.
+Send it to me if you want to contribute to the network. Otherwise, replace the address in /var/lib/tor-onions/mirrors.json with your value to allow your client to perform lookups against your server.
 
-Launch the onions-server executable in the following way. Root is not necessary and the --output flag is optional.
+Launch the onions-server executable in the following way. Root is not necessary and the --output flag is optional. No additional incoming firewall rules are needed; if Tor can reach the Internet, you're set.
 
 > **onions-server --output onions.log**
 
