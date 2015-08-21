@@ -4,7 +4,6 @@ Priority: optional
 Maintainer: Jesse Victors <kernelcorn@riseup.net>
 Build-Depends: debhelper (>= 7), g++, cmake, make, dpkg-dev, libpopt-dev, libbotan1.10-dev, libasio-dev, libboost-system-dev, tor-onions-common (>= 0.5)
 Standards-Version: 3.9.5
-Homepage: http://onions.jessevictors.com
 Bugs: https://github.com/Jesse-V/OnioNS-server/issues
 Vcs-Git: https://github.com/Jesse-V/OnioNS-server.git
 Vcs-Browser: https://github.com/Jesse-V/OnioNS-server
@@ -12,6 +11,7 @@ Vcs-Browser: https://github.com/Jesse-V/OnioNS-server
 Package: tor-onions-server
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, tor-onions-common (>= 0.3.3)
+Recommends: tor (>= 0.2.6)
 Conflicts: tor-onions-server
 Description: Tor-powered distributed DNS for Tor hidden services
  The Onion Name System (OnioNS) is a privacy-enhanced, distributed, and highly
