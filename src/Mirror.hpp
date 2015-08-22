@@ -14,7 +14,7 @@ class Mirror
   static UInt8Array signMerkleRoot(Botan::RSA_PrivateKey*,
                                    const MerkleTreePtr&);
 
-  static void addConnection(const boost::shared_ptr<Session>&);
+  static void addSubscriber(const boost::shared_ptr<Session>&);
   static void broadcastEvent(const std::string&, const Json::Value&);
 
  private:
@@ -22,11 +22,9 @@ class Mirror
   static void subscribeToQuorum();
   static void receiveEvents();
 
-  static std::vector<boost::shared_ptr<Session>> connections_;
+  static std::vector<boost::shared_ptr<Session>> subscribers_;
   static std::shared_ptr<boost::asio::io_service> authIO_;
   static boost::shared_ptr<Session> authSession_;
-  // static boost::asio::ip::tcp::socket authSocket_;
-  // static boost::shared_ptr<Session> authSession_;
 };
 
 #endif

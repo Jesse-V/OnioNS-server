@@ -19,8 +19,7 @@ inline MemAllocator<Handler> makeHandler(HandleAlloc& a, Handler h)
 
 
 
-Session::Session(boost::asio::io_service& ios, int id)
-    : socket_(ios), subscribed_(false), id_(id)
+Session::Session(boost::asio::io_service& ios, int id) : socket_(ios), id_(id)
 {
 }
 
@@ -70,25 +69,61 @@ void Session::asyncWrite(const Json::Value& val)
 
 
 
-bool Session::isSubscriber()
-{
-  return subscribed_;
-}
-
-
-
 // ***************************** PRIVATE METHODS *****************************
 
 
 
-void Session::handlePing(Json::Value& in, Json::Value& out)
+Json::Value Session::respond(size_t n)
 {
-  out["value"] = "ACK";
+  Json::Value in, out;
+  Json::Reader reader;
+  std::string inputStr(buffer_.begin(), buffer_.begin() + n);
+  out["type"] = "error";
+  out["value"] = "";
+
+  if (!reader.parse(inputStr, in))
+    out["value"] = "Failed to parse message!";
+  else if (!in.isMember("type"))
+    out["value"] = "Message is missing the \"type\" field!";
+  else if (!in.isMember("value"))
+    out["value"] = "Message is missing the \"value\" field!";
+  else
+  {
+    std::string type(in["type"].asString());
+    out["type"] = "success";
+
+    Log::get().notice(std::to_string(id_) + ": Received " + type);
+
+    if (type == "SYN")
+      out["value"] = "ACK";
+    else if (type == "upload")
+      respondToUpload(in, out);
+    else if (type == "domainQuery")
+      respondToDomainQuery(in, out);
+    else if (type == "subscribe")
+      respondToSubscribe(in, out);
+    else if (type == "success")
+    {
+      Log::get().notice(std::to_string(id_) + ": Response: \"" +
+                        in["value"].asString() + "\"");
+      return nullptr;
+    }
+    else
+      out["error"] = "Unknown type \"" + type + "\"";
+  }
+
+  if (out["type"].asString() == "error")
+  {
+    Log::get().warn(std::to_string(id_) + ":     \"" + inputStr + "\"");
+    Log::get().warn(std::to_string(id_) + ": " + out["value"].asString());
+  }
+
+  return out;
 }
 
 
 
-void Session::handleUpload(Json::Value& in, Json::Value& out)
+void Session::respondToUpload(Json::Value& in, Json::Value& out)
 {
   auto r = Common::parseRecord(in["value"].asString());
   if (Cache::add(r))  // if successfully added to the Cache
@@ -109,7 +144,7 @@ void Session::handleUpload(Json::Value& in, Json::Value& out)
 
 
 
-void Session::handleDomainQuery(Json::Value& in, Json::Value& out)
+void Session::respondToDomainQuery(Json::Value& in, Json::Value& out)
 {
   std::string domain = in["value"].asString();
   if (Utils::strEndsWith(domain, ".tor"))
@@ -139,10 +174,10 @@ void Session::handleDomainQuery(Json::Value& in, Json::Value& out)
 
 
 
-void Session::handleSubscribe(Json::Value& in, Json::Value& out)
+void Session::respondToSubscribe(Json::Value& in, Json::Value& out)
 {
   Log::get().notice(std::to_string(id_) + " has subscribed.");
-  subscribed_ = true;
+  Mirror::addSubscriber(boost::shared_ptr<Session>(this));
   out["value"] = "success";
 }
 
@@ -162,51 +197,11 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
     return;
   }
 
-  Json::Value in, out;
-  Json::Reader reader;
-  std::string inputStr(buffer_.begin(), buffer_.begin() + n);
-  out["type"] = "error";
-  out["value"] = "";
-
-  if (!reader.parse(inputStr, in))
-    out["value"] = "Failed to parse message!";
-  else if (!in.isMember("type"))
-    out["value"] = "Message is missing the \"type\" field!";
-  else if (!in.isMember("value"))
-    out["value"] = "Message is missing the \"value\" field!";
+  auto response = respond(n);
+  if (response == nullptr)
+    asyncRead();  // no reply need, so read again
   else
-  {
-    std::string type(in["type"].asString());
-    out["type"] = "success";
-
-    Log::get().notice(std::to_string(id_) + ": Received " + type);
-
-    if (type == "SYN")
-      handlePing(in, out);
-    else if (type == "upload")
-      handleUpload(in, out);
-    else if (type == "domainQuery")
-      handleDomainQuery(in, out);
-    else if (type == "subscribe")
-      handleSubscribe(in, out);
-    else if (type == "success")
-    {
-      Log::get().notice(std::to_string(id_) + ": Response: \"" +
-                        in["value"].asString() + "\"");
-      asyncRead();  // no reply necessary
-      return;
-    }
-    else
-      out["error"] = "Unknown type \"" + type + "\"";
-  }
-
-  if (out["type"].asString() == "error")
-  {
-    Log::get().warn(std::to_string(id_) + ":     \"" + inputStr + "\"");
-    Log::get().warn(std::to_string(id_) + ": " + out["value"].asString());
-  }
-
-  asyncWrite(out);
+    asyncWrite(response);
 }
 
 

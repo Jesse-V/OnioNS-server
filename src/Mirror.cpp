@@ -1,6 +1,7 @@
 
 #include "Mirror.hpp"
 #include "tcp/Server.hpp"
+#include <onions-common/tcp/TorStream.hpp>
 #include <onions-common/containers/Cache.hpp>
 #include <onions-common/Common.hpp>
 #include <onions-common/Log.hpp>
@@ -17,7 +18,7 @@ typedef boost::exception_detail::clone_impl<
 
 
 // definitions for static variables
-std::vector<boost::shared_ptr<Session>> Mirror::connections_;
+std::vector<boost::shared_ptr<Session>> Mirror::subscribers_;
 boost::shared_ptr<Session> Mirror::authSession_;
 std::shared_ptr<boost::asio::io_service> Mirror::authIO_;
 
@@ -63,9 +64,9 @@ UInt8Array Mirror::signMerkleRoot(Botan::RSA_PrivateKey* key,
 
 
 
-void Mirror::addConnection(const boost::shared_ptr<Session>& session)
+void Mirror::addSubscriber(const boost::shared_ptr<Session>& session)
 {
-  connections_.push_back(session);
+  subscribers_.push_back(session);
 }
 
 
@@ -76,17 +77,11 @@ void Mirror::broadcastEvent(const std::string& type, const Json::Value& value)
   event["type"] = type;
   event["value"] = value;
 
-  uint n = 0;
-  for (auto s : connections_)
-  {
-    if (s->isSubscriber())
-    {
-      s->asyncWrite(event);
-      n++;
-    }
-  }
+  for (auto s : subscribers_)
+    s->asyncWrite(event);
 
-  Log::get().notice("Broadcasted to " + std::to_string(n) + " subscribers.");
+  Log::get().notice("Broadcasted to " + std::to_string(subscribers_.size()) +
+                    " subscribers.");
 }
 
 
@@ -127,35 +122,17 @@ void Mirror::subscribeToQuorum()
 void Mirror::receiveEvents()
 {
   const static int RECONNECT_DELAY = 10;
+  authIO_ = std::make_shared<boost::asio::io_service>();
+  auto nodeConfig = Config::getQuorumNode()[0];
 
   while (true)  // reestablish lost network connection
   {
-    auto addr = Config::getQuorumNode()[0];
-
-    authIO_ = std::make_shared<boost::asio::io_service>();
-    boost::shared_ptr<Session> session(new Session(*authIO_, 0));
-    authSession_ = session;
-
-    try
-    {
-      // https://stackoverflow.com/questions/15687016/ may be useful later
-      Log::get().notice("Connecting to Quorum server... ");
-      using boost::asio::ip::tcp;
-      tcp::resolver resolver(*authIO_);
-      tcp::resolver::query query(addr["ip"].asString(),
-                                 addr["port"].asString());
-      tcp::resolver::iterator iterator = resolver.resolve(query);
-      boost::asio::connect(authSession_->getSocket(), iterator);
-    }
-    catch (const BoostSystemError& ex)
-    {
-      Log::get().warn("Connection error, " + std::string(ex.what()));
-      std::this_thread::sleep_for(std::chrono::seconds(RECONNECT_DELAY));
-      continue;
-    }
+    TorStream mirror(*authIO_, "127.0.0.1", 9050, nodeConfig["addr"].asString(),
+                     Const::SERVER_PORT);
+    Session session(*authIO_, -1);
 
     Log::get().notice("Connected! Subscribing to events...");
-    authSession_->asyncWrite("subscribe", "");
+    session.asyncWrite("subscribe", "");
     authIO_->run();
 
     Log::get().warn("Lost connection to Quorum server.");
