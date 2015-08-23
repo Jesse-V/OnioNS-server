@@ -9,10 +9,11 @@ using boost::asio::ip::tcp;
 using boost::asio::ip::address;
 
 
-Server::Server(bool isQNode)
+Server::Server(const std::string& bindIP, bool isQNode)
     : ios_(std::make_shared<boost::asio::io_service>()),
-      acceptor_(*ios_,
-                tcp::endpoint(address::from_string("127.53.53.53"), 10053)),
+      acceptor_(
+          *ios_,
+          tcp::endpoint(address::from_string(bindIP), Const::SERVER_PORT)),
       isQNode_(isQNode)
 {
   Log::get().notice("Initiating server...");

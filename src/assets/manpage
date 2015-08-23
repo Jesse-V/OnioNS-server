@@ -27,6 +27,12 @@ OnioNS servers.
 .SH "COMMAND-LINE OPTIONS"
 
 .PP
+\fB-a\fR, \fB--address\fR
+.RS 4
+Specifies a TCP IPv4 address to bind to. Defaults to 127.52.52.52. We recommend binding a Tor hidden service to this same address as well.
+.RE
+
+.PP
 \fB-?\fR, \fB--help\fR
 .RS 4
 Prints a list of flags, their descriptions, and then exits.
@@ -45,9 +51,15 @@ Specifies a filepath for event logging. If not specified or if "-" is given as a
 .RE
 
 .PP
+\fB-p\fR, \fB--port\fR
+.RS 4
+Specifies Tor's SOCKS5 port, used for communication to hidden services. The default value is 9050, the default port used by system installations of Tor.
+.RE
+
+.PP
 \fB-q\fR, \fB--quorum\fR
 .RS 4
-Causes the server to run as an authoritative Quorum server. The default is to run as a normal name server.
+Causes the server to run as an authoritative Quorum server. The default is to run as a Mirror, a normal name server.
 .RE
 
 .PP

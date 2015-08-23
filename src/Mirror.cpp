@@ -22,7 +22,9 @@ std::vector<boost::shared_ptr<Session>> Mirror::subscribers_;
 boost::shared_ptr<Session> Mirror::authSession_;
 
 
-void Mirror::startServer(bool isQNode)
+void Mirror::startServer(const std::string& bindIP,
+                         ushort socksPort,
+                         bool isQNode)
 {
   loadCache();
 
@@ -36,9 +38,9 @@ void Mirror::startServer(bool isQNode)
   try
   {
     if (!isQNode)
-      subscribeToQuorum();
+      subscribeToQuorum(socksPort);
 
-    Server s(isQNode);
+    Server s(bindIP, isQNode);
     s.start();
   }
   catch (const BoostSystemError& ex)
@@ -110,15 +112,15 @@ void Mirror::loadCache()
 
 
 
-void Mirror::subscribeToQuorum()
+void Mirror::subscribeToQuorum(ushort socksPort)
 {
-  std::thread t(receiveEvents);
+  std::thread t(std::bind(&Mirror::receiveEvents, socksPort));
   t.detach();
 }
 
 
 
-void Mirror::receiveEvents()
+void Mirror::receiveEvents(ushort socksPort)
 {
   const static int RECONNECT_DELAY = 10;
   const auto QNODE = Config::getQuorumNode()[0];
@@ -127,7 +129,8 @@ void Mirror::receiveEvents()
   {
     try
     {
-      TorStream torStream("127.0.0.1", 9050, QNODE["addr"].asString(), 10053);
+      TorStream torStream("127.0.0.1", 9050, QNODE["addr"].asString(),
+                          Const::SERVER_PORT);
 
       Log::get().notice("Subscribing to events...");
       torStream.getIO().reset();  // reset for new asynchronous calls
