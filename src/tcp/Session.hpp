@@ -9,13 +9,14 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <string>
 
+typedef std::shared_ptr<boost::asio::ip::tcp::socket> SocketPtr;
+
 class Session : public boost::enable_shared_from_this<Session>
 {
  public:
-  Session(boost::asio::io_service&, int);
+  Session(const SocketPtr&, int);
   ~Session();
   Json::Value respond(size_t);
-  boost::asio::ip::tcp::socket& getSocket();
 
   void asyncRead();
   void asyncWrite(const std::string&, const std::string&);
@@ -30,7 +31,7 @@ class Session : public boost::enable_shared_from_this<Session>
   void processWrite(const boost::system::error_code&);
   void asyncWrite(const std::string&);
 
-  boost::asio::ip::tcp::socket socket_;
+  SocketPtr socket_;
   boost::array<char, 1024> buffer_;
   HandleAlloc allocator_;
   int id_;

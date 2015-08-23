@@ -2,6 +2,7 @@
 #include "Server.hpp"
 #include "../Mirror.hpp"
 #include <onions-common/Log.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/bind.hpp>
 
 using boost::asio::ip::tcp;
@@ -15,9 +16,11 @@ Server::Server(bool isQNode)
       isQNode_(isQNode)
 {
   Log::get().notice("Initiating server...");
-  boost::shared_ptr<Session> session(new Session(*ios_, 0));
-  acceptor_.async_accept(session->getSocket(),
-                         boost::bind(&Server::handleAccept, this, session,
+
+  auto socket = std::make_shared<boost::asio::ip::tcp::socket>(*ios_);
+  acceptor_.async_accept(*socket,
+                         boost::bind(&Server::handleAccept, this,
+                                     boost::make_shared<Session>(socket, 1),
                                      boost::asio::placeholders::error));
 }
 
@@ -49,7 +52,7 @@ void Server::stop()
 void Server::handleAccept(boost::shared_ptr<Session> session,
                           const boost::system::error_code& error)
 {
-  static int sessionCounter = 1;
+  static int sessionCounter = 2;
   int id = sessionCounter;
   sessionCounter++;
 
@@ -63,8 +66,9 @@ void Server::handleAccept(boost::shared_ptr<Session> session,
 
   session->asyncRead();
 
-  session.reset(new Session(*ios_, id));
-  acceptor_.async_accept(session->getSocket(),
+  auto socket = std::make_shared<boost::asio::ip::tcp::socket>(*ios_);
+  session.reset(new Session(socket, id));  // todo: use make_shared
+  acceptor_.async_accept(*socket,
                          boost::bind(&Server::handleAccept, this, session,
                                      boost::asio::placeholders::error));
 }

@@ -19,7 +19,7 @@ inline MemAllocator<Handler> makeHandler(HandleAlloc& a, Handler h)
 
 
 
-Session::Session(boost::asio::io_service& ios, int id) : socket_(ios), id_(id)
+Session::Session(const SocketPtr& socket, int id) : socket_(socket), id_(id)
 {
 }
 
@@ -32,16 +32,9 @@ Session::~Session()
 
 
 
-boost::asio::ip::tcp::socket& Session::getSocket()
-{
-  return socket_;
-}
-
-
-
 void Session::asyncRead()
 {
-  socket_.async_read_some(
+  socket_->async_read_some(
       boost::asio::buffer(buffer_),
       makeHandler(allocator_,
                   boost::bind(&Session::processRead, shared_from_this(),
@@ -226,7 +219,7 @@ void Session::asyncWrite(const std::string& str)
     buffer_[j] = str[j];
 
   boost::asio::async_write(
-      socket_, boost::asio::buffer(buffer_, str.size()),
+      *socket_, boost::asio::buffer(buffer_, str.size()),
       makeHandler(allocator_,
                   boost::bind(&Session::processWrite, shared_from_this(),
                               boost::asio::placeholders::error)));

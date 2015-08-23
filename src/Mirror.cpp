@@ -1,13 +1,13 @@
 
 #include "Mirror.hpp"
 #include "tcp/Server.hpp"
-#include <onions-common/tcp/TorStream.hpp>
 #include <onions-common/containers/Cache.hpp>
 #include <onions-common/Common.hpp>
 #include <onions-common/Log.hpp>
 #include <onions-common/Config.hpp>
 #include <onions-common/Constants.hpp>
 #include <botan/pubkey.h>
+#include <boost/make_shared.hpp>
 #include <thread>
 #include <fstream>
 #include <iostream>
@@ -20,7 +20,6 @@ typedef boost::exception_detail::clone_impl<
 // definitions for static variables
 std::vector<boost::shared_ptr<Session>> Mirror::subscribers_;
 boost::shared_ptr<Session> Mirror::authSession_;
-std::shared_ptr<boost::asio::io_service> Mirror::authIO_;
 
 
 void Mirror::startServer(bool isQNode)
@@ -122,18 +121,26 @@ void Mirror::subscribeToQuorum()
 void Mirror::receiveEvents()
 {
   const static int RECONNECT_DELAY = 10;
-  authIO_ = std::make_shared<boost::asio::io_service>();
-  auto nodeConfig = Config::getQuorumNode()[0];
+  const auto QNODE = Config::getQuorumNode()[0];
 
   while (true)  // reestablish lost network connection
   {
-    TorStream mirror(*authIO_, "127.0.0.1", 9050, nodeConfig["addr"].asString(),
-                     Const::SERVER_PORT);
-    Session session(*authIO_, -1);
+    try
+    {
+      TorStream torStream("127.0.0.1", 9050, QNODE["addr"].asString(), 10053);
 
-    Log::get().notice("Connected! Subscribing to events...");
-    session.asyncWrite("subscribe", "");
-    authIO_->run();
+      Log::get().notice("Subscribing to events...");
+      torStream.getIO().reset();  // reset for new asynchronous calls
+      authSession_ = boost::make_shared<Session>(torStream.getSocket(), -1);
+      authSession_->asyncWrite("subscribe", "");
+      torStream.getIO().run();  // run asynchronous calls
+    }
+    catch (const BoostSystemError& ex)
+    {
+      Log::get().warn("Connection error, " + std::string(ex.what()));
+      std::this_thread::sleep_for(std::chrono::seconds(RECONNECT_DELAY));
+      continue;
+    }
 
     Log::get().warn("Lost connection to Quorum server.");
     std::this_thread::sleep_for(std::chrono::seconds(RECONNECT_DELAY));

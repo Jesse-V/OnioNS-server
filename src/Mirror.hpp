@@ -5,6 +5,7 @@
 #include "tcp/Session.hpp"
 #include <onions-common/containers/MerkleTree.hpp>
 #include <onions-common/containers/records/Record.hpp>
+#include <onions-common/tcp/TorStream.hpp>
 #include <json/json.h>
 
 class Mirror
@@ -23,7 +24,6 @@ class Mirror
   static void receiveEvents();
 
   static std::vector<boost::shared_ptr<Session>> subscribers_;
-  static std::shared_ptr<boost::asio::io_service> authIO_;
   static boost::shared_ptr<Session> authSession_;
 };
 
