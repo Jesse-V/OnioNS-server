@@ -13,14 +13,15 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, tor-onions-common (>= 0.3.3)
 Recommends: tor (>= 0.2.6)
 Conflicts: tor-onions-server
-Description: Tor-powered distributed DNS for Tor hidden services
- The Onion Name System (OnioNS) is a privacy-enhanced, distributed, and highly
- usable DNS for Tor hidden services. It allows users to reference a hidden
- service by a meaningful globally-unique domain name chosen by the hidden
- service operator. The system is powered by the Tor network and relies on a
- distributed database. This project aims to address the major usability issue
+Description: Network aspect of the Onion Name System
+ OnioNS is a distributed, privacy-enhanced, metadata-free, and highly usable
+ DNS for Tor hidden services. OnioNS allows hidden service operators to select
+ a meaningful and globally-unique domain name for their service, which users
+ can then reference from the Tor Browser. The system is powered by the Tor
+ network, relies on a distributed database, and provides anonymity to both
+ operators and users. This project aims to address the major usability issue
  that has been with Tor hidden services since their introduction in 2002.
- OnioNS reserves the .tor TLD. The official project page is
- onions55e7yam27n.onion, which is example.tor under OnioNS.
  .
- This package provides the networking infrastructure.
+ This package provides an OnioNS server and related networking infrastructure.
+ Administrators who manage Tor relays should also install and run this software
+ in order to contribute to the OnioNS network.
