@@ -11,7 +11,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(CMAKE_CXX_FLAGS "-g -O3 --std=c++11 -Wall -Wextra -pedantic -Wdouble-promotion -Wfloat-equal -Wunsafe-loop-optimizations")
 endif()
 
-include_directories(/usr/include/onions-common/include /usr/include/botan-1.10)
+include_directories(/usr/include/onions-common/include /usr/include/botan-1.10 /usr/include/jsoncpp)
 
 add_executable(onions-server
   main.cpp
@@ -21,7 +21,7 @@ add_executable(onions-server
   tcp/Session.cpp
 )
 
-target_link_libraries(onions-server onions-common onions-jsoncpp onions-cyoencode popt botan-1.10 pthread ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_LIBRARIES})
+target_link_libraries(onions-server onions-common onions-cyoencode jsoncpp scrypt popt botan-1.10 pthread ${Boost_SYSTEM_LIBRARY} ${Boost_LIBRARIES})
 
 #installation of files
 set(DEB_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/assets")
