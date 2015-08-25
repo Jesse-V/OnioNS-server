@@ -17,6 +17,7 @@ add_executable(onions-server
   main.cpp
 
   Mirror.cpp
+  Page.cpp
   tcp/Server.cpp
   tcp/Session.cpp
 )
