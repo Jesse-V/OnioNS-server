@@ -10,13 +10,14 @@
 #include <string>
 
 typedef std::shared_ptr<boost::asio::ip::tcp::socket> SocketPtr;
+typedef boost::array<char, 1024> Buffer;
 
 class Session : public boost::enable_shared_from_this<Session>
 {
  public:
   Session(const SocketPtr&, int);
   ~Session();
-  Json::Value respond(size_t);
+  Json::Value respond(const std::string&);
 
   void asyncRead();
   void asyncWrite(const std::string&, const std::string&);
@@ -29,11 +30,12 @@ class Session : public boost::enable_shared_from_this<Session>
   void respondToMerkleSignature(Json::Value&, Json::Value&);
 
   void processRead(const boost::system::error_code&, size_t);
-  void processWrite(const boost::system::error_code&);
+  void processWrite(const boost::system::error_code&,
+                    const std::shared_ptr<Buffer>&);
   void asyncWrite(const std::string&);
 
   SocketPtr socket_;
-  boost::array<char, 1024> buffer_;
+  Buffer readBuffer_;
   HandleAlloc allocator_;
   int id_;
 };

@@ -35,7 +35,7 @@ Session::~Session()
 void Session::asyncRead()
 {
   socket_->async_read_some(
-      boost::asio::buffer(buffer_),
+      boost::asio::buffer(readBuffer_),
       makeHandler(allocator_,
                   boost::bind(&Session::processRead, shared_from_this(),
                               boost::asio::placeholders::error,
@@ -66,11 +66,10 @@ void Session::asyncWrite(const Json::Value& val)
 
 
 
-Json::Value Session::respond(size_t n)
+Json::Value Session::respond(const std::string& inputStr)
 {
   Json::Value in, out;
   Json::Reader reader;
-  std::string inputStr(buffer_.begin(), buffer_.begin() + n);
   out["type"] = "error";
   out["value"] = "";
 
@@ -200,7 +199,8 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
     return;
   }
 
-  auto response = respond(n);
+  const std::string input(readBuffer_.begin(), readBuffer_.begin() + n);
+  auto response = respond(input);
   if (response == nullptr)
     asyncRead();  // no reply need, so read again
   else
@@ -210,7 +210,8 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
 
 
 // called by Asio when the buffer has been written to the socket
-void Session::processWrite(const boost::system::error_code& error)
+void Session::processWrite(const boost::system::error_code& error,
+                           const std::shared_ptr<Buffer>& buffer)
 {
   if (error)
   {
@@ -225,12 +226,12 @@ void Session::processWrite(const boost::system::error_code& error)
 
 void Session::asyncWrite(const std::string& str)
 {
-  for (std::size_t j = 0; j < str.size(); j++)
-    buffer_[j] = str[j];
+  auto writeBuffer = std::make_shared<Buffer>();
+  std::copy(str.begin(), str.end(), writeBuffer->data());
 
   boost::asio::async_write(
-      *socket_, boost::asio::buffer(buffer_, str.size()),
+      *socket_, boost::asio::buffer(*writeBuffer, str.size()),
       makeHandler(allocator_,
                   boost::bind(&Session::processWrite, shared_from_this(),
-                              boost::asio::placeholders::error)));
+                              boost::asio::placeholders::error, writeBuffer)));
 }
