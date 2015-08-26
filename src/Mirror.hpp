@@ -18,7 +18,7 @@ class Mirror
 
   static void addSubscriber(const boost::shared_ptr<Session>&);
   static void broadcastEvent(const std::string&, const Json::Value&);
-  static ED_KEY getPublicKey();
+  static std::pair<ED_KEY, ED_KEY> getKeys();
 
  private:
   static void loadPages();

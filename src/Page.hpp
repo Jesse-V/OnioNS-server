@@ -5,10 +5,6 @@
 #include <onions-common/containers/records/Record.hpp>
 #include <string>
 
-typedef std::array<uint8_t, Const::SHA384_LEN> SHA384_HASH;
-typedef std::array<uint8_t, Const::ED25519_KEY_LEN> ED_KEY;
-typedef std::array<uint8_t, Const::ED25519_SIG_LEN> ED_SIGNATURE;
-
 class Page
 {
  public:

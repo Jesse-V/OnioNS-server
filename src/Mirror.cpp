@@ -5,7 +5,6 @@
 #include <onions-common/Common.hpp>
 #include <onions-common/Log.hpp>
 #include <onions-common/Config.hpp>
-#include <onions-common/Constants.hpp>
 #include <onions-common/crypto/ed25519.h>
 #include <botan/base64.h>
 #include <botan/pubkey.h>
@@ -104,18 +103,16 @@ void Mirror::resumeState()
 
 
 
-// generates a key and saves the private half if one does not exist
-ED_KEY Mirror::getPublicKey()
+// returns keypair from file, or generates one if it doesn't exist
+std::pair<ED_KEY, ED_KEY> Mirror::getKeys()
 {
-  ed25519_secret_key sk;
-
   Log::get().notice("Loading Ed25519 key...");
   std::string workingDir(getpwuid(getuid())->pw_dir);
   workingDir += "/.OnioNS/";
 
   // load private key from file, or generate and save a new one
+  ed25519_secret_key sk;
   std::ifstream keyFile;
-
   keyFile.open(workingDir + "ed25519.key", std::fstream::in);
   if (keyFile.is_open())
   {
@@ -144,12 +141,15 @@ ED_KEY Mirror::getPublicKey()
     Log::get().notice("Ed25519 key successfully saved to disk.");
   }
 
+  ED_KEY privateKey;
+  memcpy(privateKey.data(), sk, Const::ED25519_KEY_LEN);
+
+  ED_KEY publicKey;
   ed25519_public_key pk;
   ed25519_publickey(sk, pk);
+  memcpy(publicKey.data(), pk, Const::ED25519_KEY_LEN);
 
-  ED_KEY array;
-  memcpy(array.data(), pk, Const::ED25519_KEY_LEN);
-  return array;
+  return std::make_pair(privateKey, publicKey);
 }
 
 
@@ -179,8 +179,8 @@ void Mirror::loadPages()
                                 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
                                 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
                                 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7};  // todo
-    ED_KEY pk = getPublicKey();
-    page_ = std::make_shared<Page>(latestRandom, pk);
+    auto keys = getKeys();
+    page_ = std::make_shared<Page>(latestRandom, keys.second);
 
     mkdir(workingDir.c_str(), 0755);
     std::fstream outFile(workingDir + "pagechain.json", std::fstream::out);
