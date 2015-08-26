@@ -90,12 +90,20 @@ bool Mirror::processNewRecord(const RecordPtr& record)
   for (auto s : subscribers_)
     s->asyncWrite(rEvent);
 
-  // todo: we don't need to send every time we get a new Record
+  // todo: we don't need to regenerate and send every time we get a new Record
+  // assemble signatures
+  Json::Value sigObj;
+  ED_SIGNATURE edSig = signMerkleRoot();
+  auto sinceEpoch =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::system_clock::now().time_since_epoch()).count();
+  sigObj["signature"] = Botan::base64_encode(edSig.data(), edSig.size());
+  sigObj["timestamp"] = std::to_string(sinceEpoch);
+
   // send the signatures
-  ED_SIGNATURE signature = signMerkleRoot();
   Json::Value sigEvent;
   sigEvent["type"] = "merkleSignature";
-  sigEvent["value"] = Botan::base64_encode(signature.data(), signature.size());
+  sigEvent["value"] = sigObj;
   for (auto s : subscribers_)
     s->asyncWrite(sigEvent);
 
