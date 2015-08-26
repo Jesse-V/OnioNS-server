@@ -41,8 +41,7 @@ Page::Page(const SHA384_HASH& prevHash,
 
 
 bool Page::isValid(bool deepTest)
-{  // todo: deep inspection check
-
+{
   Json::FastWriter writer;
   std::string data = writer.write(getCommonData());
   const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data.c_str());
@@ -50,9 +49,17 @@ bool Page::isValid(bool deepTest)
       ed25519_sign_open(bytes, data.size(), publicEd_.data(), pageSig_.data());
 
   if (check == 0)
+  {
+    if (deepTest)
+      for (auto r : recordList_)
+        if (!r->isValid())
+          return false;
     return true;
+  }
   else if (check == 1)
+  {
     return false;
+  }
   else
   {
     Log::get().warn("General Ed25519 signature failure on Page signature.");

@@ -6,11 +6,13 @@
 #include <onions-common/Log.hpp>
 #include <onions-common/Config.hpp>
 #include <onions-common/Constants.hpp>
+#include <onions-common/crypto/ed25519.h>
+#include <botan/base64.h>
 #include <botan/pubkey.h>
 #include <boost/make_shared.hpp>
 #include <thread>
 #include <fstream>
-#include <iostream>
+#include <pwd.h>
 
 typedef boost::exception_detail::clone_impl<
     boost::exception_detail::error_info_injector<boost::system::system_error>>
@@ -90,21 +92,7 @@ void Mirror::broadcastEvent(const std::string& type, const Json::Value& value)
 
 void Mirror::resumeState()
 {
-  Log::get().notice("Loading cache from file... ");
-
-  std::ifstream pagechainFile;
-  pagechainFile.open("~/.OnioNS/pagechain.json", std::fstream::in);
-  if (pagechainFile.is_open())
-  {
-    Json::Value obj;
-    pagechainFile >> obj;
-    page_ = std::make_shared<Page>(obj);
-  }
-  else
-  {
-    Log::get().warn("Cache file does not exist.");
-    // todo make and save Page
-  }
+  loadPages();
 
   /*
     // interpret JSON as Records and load into cache
@@ -112,6 +100,91 @@ void Mirror::resumeState()
     for (uint n = 0; n < cacheValue.size(); n++)
       if (!Cache::add(Common::parseRecord(cacheValue[n])))
         Log::get().error("Invalid Record inside cache!");*/
+}
+
+
+
+// generates a key and saves the private half if one does not exist
+ED_KEY Mirror::getPublicKey()
+{
+  ed25519_secret_key sk;
+
+  Log::get().notice("Loading Ed25519 key...");
+  std::string homeDir(getpwuid(getuid())->pw_dir);
+
+  // load private key from file, or generate and save a new one
+  std::ifstream keyFile;
+
+  keyFile.open(homeDir + "/ed25519.key", std::fstream::in);
+  if (keyFile.is_open())
+  {
+    Json::Value obj;
+    keyFile >> obj;
+    Botan::base64_decode(sk, obj["key"].asString(), false);
+
+    Log::get().notice("Ed25519 key successfully loaded.");
+  }
+  else
+  {
+    Log::get().notice("Keyfile does not exist. Generating new key...");
+
+    Botan::AutoSeeded_RNG rng;
+    rng.randomize(sk, Const::ED25519_KEY_LEN);
+
+    Json::Value obj;
+    obj["key"] = Botan::base64_encode(sk, Const::ED25519_KEY_LEN);
+
+    Json::FastWriter writer;
+    std::fstream keyOutFile(homeDir + "/ed25519.key", std::fstream::out);
+    keyOutFile << writer.write(obj);
+    keyOutFile.close();
+
+    Log::get().notice("Ed25519 key successfully saved to disk.");
+  }
+
+  ed25519_public_key pk;
+  ed25519_publickey(sk, pk);
+
+  ED_KEY array;
+  memcpy(array.data(), pk, Const::ED25519_KEY_LEN);
+  return array;
+}
+
+
+
+void Mirror::loadPages()
+{
+  Log::get().notice("Loading Pagechain from file...");
+  std::string homeDir(getpwuid(getuid())->pw_dir);
+
+  std::ifstream pagechainFile;
+  pagechainFile.open(homeDir + "/pagechain.json", std::fstream::in);
+  if (pagechainFile.is_open())
+  {
+    Json::Value obj;
+    pagechainFile >> obj;
+    page_ = std::make_shared<Page>(obj);
+    // todo: assert that loaded key matches the key in pagechain.json
+
+    Log::get().notice("Pagechain successfully loaded.");
+  }
+  else
+  {
+    Log::get().warn("Pagechain file does not exist.");
+
+    SHA384_HASH latestRandom = {7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                                7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                                7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                                7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7};  // todo
+    ED_KEY pk = getPublicKey();
+    page_ = std::make_shared<Page>(latestRandom, pk);
+
+    std::fstream outFile(homeDir + "/pagechain.json", std::fstream::out);
+    outFile << page_->toString();
+    outFile.close();
+
+    Log::get().notice("Blank Page successfully saved to disk.");
+  }
 }
 
 

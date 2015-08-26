@@ -18,8 +18,10 @@ class Mirror
 
   static void addSubscriber(const boost::shared_ptr<Session>&);
   static void broadcastEvent(const std::string&, const Json::Value&);
+  static ED_KEY getPublicKey();
 
  private:
+  static void loadPages();
   static void resumeState();
   static void subscribeToQuorum(ushort);
   static void receiveEvents(ushort);
