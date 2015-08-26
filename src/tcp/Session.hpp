@@ -26,6 +26,7 @@ class Session : public boost::enable_shared_from_this<Session>
   void respondToUpload(Json::Value&, Json::Value&);
   void respondToDomainQuery(Json::Value&, Json::Value&);
   void respondToSubscribe(Json::Value&, Json::Value&);
+  void respondToMerkleSignature(Json::Value&, Json::Value&);
 
   void processRead(const boost::system::error_code&, size_t);
   void processWrite(const boost::system::error_code&);

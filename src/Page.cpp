@@ -105,6 +105,13 @@ Json::Value Page::getCommonData() const
 
 
 
+std::vector<RecordPtr> Page::getRecords() const
+{
+  return recordList_;
+}
+
+
+
 SHA384_HASH Page::toHash() const
 {
   Json::FastWriter writer;

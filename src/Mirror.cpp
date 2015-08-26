@@ -22,6 +22,7 @@ typedef boost::exception_detail::clone_impl<
 std::vector<boost::shared_ptr<Session>> Mirror::subscribers_;
 boost::shared_ptr<Session> Mirror::authSession_;
 std::shared_ptr<Page> Mirror::page_;
+std::shared_ptr<MerkleTree> Mirror::merkleTree_;
 
 
 void Mirror::startServer(const std::string& bindIP,
@@ -53,16 +54,14 @@ void Mirror::startServer(const std::string& bindIP,
 
 
 
-UInt8Array Mirror::signMerkleRoot(Botan::RSA_PrivateKey* key,
-                                  const MerkleTreePtr& mt)
+ED_SIGNATURE Mirror::signMerkleRoot()
 {
-  static Botan::AutoSeeded_RNG rng;
+  auto key = getKeys();
 
-  Botan::PK_Signer signer(*key, "EMSA-PSS(SHA-384)");
-  auto sig = signer.sign_message(mt->getRoot(), Const::SHA384_LEN, rng);
-  uint8_t* bin = new uint8_t[sig.size()];
-  memcpy(bin, sig, sig.size());
-  return std::make_pair(bin, sig.size());
+  ED_SIGNATURE signature;
+  ed25519_sign(merkleTree_->getRoot(), Const::SHA384_LEN, key.first.data(),
+               key.second.data(), signature.data());
+  return signature;
 }
 
 
@@ -74,37 +73,52 @@ void Mirror::addSubscriber(const boost::shared_ptr<Session>& session)
 
 
 
-void Mirror::broadcastEvent(const std::string& type, const Json::Value& value)
+bool Mirror::processNewRecord(const RecordPtr& record)
 {
-  Json::Value event;
-  event["type"] = type;
-  event["value"] = value;
+  if (!Cache::add(record))
+    return false;  // if already exists in cache
 
+  page_->addRecord(record);
+
+  Log::get().notice("Broadcasting to " + std::to_string(subscribers_.size()) +
+                    " subscribers...");
+
+  // send the Record
+  Json::Value rEvent;
+  rEvent["type"] = "upload";
+  rEvent["value"] = record->asJSON();
   for (auto s : subscribers_)
-    s->asyncWrite(event);
+    s->asyncWrite(rEvent);
 
-  Log::get().notice("Broadcasted to " + std::to_string(subscribers_.size()) +
-                    " subscribers.");
+  // todo: we don't need to send every time we get a new Record
+  // send the signatures
+  ED_SIGNATURE signature = signMerkleRoot();
+  Json::Value sigEvent;
+  sigEvent["type"] = "merkleSignature";
+  sigEvent["value"] = Botan::base64_encode(signature.data(), signature.size());
+  for (auto s : subscribers_)
+    s->asyncWrite(sigEvent);
+
+  Log::get().notice("Transmission complete.");
+  return true;
 }
 
 
 
 void Mirror::resumeState()
 {
-  loadPages();
+  Log::get().notice("Resuming state... ");
 
-  /*
-    // interpret JSON as Records and load into cache
-    Log::get().notice("Preparing Records... ");
-    for (uint n = 0; n < cacheValue.size(); n++)
-      if (!Cache::add(Common::parseRecord(cacheValue[n])))
-        Log::get().error("Invalid Record inside cache!");*/
+  loadPages();
+  Cache::add(page_->getRecords());
+
+  Log::get().notice("State successfully resumed.");
 }
 
 
 
 // returns keypair from file, or generates one if it doesn't exist
-std::pair<ED_KEY, ED_KEY> Mirror::getKeys()
+std::pair<ED_KEY, ED_KEY> Mirror::getKeys()  // todo, save to static variable
 {
   Log::get().notice("Loading Ed25519 key...");
   std::string workingDir(getpwuid(getuid())->pw_dir);

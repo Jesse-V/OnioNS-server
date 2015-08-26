@@ -95,6 +95,8 @@ Json::Value Session::respond(size_t n)
       respondToDomainQuery(in, out);
     else if (type == "subscribe")
       respondToSubscribe(in, out);
+    else if (type == "merkleSignature")
+      respondToMerkleSignature(in, out);
     else if (type == "success")
     {
       Log::get().notice(std::to_string(id_) + ": Response: \"" +
@@ -119,13 +121,12 @@ Json::Value Session::respond(size_t n)
 void Session::respondToUpload(Json::Value& in, Json::Value& out)
 {
   auto r = Common::parseRecord(in["value"].asString());
-  if (Cache::add(r))  // if successfully added to the Cache
-  {
-    Log::get().notice(std::to_string(id_) +
-                      ": Cached new Record. Broadcasting...");
-    Mirror::broadcastEvent("upload", in["value"]);
-    Log::get().notice(std::to_string(id_) + ": Finished broadcasting Record.");
+  Log::get().notice(std::to_string(id_) + ": received a Record for \"" +
+                    r->getName() + "\"");
 
+  if (Mirror::processNewRecord(r))
+  {
+    Log::get().notice(std::to_string(id_) + ": Record successfully processed.");
     out["value"] = "success";
   }
   else
@@ -171,6 +172,15 @@ void Session::respondToSubscribe(Json::Value& in, Json::Value& out)
 {
   Log::get().notice(std::to_string(id_) + " has subscribed.");
   Mirror::addSubscriber(boost::shared_ptr<Session>(this));
+  out["value"] = "success";
+}
+
+
+
+void Session::respondToMerkleSignature(Json::Value& in, Json::Value& out)
+{
+  Log::get().notice(std::to_string(id_) + " received Merkle tree signature.");
+  // todo
   out["value"] = "success";
 }
 

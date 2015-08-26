@@ -13,11 +13,10 @@ class Mirror
 {
  public:
   static void startServer(const std::string&, ushort, bool);
-  static UInt8Array signMerkleRoot(Botan::RSA_PrivateKey*,
-                                   const MerkleTreePtr&);
+  static ED_SIGNATURE signMerkleRoot();
 
   static void addSubscriber(const boost::shared_ptr<Session>&);
-  static void broadcastEvent(const std::string&, const Json::Value&);
+  static bool processNewRecord(const RecordPtr&);
   static std::pair<ED_KEY, ED_KEY> getKeys();
 
  private:
@@ -29,6 +28,7 @@ class Mirror
   static std::vector<boost::shared_ptr<Session>> subscribers_;
   static boost::shared_ptr<Session> authSession_;
   static std::shared_ptr<Page> page_;
+  static std::shared_ptr<MerkleTree> merkleTree_;
 };
 
 #endif

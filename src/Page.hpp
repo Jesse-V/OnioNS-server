@@ -15,6 +15,7 @@ class Page
   void addRecord(const RecordPtr&);
   void resign(const std::array<uint8_t, Const::ED25519_KEY_LEN>&);
   Json::Value getCommonData() const;
+  std::vector<RecordPtr> getRecords() const;
   SHA384_HASH toHash() const;
   std::string toString() const;
   // static Page selectPage(const std::vector<Page>&);
