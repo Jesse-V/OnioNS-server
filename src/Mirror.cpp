@@ -110,12 +110,13 @@ ED_KEY Mirror::getPublicKey()
   ed25519_secret_key sk;
 
   Log::get().notice("Loading Ed25519 key...");
-  std::string homeDir(getpwuid(getuid())->pw_dir);
+  std::string workingDir(getpwuid(getuid())->pw_dir);
+  workingDir += "/.OnioNS/";
 
   // load private key from file, or generate and save a new one
   std::ifstream keyFile;
 
-  keyFile.open(homeDir + "/ed25519.key", std::fstream::in);
+  keyFile.open(workingDir + "ed25519.key", std::fstream::in);
   if (keyFile.is_open())
   {
     Json::Value obj;
@@ -135,7 +136,8 @@ ED_KEY Mirror::getPublicKey()
     obj["key"] = Botan::base64_encode(sk, Const::ED25519_KEY_LEN);
 
     Json::FastWriter writer;
-    std::fstream keyOutFile(homeDir + "/ed25519.key", std::fstream::out);
+    mkdir(workingDir.c_str(), 0755);
+    std::fstream keyOutFile(workingDir + "ed25519.key", std::fstream::out);
     keyOutFile << writer.write(obj);
     keyOutFile.close();
 
@@ -155,10 +157,11 @@ ED_KEY Mirror::getPublicKey()
 void Mirror::loadPages()
 {
   Log::get().notice("Loading Pagechain from file...");
-  std::string homeDir(getpwuid(getuid())->pw_dir);
+  std::string workingDir(getpwuid(getuid())->pw_dir);
+  workingDir += "/.OnioNS/";
 
   std::ifstream pagechainFile;
-  pagechainFile.open(homeDir + "/pagechain.json", std::fstream::in);
+  pagechainFile.open(workingDir + "pagechain.json", std::fstream::in);
   if (pagechainFile.is_open())
   {
     Json::Value obj;
@@ -179,7 +182,8 @@ void Mirror::loadPages()
     ED_KEY pk = getPublicKey();
     page_ = std::make_shared<Page>(latestRandom, pk);
 
-    std::fstream outFile(homeDir + "/pagechain.json", std::fstream::out);
+    mkdir(workingDir.c_str(), 0755);
+    std::fstream outFile(workingDir + "pagechain.json", std::fstream::out);
     outFile << page_->toString();
     outFile.close();
 
