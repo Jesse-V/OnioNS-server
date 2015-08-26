@@ -20,13 +20,14 @@ typedef boost::exception_detail::clone_impl<
 // definitions for static variables
 std::vector<boost::shared_ptr<Session>> Mirror::subscribers_;
 boost::shared_ptr<Session> Mirror::authSession_;
+std::shared_ptr<Page> Mirror::page_;
 
 
 void Mirror::startServer(const std::string& bindIP,
                          ushort socksPort,
                          bool isQNode)
 {
-  loadCache();
+  resumeState();
 
   if (isQNode)
     Log::get().notice("Running as a Quorum server.");
@@ -87,27 +88,30 @@ void Mirror::broadcastEvent(const std::string& type, const Json::Value& value)
 
 
 
-void Mirror::loadCache()
+void Mirror::resumeState()
 {
-  Log::get().notice("Loading Record cache... ");
-  std::ifstream cacheFile;
-  cacheFile.open("/var/lib/tor-onions/cache.json", std::fstream::in);
-  if (!cacheFile.is_open())
-    Log::get().error("Cannot open cache!");
+  Log::get().notice("Loading cache from file... ");
 
-  // parse cache file into JSON object
-  Json::Value cacheValue;
-  Json::Reader reader;
-  std::string json((std::istreambuf_iterator<char>(cacheFile)),
-                   std::istreambuf_iterator<char>());
-  if (!reader.parse(json, cacheValue))
-    Log::get().error("Failed to parse cache!");
+  std::ifstream pagechainFile;
+  pagechainFile.open("~/.OnioNS/pagechain.json", std::fstream::in);
+  if (pagechainFile.is_open())
+  {
+    Json::Value obj;
+    pagechainFile >> obj;
+    page_ = std::make_shared<Page>(obj);
+  }
+  else
+  {
+    Log::get().warn("Cache file does not exist.");
+    // todo make and save Page
+  }
 
-  // interpret JSON as Records and load into cache
-  Log::get().notice("Preparing Records... ");
-  for (uint n = 0; n < cacheValue.size(); n++)
-    if (!Cache::add(Common::parseRecord(cacheValue[n])))
-      Log::get().error("Invalid Record inside cache!");
+  /*
+    // interpret JSON as Records and load into cache
+    Log::get().notice("Preparing Records... ");
+    for (uint n = 0; n < cacheValue.size(); n++)
+      if (!Cache::add(Common::parseRecord(cacheValue[n])))
+        Log::get().error("Invalid Record inside cache!");*/
 }
 
 

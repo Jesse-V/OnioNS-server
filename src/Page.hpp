@@ -5,25 +5,29 @@
 #include <onions-common/containers/records/Record.hpp>
 #include <string>
 
+typedef std::array<uint8_t, Const::SHA384_LEN> SHA384_HASH;
+typedef std::array<uint8_t, Const::ED25519_KEY_LEN> ED_KEY;
+typedef std::array<uint8_t, Const::ED25519_SIG_LEN> ED_SIGNATURE;
+
 class Page
 {
  public:
-  Page(const uint8_t*, const uint8_t*);  // rand_, fingerprint_
-  Page(const uint8_t*,
-       const uint8_t*,
-       const uint8_t*);  // prevHash_, rand_, fingerprint_
+  Page(const Json::Value&);
+  Page(const SHA384_HASH&, const ED_KEY&);
+  Page(const SHA384_HASH&, const SHA384_HASH&, const ED_KEY&);
+  bool isValid(bool deepTest = false);
   void addRecord(const RecordPtr&);
-  void updateSignature(const uint8_t* pk);
+  void resign(const std::array<uint8_t, Const::ED25519_KEY_LEN>&);
   Json::Value getCommonData() const;
-  uint8_t* toHash() const;
+  SHA384_HASH toHash() const;
   std::string toString() const;
   // static Page selectPage(const std::vector<Page>&);
 
  private:
-  const uint8_t* prevHash_;
-  const uint8_t* rand_;
-  const uint8_t* fingerprint_;
-  uint8_t* pageSig_;
+  SHA384_HASH prevHash_;  // linking
+  SHA384_HASH rand_;      // current global random number
+  ED_KEY publicEd_;       // owner's public key
+  ED_SIGNATURE pageSig_;  // signature from owner
   std::vector<RecordPtr> recordList_;
 };
 

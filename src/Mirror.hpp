@@ -3,6 +3,7 @@
 #define MIRROR_HPP
 
 #include "tcp/Session.hpp"
+#include "Page.hpp"
 #include <onions-common/containers/MerkleTree.hpp>
 #include <onions-common/containers/records/Record.hpp>
 #include <onions-common/tcp/TorStream.hpp>
@@ -19,12 +20,13 @@ class Mirror
   static void broadcastEvent(const std::string&, const Json::Value&);
 
  private:
-  static void loadCache();
+  static void resumeState();
   static void subscribeToQuorum(ushort);
   static void receiveEvents(ushort);
 
   static std::vector<boost::shared_ptr<Session>> subscribers_;
   static boost::shared_ptr<Session> authSession_;
+  static std::shared_ptr<Page> page_;
 };
 
 #endif
