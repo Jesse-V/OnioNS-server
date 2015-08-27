@@ -23,6 +23,7 @@ std::vector<boost::shared_ptr<Session>> Mirror::subscribers_;
 boost::shared_ptr<Session> Mirror::authSession_;
 std::shared_ptr<Page> Mirror::page_;
 std::shared_ptr<MerkleTree> Mirror::merkleTree_;
+bool Mirror::isQuorumNode_;
 
 
 void Mirror::startServer(const std::string& bindIP,
@@ -30,8 +31,9 @@ void Mirror::startServer(const std::string& bindIP,
                          bool isQNode)
 {
   resumeState();
+  isQuorumNode_ = isQNode;
 
-  if (isQNode)
+  if (isQuorumNode_)
     Log::get().notice("Running as a Quorum server.");
   else
     Log::get().notice("Running as normal server.");
@@ -40,7 +42,7 @@ void Mirror::startServer(const std::string& bindIP,
 
   try
   {
-    if (!isQNode)
+    if (!isQuorumNode_)
       subscribeToQuorum(socksPort);
 
     Server s(bindIP);
@@ -59,8 +61,8 @@ ED_SIGNATURE Mirror::signMerkleRoot()
   auto key = getKeys();
 
   ED_SIGNATURE signature;
-  ed25519_sign(merkleTree_->getRoot(), Const::SHA384_LEN, key.first.data(),
-               key.second.data(), signature.data());
+  ed25519_sign(merkleTree_->getRoot().data(), Const::SHA384_LEN,
+               key.first.data(), key.second.data(), signature.data());
   return signature;
 }
 
@@ -90,22 +92,25 @@ bool Mirror::processNewRecord(const RecordPtr& record)
   for (auto s : subscribers_)
     s->asyncWrite(rEvent);
 
-  // todo: we don't need to regenerate and send every time we get a new Record
-  // assemble signatures
-  Json::Value sigObj;
-  ED_SIGNATURE edSig = signMerkleRoot();
-  auto sinceEpoch =
-      std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::system_clock::now().time_since_epoch()).count();
-  sigObj["signature"] = Botan::base64_encode(edSig.data(), edSig.size());
-  sigObj["timestamp"] = std::to_string(sinceEpoch);
+  if (isQuorumNode_)
+  {
+    // todo: we don't need to regenerate and send every time we get a new Record
+    // assemble signatures
+    Json::Value sigObj;
+    ED_SIGNATURE edSig = signMerkleRoot();
+    auto sinceEpoch =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+    sigObj["signature"] = Botan::base64_encode(edSig.data(), edSig.size());
+    sigObj["timestamp"] = std::to_string(sinceEpoch);
 
-  // send the signatures
-  Json::Value sigEvent;
-  sigEvent["type"] = "merkleSignature";
-  sigEvent["value"] = sigObj;
-  for (auto s : subscribers_)
-    s->asyncWrite(sigEvent);
+    // send the signatures
+    Json::Value sigEvent;
+    sigEvent["type"] = "merkleSignature";
+    sigEvent["value"] = sigObj;
+    for (auto s : subscribers_)
+      s->asyncWrite(sigEvent);
+  }
 
   Log::get().notice("Transmission complete.");
   return true;

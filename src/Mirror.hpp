@@ -29,6 +29,7 @@ class Mirror
   static boost::shared_ptr<Session> authSession_;
   static std::shared_ptr<Page> page_;
   static std::shared_ptr<MerkleTree> merkleTree_;
+  static bool isQuorumNode_;
 };
 
 #endif
