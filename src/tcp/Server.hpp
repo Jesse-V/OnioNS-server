@@ -9,7 +9,7 @@
 class Server
 {
  public:
-  Server(const std::string&, bool);
+  Server(const std::string&);
   ~Server();
   void start();
   void stop();
@@ -20,7 +20,6 @@ class Server
 
   std::shared_ptr<boost::asio::io_service> ios_;
   boost::asio::ip::tcp::acceptor acceptor_;
-  bool isQNode_;
 };
 
 #endif

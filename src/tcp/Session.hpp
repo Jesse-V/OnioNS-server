@@ -35,7 +35,8 @@ class Session : public boost::enable_shared_from_this<Session>
   void asyncWrite(const std::string&);
 
   SocketPtr socket_;
-  Buffer readBuffer_;
+  Buffer inChunk_;
+  std::string inBuffer_;
   HandleAlloc allocator_;
   int id_;
 };

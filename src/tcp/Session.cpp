@@ -35,7 +35,7 @@ Session::~Session()
 void Session::asyncRead()
 {
   socket_->async_read_some(
-      boost::asio::buffer(readBuffer_),
+      boost::asio::buffer(inChunk_),
       makeHandler(allocator_,
                   boost::bind(&Session::processRead, shared_from_this(),
                               boost::asio::placeholders::error,
@@ -188,6 +188,7 @@ void Session::respondToMerkleSignature(Json::Value& in, Json::Value& out)
 // called by Asio whenever the socket has been read into the buffer
 void Session::processRead(const boost::system::error_code& error, size_t n)
 {
+  // check error
   if (n == 0)
   {
     Log::get().notice(std::to_string(id_) + ": Connection closed.");
@@ -199,17 +200,34 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
     return;
   }
 
-  const std::string input(readBuffer_.begin(), readBuffer_.begin() + n);
-  auto response = respond(input);
-  if (response == nullptr)
-    asyncRead();  // no reply need, so read again
+  // add to buffer
+  inBuffer_.append(std::string(inChunk_.begin(), inChunk_.begin() + n));
+
+  // check if we have the whole message (#64)
+  std::size_t delimiter = inBuffer_.find_first_of('\n');
+  if (delimiter == std::string::npos)
+  {  // the whole message isn't here yet, so read more asynchronously
+    asyncRead();
+  }
   else
-    asyncWrite(response);
+  {
+    // cut out word
+    std::string input = inBuffer_.substr(0, delimiter);
+    inBuffer_.erase(0, delimiter);
+
+    // process message
+    auto response = respond(input);
+    if (response == nullptr)
+      asyncRead();  // no reply need, so read again
+    else
+      asyncWrite(response);
+  }
 }
 
 
 
 // called by Asio when the buffer has been written to the socket
+// we pass the buffer argument so that this is the end of its lifetime
 void Session::processWrite(const boost::system::error_code& error,
                            const std::shared_ptr<Buffer>& buffer)
 {

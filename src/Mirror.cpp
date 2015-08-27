@@ -43,7 +43,7 @@ void Mirror::startServer(const std::string& bindIP,
     if (!isQNode)
       subscribeToQuorum(socksPort);
 
-    Server s(bindIP, isQNode);
+    Server s(bindIP);
     s.start();
   }
   catch (const BoostSystemError& ex)
@@ -232,7 +232,7 @@ void Mirror::receiveEvents(ushort socksPort)
   {
     try
     {
-      TorStream torStream("127.0.0.1", 9050, QNODE["addr"].asString(),
+      TorStream torStream("127.0.0.1", socksPort, QNODE["addr"].asString(),
                           Const::SERVER_PORT);
 
       Log::get().notice("Subscribing to events...");
