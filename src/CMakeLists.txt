@@ -22,7 +22,7 @@ add_executable(onions-server
   tcp/Session.cpp
 )
 
-target_link_libraries(onions-server onions-common onions-cyoencode jsoncpp scrypt popt botan-1.10 pthread ${Boost_SYSTEM_LIBRARY} ${Boost_LIBRARIES})
+target_link_libraries(onions-server onions-common onions-cyoencode jsoncpp popt botan-1.10 pthread ${Boost_SYSTEM_LIBRARY} ${Boost_LIBRARIES})
 
 #installation of files
 set(DEB_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/assets")
