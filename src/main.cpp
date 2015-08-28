@@ -4,6 +4,7 @@
 #include <onions-common/Utils.hpp>
 #include <botan/botan.h>
 #include <popt.h>
+#include <iostream>
 
 // Botan::LibraryInitializer init("thread_safe");
 

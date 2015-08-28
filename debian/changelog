@@ -1,4 +1,4 @@
-tor-onions-server (0.6.0.0~trusty) trusty; urgency=medium
+tor-onions-server (0.6.0.3~trusty) trusty; urgency=medium
 
   * Management of Ed25519 keypairs.
   * Support for hidden services as hosts. (#46, #71)
