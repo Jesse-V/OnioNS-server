@@ -1,12 +1,16 @@
 compiler:
   - clang
   - gcc
+
 os: linux
+
 before_install:
-  - sudo add-apt-repository "deb mirror://mirrors.ubuntu.com/mirrors.txt trusty main restricted universe"
+  - sudo add-apt-repository "deb mirror://mirrors.ubuntu.com/mirrors.txt trusty main restricted universe" # switch to Ubuntu Trusty
   - sudo apt-get update -qq
-  - sudo apt-get install -qq g++ clang cmake libpopt-dev botan1.10-dev libasio-dev libboost-system-dev libjsoncpp-dev
-script:
+  - sudo apt-get install -qq g++ clang cmake libpopt-dev botan1.10-dev libasio-dev libboost-system-dev libjsoncpp-dev # install dependencies
+
+before_script:
+  # compile and install OnioNS-common library from source
   - git clone https://github.com/Jesse-V/OnioNS-common.git
   - cd OnioNS-common
   - (cd src/libs/libscrypt && make)
@@ -14,15 +18,22 @@ script:
   - tar -czf $package.orig.tar.gz src/
   - cp -rl debian src/debian
   - cd src/
-  - dpkg-buildpackage -rfakeroot -us -uc
-  - sudo dpkg -i ../$package\_amd64.deb
+  - dpkg-buildpackage -rfakeroot -us -uc # compile into .deb
+  - sudo dpkg -i ../$package\_amd64.deb  # install .deb
   - cd ../../
+
+script:
   - package=tor-onions-server_$(grep -m 1 -o '(.*)' debian/changelog | cut -c 2- | rev | cut -c 2- | rev)
   - tar -czf $package.orig.tar.gz src/
   - cp -rl debian src/debian
   - cd src/
-  - dpkg-buildpackage -rfakeroot -us -uc
+  - dpkg-buildpackage -rfakeroot -us -uc # compile into .deb
+
+after_success:
+  - sudo dpkg -i ../$package\_amd64.deb  # install .deb
+
 language: cpp
+
 notifications:
   email: false
   irc:
