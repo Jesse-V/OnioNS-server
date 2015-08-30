@@ -3,7 +3,7 @@
 
 OnioNS is a distributed, privacy-enhanced, metadata-free, and highly usable DNS for Tor hidden services. OnioNS allows hidden service operators to select a meaningful and globally-unique domain name for their service, which users can then reference from the Tor Browser. The system is powered by the Tor network, relies on a distributed database, and provides anonymity to both operators and users. This project aims to address the major usability issue that has been with Tor hidden services since their introduction in 2002.
 
-### Repository Details
+### Repository Details [![Build Status](https://travis-ci.org/Jesse-V/OnioNS-server.svg)](https://travis-ci.org/Jesse-V/OnioNS-server)
 
 This repository provides the networking infrastructure for OnioNS nodes.
 

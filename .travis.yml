@@ -1,0 +1,35 @@
+compiler:
+  - clang
+  - gcc
+os: linux
+before_install:
+  - sudo add-apt-repository "deb mirror://mirrors.ubuntu.com/mirrors.txt trusty main restricted universe"
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq g++ clang cmake libpopt-dev botan1.10-dev libasio-dev libboost-system-dev libjsoncpp-dev
+script:
+  - git clone https://github.com/Jesse-V/OnioNS-common.git
+  - cd OnioNS-common
+  - (cd src/libs/libscrypt && make)
+  - package=tor-onions-common_$(grep -m 1 -o '(.*)' debian/changelog | cut -c 2- | rev | cut -c 2- | rev)
+  - tar -czf $package.orig.tar.gz src/
+  - cp -rl debian src/debian
+  - cd src/
+  - dpkg-buildpackage -rfakeroot -us -uc
+  - sudo dpkg -i ../$package\_amd64.deb
+  - cd ../../
+  - package=tor-onions-server_$(grep -m 1 -o '(.*)' debian/changelog | cut -c 2- | rev | cut -c 2- | rev)
+  - tar -czf $package.orig.tar.gz src/
+  - cp -rl debian src/debian
+  - cd src/
+  - dpkg-buildpackage -rfakeroot -us -uc
+language: cpp
+notifications:
+  email: false
+  irc:
+    channels:
+      - "irc.oftc.net#tor-dev"
+    on_success: change
+    on_failure: change
+    template:
+      - "%{repository} (%{branch} - %{commit}) @kernelcorn %{message}"
+      - "Build details : %{build_url}"
