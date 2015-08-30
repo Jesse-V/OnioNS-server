@@ -27,7 +27,7 @@ notifications:
   email: false
   irc:
     channels:
-      - "irc.oftc.net#tor-dev"
+      - "irc.oftc.net#tor-bots"
     on_success: change
     on_failure: change
     template:
