@@ -135,3 +135,10 @@ std::string Page::toString() const
   Json::FastWriter writer;
   return writer.write(obj);
 }
+
+
+
+ED_KEY Page::getOwnerPublicKey() const
+{
+  return publicEd_;
+}

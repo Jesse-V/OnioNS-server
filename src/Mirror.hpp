@@ -13,15 +13,17 @@ class Mirror
 {
  public:
   static void startServer(const std::string&, ushort, bool);
-  static ED_SIGNATURE signMerkleRoot();
-
   static void addSubscriber(const boost::shared_ptr<Session>&);
   static bool processNewRecord(const RecordPtr&);
-  static std::pair<ED_KEY, ED_KEY> getKeys();
+
+  static ED_SIGNATURE signMerkleRoot();
+  static Json::Value getRootSignature();
 
  private:
-  static void loadPages();
   static void resumeState();
+  static void loadPages();
+  static void loadKeyPair();
+  static ED_KEY loadSecretKey(const std::string&);
   static void subscribeToQuorum(ushort);
   static void receiveEvents(ushort);
 
@@ -29,6 +31,7 @@ class Mirror
   static boost::shared_ptr<Session> authSession_;
   static std::shared_ptr<Page> page_;
   static std::shared_ptr<MerkleTree> merkleTree_;
+  static std::pair<ED_KEY, ED_KEY> keypair_;
   static bool isQuorumNode_;
 };
 

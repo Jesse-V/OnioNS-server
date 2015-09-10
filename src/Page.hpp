@@ -18,6 +18,7 @@ class Page
   std::vector<RecordPtr> getRecords() const;
   SHA384_HASH toHash() const;
   std::string toString() const;
+  ED_KEY getOwnerPublicKey() const;
   // static Page selectPage(const std::vector<Page>&);
 
  private:

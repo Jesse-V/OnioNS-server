@@ -23,6 +23,7 @@ std::vector<boost::shared_ptr<Session>> Mirror::subscribers_;
 boost::shared_ptr<Session> Mirror::authSession_;
 std::shared_ptr<Page> Mirror::page_;
 std::shared_ptr<MerkleTree> Mirror::merkleTree_;
+std::pair<ED_KEY, ED_KEY> Mirror::keypair_;
 bool Mirror::isQuorumNode_;
 
 
@@ -56,18 +57,6 @@ void Mirror::startServer(const std::string& bindIP,
 
 
 
-ED_SIGNATURE Mirror::signMerkleRoot()
-{
-  auto key = getKeys();
-
-  ED_SIGNATURE signature;
-  ed25519_sign(merkleTree_->getRoot().data(), Const::SHA384_LEN,
-               key.first.data(), key.second.data(), signature.data());
-  return signature;
-}
-
-
-
 void Mirror::addSubscriber(const boost::shared_ptr<Session>& session)
 {
   subscribers_.push_back(session);
@@ -93,21 +82,9 @@ bool Mirror::processNewRecord(const RecordPtr& record)
     s->asyncWrite(rEvent);
 
   if (isQuorumNode_)
-  {
-    // todo: we don't need to regenerate and send every time we get a new Record
-    // assemble signatures
-    Json::Value sigObj;
-    ED_SIGNATURE edSig = signMerkleRoot();
-    auto sinceEpoch =
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
-    sigObj["signature"] = Botan::base64_encode(edSig.data(), edSig.size());
-    sigObj["timestamp"] = std::to_string(sinceEpoch);
-
-    // send the signatures
-    Json::Value sigEvent;
-    sigEvent["type"] = "merkleSignature";
-    sigEvent["value"] = sigObj;
+  {  // regenerate merkle tree, sign it, and rebroadcast signatures
+    merkleTree_ = std::make_shared<MerkleTree>(Cache::getSortedList());
+    auto sigEvent = getRootSignature();
     for (auto s : subscribers_)
       s->asyncWrite(sigEvent);
   }
@@ -118,65 +95,50 @@ bool Mirror::processNewRecord(const RecordPtr& record)
 
 
 
-void Mirror::resumeState()
+ED_SIGNATURE Mirror::signMerkleRoot()
 {
-  Log::get().notice("Resuming state... ");
-
-  loadPages();
-  Cache::add(page_->getRecords());
-
-  Log::get().notice("State successfully resumed.");
+  ED_SIGNATURE signature;
+  ed25519_sign(merkleTree_->getRoot().data(), Const::SHA384_LEN,
+               keypair_.first.data(), keypair_.second.data(), signature.data());
+  return signature;
 }
 
 
 
-// returns keypair from file, or generates one if it doesn't exist
-std::pair<ED_KEY, ED_KEY> Mirror::getKeys()  // todo, save to static variable
+Json::Value Mirror::getRootSignature()
 {
-  Log::get().notice("Loading Ed25519 key...");
-  std::string workingDir(getpwuid(getuid())->pw_dir);
-  workingDir += "/.OnioNS/";
+  // assemble signatures
+  Json::Value sigObj;
+  ED_SIGNATURE edSig = signMerkleRoot();
+  auto sinceEpoch =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::system_clock::now().time_since_epoch()).count();
+  sigObj["signature"] = Botan::base64_encode(edSig.data(), edSig.size());
+  sigObj["timestamp"] = std::to_string(sinceEpoch);
+  sigObj["count"] = std::to_string(Cache::getRecordCount());
 
-  // load private key from file, or generate and save a new one
-  ed25519_secret_key sk;
-  std::ifstream keyFile;
-  keyFile.open(workingDir + "ed25519.key", std::fstream::in);
-  if (keyFile.is_open())
-  {
-    Json::Value obj;
-    keyFile >> obj;
-    Botan::base64_decode(sk, obj["key"].asString(), false);
+  // send the signatures
+  Json::Value sigEvent;
+  sigEvent["type"] = "merkleSignature";
+  sigEvent["value"] = sigObj;
+  return sigEvent;
+}
 
-    Log::get().notice("Ed25519 key successfully loaded.");
-  }
-  else
-  {
-    Log::get().notice("Keyfile does not exist. Generating new key...");
 
-    Botan::AutoSeeded_RNG rng;
-    rng.randomize(sk, Const::ED25519_KEY_LEN);
 
-    Json::Value obj;
-    obj["key"] = Botan::base64_encode(sk, Const::ED25519_KEY_LEN);
+// ***************************** PRIVATE METHODS *****************************
 
-    Json::FastWriter writer;
-    mkdir(workingDir.c_str(), 0755);
-    std::fstream keyOutFile(workingDir + "ed25519.key", std::fstream::out);
-    keyOutFile << writer.write(obj);
-    keyOutFile.close();
 
-    Log::get().notice("Ed25519 key successfully saved to disk.");
-  }
 
-  ED_KEY privateKey;
-  memcpy(privateKey.data(), sk, Const::ED25519_KEY_LEN);
+void Mirror::resumeState()
+{
+  Log::get().notice("Resuming state... ");
 
-  ED_KEY publicKey;
-  ed25519_public_key pk;
-  ed25519_publickey(sk, pk);
-  memcpy(publicKey.data(), pk, Const::ED25519_KEY_LEN);
+  loadKeyPair();
+  loadPages();
+  Cache::add(page_->getRecords());
 
-  return std::make_pair(privateKey, publicKey);
+  Log::get().notice("State successfully resumed.");
 }
 
 
@@ -194,7 +156,9 @@ void Mirror::loadPages()
     Json::Value obj;
     pagechainFile >> obj;
     page_ = std::make_shared<Page>(obj);
-    // todo: assert that loaded key matches the key in pagechain.json
+    if (!std::equal(keypair_.second.begin(), keypair_.second.end(),
+                    page_->getOwnerPublicKey().data()))
+      Log::get().error("Mismatched Page public key, does not match keyfile.");
 
     Log::get().notice("Pagechain successfully loaded.");
   }
@@ -206,8 +170,8 @@ void Mirror::loadPages()
                                 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
                                 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
                                 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7};  // todo
-    auto keys = getKeys();
-    page_ = std::make_shared<Page>(latestRandom, keys.second);
+
+    page_ = std::make_shared<Page>(latestRandom, keypair_.second);
 
     mkdir(workingDir.c_str(), 0755);
     std::fstream outFile(workingDir + "pagechain.json", std::fstream::out);
@@ -216,6 +180,67 @@ void Mirror::loadPages()
 
     Log::get().notice("Blank Page successfully saved to disk.");
   }
+}
+
+
+
+void Mirror::loadKeyPair()
+{
+  Log::get().notice("Loading Ed25519 key...");
+  std::string workingDir(getpwuid(getuid())->pw_dir);
+  workingDir += "/.OnioNS/";
+
+  ED_KEY privateKey = loadSecretKey(workingDir);
+  ED_KEY publicKey;
+  ed25519_public_key pk;
+
+  ed25519_publickey(privateKey.data(), pk);
+  memcpy(publicKey.data(), pk, Const::ED25519_KEY_LEN);
+
+  keypair_ = std::make_pair(privateKey, publicKey);
+
+  Log::get().notice("Server public key: " +
+                    Botan::base64_encode(pk, Const::ED25519_KEY_LEN));
+}
+
+
+
+ED_KEY Mirror::loadSecretKey(const std::string& workingDir)
+{  // load private key from file, or generate and save a new one
+
+  ED_KEY sk;
+
+  std::ifstream keyFile;
+  keyFile.open(workingDir + "ed25519.key", std::fstream::in);
+  if (keyFile.is_open())
+  {
+    Json::Value obj;
+    keyFile >> obj;
+    if (Botan::base64_decode(sk.data(), obj["key"].asString()) != sk.size())
+      Log::get().error("Error decoding Ed25519 keyfile: invalid size.");
+
+    Log::get().notice("Ed25519 key successfully loaded.");
+  }
+  else
+  {
+    Log::get().notice("Keyfile does not exist. Generating new key...");
+
+    Botan::AutoSeeded_RNG rng;
+    rng.randomize(sk.data(), Const::ED25519_KEY_LEN);
+
+    Json::Value obj;
+    obj["key"] = Botan::base64_encode(sk.data(), Const::ED25519_KEY_LEN);
+
+    Json::FastWriter writer;
+    mkdir(workingDir.c_str(), 0755);
+    std::fstream keyOutFile(workingDir + "ed25519.key", std::fstream::out);
+    keyOutFile << writer.write(obj);
+    keyOutFile.close();
+
+    Log::get().notice("Ed25519 key successfully saved to disk.");
+  }
+
+  return sk;
 }
 
 
