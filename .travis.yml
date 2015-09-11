@@ -7,7 +7,7 @@ os: linux
 before_install:
   - sudo add-apt-repository "deb mirror://mirrors.ubuntu.com/mirrors.txt trusty main restricted universe" # switch to Ubuntu Trusty
   - sudo apt-get update -qq
-  - sudo apt-get install -qq g++ clang cmake libpopt-dev botan1.10-dev libasio-dev libboost-system-dev libjsoncpp-dev # install dependencies
+  - sudo apt-get install -qq g++ clang cmake libpopt-dev botan1.10-dev libasio-dev libboost-system-dev # install dependencies
 
 before_script:
   # compile and install OnioNS-common library from source

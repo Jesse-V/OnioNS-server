@@ -1,3 +1,6 @@
+//0.6.1.0: link against libscrypt included with OnioNS-common.
+* Link against system installation of libjsoncpp.
+
 tor-onions-server (0.6.0.3~trusty) trusty; urgency=medium
 
   * Management of Ed25519 keypairs.

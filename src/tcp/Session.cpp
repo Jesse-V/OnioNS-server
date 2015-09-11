@@ -121,7 +121,7 @@ Json::Value Session::respond(const std::string& inputStr)
 
 
 
-Json::Value Session::respondToUpload(const Json::Value& in)
+Json::Value Session::respondToUpload(const Json::Value& in) const
 {
   Json::Value response;
   auto r = Common::parseRecord(in["value"].asString());
@@ -145,7 +145,7 @@ Json::Value Session::respondToUpload(const Json::Value& in)
 
 
 
-Json::Value Session::respondToDomainQuery(const Json::Value& in)
+Json::Value Session::respondToDomainQuery(const Json::Value& in) const
 {
   Json::Value response;
   std::string domain = in["value"].asString();
@@ -192,7 +192,7 @@ Json::Value Session::respondToSubscribe(const Json::Value& in)
 
 
 
-Json::Value Session::respondToMerkleSignature(const Json::Value& in)
+Json::Value Session::respondToMerkleSignature(const Json::Value& in) const
 {
   Log::get().notice(std::to_string(id_) + " received Merkle tree signature.");
 
