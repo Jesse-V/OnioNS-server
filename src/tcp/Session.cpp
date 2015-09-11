@@ -82,28 +82,32 @@ Json::Value Session::respond(const std::string& inputStr)
   else
   {
     std::string type(in["type"].asString());
-    out["type"] = "success";
-
     Log::get().notice(std::to_string(id_) + ": Received " + type);
 
-    if (type == "SYN")
-      out["value"] = "ACK";
-    else if (type == "upload")
-      respondToUpload(in, out);
+    if (type == "upload")
+      out = respondToUpload(in);
     else if (type == "domainQuery")
-      respondToDomainQuery(in, out);
+      out = respondToDomainQuery(in);
     else if (type == "subscribe")
-      respondToSubscribe(in, out);
+      out = respondToSubscribe(in);
     else if (type == "merkleSignature")
-      respondToMerkleSignature(in, out);
-    else if (type == "success")
+      out = respondToMerkleSignature(in);
+    else if (type == "SYN")
     {
+      out["type"] = "success";
+      out["value"] = "ACK";
+    }
+    else if (type == "success")
+    {  // no need to reply
       Log::get().notice(std::to_string(id_) + ": Response: \"" +
                         in["value"].asString() + "\"");
       return nullptr;
     }
     else
-      out["error"] = "Unknown type \"" + type + "\"";
+    {
+      out["type"] = "error";
+      out["value"] = "Unknown type \"" + type + "\"";
+    }
   }
 
   if (out["type"].asString() == "error")
@@ -117,8 +121,9 @@ Json::Value Session::respond(const std::string& inputStr)
 
 
 
-void Session::respondToUpload(Json::Value& in, Json::Value& out)
+Json::Value Session::respondToUpload(const Json::Value& in)
 {
+  Json::Value response;
   auto r = Common::parseRecord(in["value"].asString());
   Log::get().notice(std::to_string(id_) + ": received a Record for \"" +
                     r->getName() + "\"");
@@ -126,19 +131,23 @@ void Session::respondToUpload(Json::Value& in, Json::Value& out)
   if (Mirror::processNewRecord(r))
   {
     Log::get().notice(std::to_string(id_) + ": Record successfully processed.");
-    out["value"] = "success";
+    response["type"] = "success";
+    response["value"] = "";
   }
   else
   {
-    out["type"] = "error";
-    out["value"] = "Name-already-taken.";
+    response["type"] = "error";
+    response["value"] = "Name-already-taken.";
   }
+
+  return response;
 }
 
 
 
-void Session::respondToDomainQuery(Json::Value& in, Json::Value& out)
+Json::Value Session::respondToDomainQuery(const Json::Value& in)
 {
+  Json::Value response;
   std::string domain = in["value"].asString();
   if (Utils::strEndsWith(domain, ".tor"))
   {  // resolve .tor -> .onion
@@ -146,41 +155,52 @@ void Session::respondToDomainQuery(Json::Value& in, Json::Value& out)
     auto record = Cache::get(domain);
     if (record)
     {
-      out["value"] = record->asJSON();
+      response["type"] = "success";
+      response["value"] = record->asJSON();
       Log::get().notice(std::to_string(id_) + ": Found Record for \"" + domain +
                         "\"");
     }
     else
     {
-      out["type"] = "error";
-      out["value"] = "404";
+      response["type"] = "error";
+      response["value"] = "404";
       Log::get().notice(std::to_string(id_) + ": 404ed request for \"" +
                         domain + "\"");
     }
   }
   else
   {
-    out["type"] = "error";
-    out["value"] = "Invalid request.";
+    response["type"] = "error";
+    response["value"] = "Invalid request.";
   }
+
+  return response;
 }
 
 
 
-void Session::respondToSubscribe(Json::Value& in, Json::Value& out)
+Json::Value Session::respondToSubscribe(const Json::Value& in)
 {
   Log::get().notice(std::to_string(id_) + " has subscribed.");
+
+  Json::Value response;
   Mirror::addSubscriber(boost::shared_ptr<Session>(this));
-  out["value"] = "success";
+  response["type"] = "success";
+  response["value"] = "";
+  return response;
 }
 
 
 
-void Session::respondToMerkleSignature(Json::Value& in, Json::Value& out)
+Json::Value Session::respondToMerkleSignature(const Json::Value& in)
 {
   Log::get().notice(std::to_string(id_) + " received Merkle tree signature.");
+
   // todo
-  out["value"] = "success";
+  Json::Value response;
+  response["type"] = "success";
+  response["value"] = "";
+  return response;
 }
 
 

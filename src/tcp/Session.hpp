@@ -24,10 +24,10 @@ class Session : public boost::enable_shared_from_this<Session>
   void asyncWrite(const Json::Value&);
 
  private:
-  void respondToUpload(Json::Value&, Json::Value&);
-  void respondToDomainQuery(Json::Value&, Json::Value&);
-  void respondToSubscribe(Json::Value&, Json::Value&);
-  void respondToMerkleSignature(Json::Value&, Json::Value&);
+  Json::Value respondToUpload(const Json::Value&);
+  Json::Value respondToDomainQuery(const Json::Value&);
+  Json::Value respondToSubscribe(const Json::Value&);
+  Json::Value respondToMerkleSignature(const Json::Value&);
 
   void processRead(const boost::system::error_code&, size_t);
   void processWrite(const boost::system::error_code&,
