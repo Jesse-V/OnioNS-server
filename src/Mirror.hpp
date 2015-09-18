@@ -12,27 +12,38 @@
 class Mirror
 {
  public:
-  static void startServer(const std::string&, ushort, bool);
-  static void addSubscriber(const boost::shared_ptr<Session>&);
-  static bool processNewRecord(const RecordPtr&);
+  static Mirror& get()
+  {
+    static Mirror instance;
+    return instance;
+  }
 
-  static ED_SIGNATURE signMerkleRoot();
-  static Json::Value getRootSignature();
+  void startServer(const std::string&, ushort, bool);
+  void addSubscriber(const boost::shared_ptr<Session>&);
+  bool processNewRecord(const RecordPtr&);
+
+  ED_SIGNATURE signMerkleRoot();
+  Json::Value getRootSignature();
+  static std::string getWorkingDir();
 
  private:
-  static void resumeState();
-  static void loadPages();
-  static void loadKeyPair();
-  static ED_KEY loadSecretKey(const std::string&);
-  static void subscribeToQuorum(ushort);
-  static void receiveEvents(ushort);
+  Mirror() {}
+  Mirror(Mirror const&) = delete;
+  void operator=(Mirror const&) = delete;
 
-  static std::vector<boost::shared_ptr<Session>> subscribers_;
-  static boost::shared_ptr<Session> authSession_;
-  static std::shared_ptr<Page> page_;
-  static std::shared_ptr<MerkleTree> merkleTree_;
-  static std::pair<ED_KEY, ED_KEY> keypair_;
-  static bool isQuorumNode_;
+  void resumeState();
+  void loadPages();
+  void loadKeyPair();
+  ED_KEY loadSecretKey(const std::string&);
+  void subscribeToQuorum(ushort);
+  void receiveEvents(ushort);
+
+  std::vector<boost::shared_ptr<Session>> subscribers_;
+  boost::shared_ptr<Session> authSession_;
+  std::shared_ptr<Page> page_;
+  std::shared_ptr<MerkleTree> merkleTree_;
+  std::pair<ED_KEY, ED_KEY> keypair_;
+  bool isQuorumNode_;
 };
 
 #endif

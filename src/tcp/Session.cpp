@@ -128,7 +128,7 @@ Json::Value Session::respondToUpload(const Json::Value& in) const
   Log::get().notice(std::to_string(id_) + ": received a Record for \"" +
                     r->getName() + "\"");
 
-  if (Mirror::processNewRecord(r))
+  if (Mirror::get().processNewRecord(r))
   {
     Log::get().notice(std::to_string(id_) + ": Record successfully processed.");
     response["type"] = "success";
@@ -184,7 +184,7 @@ Json::Value Session::respondToSubscribe(const Json::Value& in)
   Log::get().notice(std::to_string(id_) + " has subscribed.");
 
   Json::Value response;
-  Mirror::addSubscriber(boost::shared_ptr<Session>(this));
+  Mirror::get().addSubscriber(boost::shared_ptr<Session>(this));
   response["type"] = "success";
   response["value"] = "";
   return response;

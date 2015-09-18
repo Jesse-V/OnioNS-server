@@ -73,7 +73,7 @@ int main(int argc, char** argv)
   if (logPath && std::string(logPath) != "-")
     Log::setLogPath(std::string(logPath));
 
-  Mirror::startServer(std::string(bindIP), socksPort, quorumNode);
+  Mirror::get().startServer(std::string(bindIP), socksPort, quorumNode);
 
   return EXIT_SUCCESS;
 }

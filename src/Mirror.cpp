@@ -17,16 +17,6 @@ typedef boost::exception_detail::clone_impl<
     boost::exception_detail::error_info_injector<boost::system::system_error>>
     BoostSystemError;
 
-
-// definitions for static variables
-std::vector<boost::shared_ptr<Session>> Mirror::subscribers_;
-boost::shared_ptr<Session> Mirror::authSession_;
-std::shared_ptr<Page> Mirror::page_;
-std::shared_ptr<MerkleTree> Mirror::merkleTree_;
-std::pair<ED_KEY, ED_KEY> Mirror::keypair_;
-bool Mirror::isQuorumNode_;
-
-
 void Mirror::startServer(const std::string& bindIP,
                          ushort socksPort,
                          bool isQNode)
@@ -126,6 +116,19 @@ Json::Value Mirror::getRootSignature()
 
 
 
+std::string Mirror::getWorkingDir()
+{
+  std::string workingDir(getpwuid(getuid())->pw_dir);
+  workingDir += "/.OnioNS/";
+
+  if (mkdir(workingDir.c_str(), 0750) == 0)
+    Log::get().notice("Working directory successfully created.");
+
+  return workingDir;
+}
+
+
+
 // ***************************** PRIVATE METHODS *****************************
 
 
@@ -146,15 +149,13 @@ void Mirror::resumeState()
 void Mirror::loadPages()
 {
   Log::get().notice("Loading Pagechain from file...");
-  std::string workingDir(getpwuid(getuid())->pw_dir);
-  workingDir += "/.OnioNS/";
 
-  std::ifstream pagechainFile;
-  pagechainFile.open(workingDir + "pagechain.json", std::fstream::in);
-  if (pagechainFile.is_open())
+  std::ifstream pageFile;
+  pageFile.open(getWorkingDir() + "pagechain.json", std::fstream::in);
+  if (pageFile.is_open())
   {
     Json::Value obj;
-    pagechainFile >> obj;
+    pageFile >> obj;
     page_ = std::make_shared<Page>(obj);
     if (!std::equal(keypair_.second.begin(), keypair_.second.end(),
                     page_->getOwnerPublicKey().data()))
@@ -173,8 +174,7 @@ void Mirror::loadPages()
 
     page_ = std::make_shared<Page>(latestRandom, keypair_.second);
 
-    mkdir(workingDir.c_str(), 0755);
-    std::fstream outFile(workingDir + "pagechain.json", std::fstream::out);
+    std::fstream outFile(getWorkingDir() + "pagechain.json", std::fstream::out);
     outFile << page_->toString();
     outFile.close();
 
@@ -187,10 +187,8 @@ void Mirror::loadPages()
 void Mirror::loadKeyPair()
 {
   Log::get().notice("Loading Ed25519 key...");
-  std::string workingDir(getpwuid(getuid())->pw_dir);
-  workingDir += "/.OnioNS/";
 
-  ED_KEY privateKey = loadSecretKey(workingDir);
+  ED_KEY privateKey = loadSecretKey(getWorkingDir());
   ED_KEY publicKey;
   ed25519_public_key pk;
 
@@ -232,7 +230,6 @@ ED_KEY Mirror::loadSecretKey(const std::string& workingDir)
     obj["key"] = Botan::base64_encode(sk.data(), Const::ED25519_KEY_LEN);
 
     Json::FastWriter writer;
-    mkdir(workingDir.c_str(), 0755);
     std::fstream keyOutFile(workingDir + "ed25519.key", std::fstream::out);
     keyOutFile << writer.write(obj);
     keyOutFile.close();
@@ -247,7 +244,12 @@ ED_KEY Mirror::loadSecretKey(const std::string& workingDir)
 
 void Mirror::subscribeToQuorum(ushort socksPort)
 {
-  std::thread t(std::bind(&Mirror::receiveEvents, socksPort));
+  std::thread t(std::bind(
+      [&](ushort sp)
+      {
+        Mirror::get().receiveEvents(sp);
+      },
+      socksPort));
   t.detach();
 }
 
