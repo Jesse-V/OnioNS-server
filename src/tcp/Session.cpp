@@ -32,6 +32,13 @@ Session::~Session()
 
 
 
+int Session::getID() const
+{
+  return id_;
+}
+
+
+
 void Session::asyncRead()
 {
   socket_->async_read_some(
@@ -84,18 +91,18 @@ Json::Value Session::respond(const std::string& inputStr)
     std::string type(in["type"].asString());
     Log::get().notice(std::to_string(id_) + ": Received " + type);
 
-    if (type == "upload")
-      out = respondToUpload(in);
+    if (type == "putRecord")
+      out = respondToPutRecord(in);
     else if (type == "domainQuery")
       out = respondToDomainQuery(in);
-    else if (type == "subscribe")
-      out = respondToSubscribe(in);
-    else if (type == "merkleSignature")
-      out = respondToMerkleSignature(in);
-    else if (type == "SYN")
+    else if (type == "getMerkleSubtree")
+      out = respondToGetMerkleSubtree(in);
+    else if (type == "getRootSignature")
+      out = respondToGetRootSignature(in);
+    else if (type == "waitForRecord")
     {
-      out["type"] = "success";
-      out["value"] = "ACK";
+      Mirror::get().subscribeForRecords(boost::shared_ptr<Session>(this));
+      return nullptr;
     }
     else if (type == "success")
     {  // no need to reply
@@ -116,19 +123,20 @@ Json::Value Session::respond(const std::string& inputStr)
     Log::get().warn(std::to_string(id_) + ": " + out["value"].asString());
   }
 
+  out["signature"] = Mirror::get().signTransmission(out);
   return out;
 }
 
 
 
-Json::Value Session::respondToUpload(const Json::Value& in) const
+Json::Value Session::respondToPutRecord(const Json::Value& in) const
 {
   Json::Value response;
   auto r = Common::parseRecord(in["value"].asString());
   Log::get().notice(std::to_string(id_) + ": received a Record for \"" +
                     r->getName() + "\"");
 
-  if (Mirror::get().processNewRecord(r))
+  if (Mirror::get().processNewRecord(id_, r))
   {
     Log::get().notice(std::to_string(id_) + ": Record successfully processed.");
     response["type"] = "success";
@@ -137,7 +145,7 @@ Json::Value Session::respondToUpload(const Json::Value& in) const
   else
   {
     response["type"] = "error";
-    response["value"] = "Name-already-taken.";
+    response["value"] = "Name already taken.";
   }
 
   return response;
@@ -179,28 +187,57 @@ Json::Value Session::respondToDomainQuery(const Json::Value& in) const
 
 
 
-Json::Value Session::respondToSubscribe(const Json::Value& in)
+Json::Value Session::respondToGetMerkleSubtree(const Json::Value& in) const
 {
-  Log::get().notice(std::to_string(id_) + " has subscribed.");
-
   Json::Value response;
-  Mirror::get().addSubscriber(boost::shared_ptr<Session>(this));
-  response["type"] = "success";
-  response["value"] = "";
+
+  std::string domain = in["value"].asString();
+  if (Utils::strEndsWith(domain, ".tor"))
+  {
+    response["type"] = "success";
+    response["value"] = Mirror::get().getMerkleTree()->getPathTo(domain);
+    Log::get().notice(std::to_string(id_) + ": Assembled subtree for \"" +
+                      domain + "\"");
+  }
+  else
+  {
+    response["type"] = "error";
+    response["value"] = "Invalid request.";
+    Log::get().notice(std::to_string(id_) + ": Failed subtree request for \"" +
+                      domain + "\"");
+  }
+
   return response;
 }
 
 
 
-Json::Value Session::respondToMerkleSignature(const Json::Value& in) const
+Json::Value Session::respondToGetRootSignature(const Json::Value& in) const
 {
+  return Mirror::get().getRootSignature();
+
+  /*
   Log::get().notice(std::to_string(id_) + " received Merkle tree signature.");
 
-  // todo
   Json::Value response;
   response["type"] = "success";
   response["value"] = "";
-  return response;
+
+  int status = Mirror::get().verifyRootSignature(in["value"].asString());
+  if (status == 0)
+    Log::get().notice(std::to_string(id_) + " good Merkle root signature.");
+  else if (status == 1)
+  {
+    response["type"] = "error";
+    response["value"] = "Bad Ed25519 signature on Merkle root.";
+  }
+  else if (status == -1)
+  {
+    response["type"] = "error";
+    response["value"] = "General Ed25519 failure on Merkle root.";
+  }
+
+  return response;*/
 }
 
 
