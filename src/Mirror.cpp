@@ -115,11 +115,10 @@ Json::Value Mirror::getRootSignature() const
                     : Botan::base64_encode(qRootSig_.data(), qRootSig_.size());
   sigObj["count"] = std::to_string(Cache::getRecordCount());
 
-  Json::Value sigEvent;
-  sigEvent["type"] = "merkleSignature";
-  sigEvent["value"] = sigObj;
-
-  return sigEvent;
+  Json::Value response;
+  response["type"] = "merkleSignature";
+  response["value"] = sigObj;
+  return response;
 }
 
 
@@ -136,20 +135,22 @@ ED_SIGNATURE Mirror::fetchQuorumRootSignature()
   }
   else
   {
-    if (!response.isMember("signature") || !response.isMember("count"))
+    Json::Value sigObj = response["value"];
+
+    if (!sigObj.isMember("signature") || !sigObj.isMember("count"))
       Log::get().error("Invalid root signature response from server.");
 
     // check number of Records
-    if (response["count"].asInt() != Cache::getRecordCount())
-      Log::get().warn("Quorum has " + response["count"].asString() +
+    if (sigObj["count"].asInt() != Cache::getRecordCount())
+      Log::get().warn("Quorum has " + sigObj["count"].asString() +
                       " records, we have " +
                       std::to_string(Cache::getRecordCount()));
     // todo: we are out of date
 
     // decode signature
-    if (Botan::base64_decode(sig.data(), response["signature"].asString()) !=
+    if (Botan::base64_decode(sig.data(), sigObj["signature"].asString()) !=
         sig.size())
-      Log::get().warn("Invalid root signature from Quorum node.");
+      Log::get().warn("Invalid root signature length from Quorum node.");
 
     // get public key
     ED_KEY qPubKey;
@@ -170,30 +171,6 @@ ED_SIGNATURE Mirror::fetchQuorumRootSignature()
 
   return sig;
 }
-
-
-/*
-// 1 for failure, 0 for success, -1 for crypto error, like sign_open
-int Mirror::verifyRootSignature(const Json::Value& sigObj) const
-{
-  if (!sigObj.isMember("signature") || !sigObj.isMember("count"))
-    return 1;
-
-  if (sigObj["count"].asInt() != Cache::getRecordCount())
-    return 1;  // todo: we are out of date
-
-  ED_SIGNATURE sig;
-  if (Botan::base64_decode(sig.data(), sigObj["signature"].asString()) !=
-      sig.size())
-    return 1;
-
-  ED_KEY qPubKey;
-  static auto Q_KEY = Config::getQuorumNode()[0]["key"].asString();
-  std::copy(Q_KEY.begin(), Q_KEY.end(), qPubKey.data());
-
-  return ed25519_sign_open(merkleTree_->getRoot().data(), Const::SHA384_LEN,
-                           qPubKey.data(), sig.data());
-}*/
 
 
 
