@@ -325,15 +325,12 @@ void Mirror::subscribeToQuorum(ushort socksPort)
   const auto Q_ONION = Q_NODE["addr"].asString();
   const auto Q_KEY = Q_NODE["key"].asString();
 
-  ED_KEY qPubKey;
-  std::copy(Q_KEY.begin(), Q_KEY.end(), qPubKey.data());
-
   while (true)  // reestablish lost network connection
   {
     try
     {
       qStream_ = std::make_shared<AuthenticatedStream>(
-          "127.0.0.1", socksPort, Q_ONION, REMOTE_PORT, qPubKey);
+          "127.0.0.1", socksPort, Q_ONION, REMOTE_PORT, Q_KEY);
       // todo, are we even using authStream?
       // we are just using TorStream to tunnel through SOCKS5!
 
