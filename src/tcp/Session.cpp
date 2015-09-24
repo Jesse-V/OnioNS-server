@@ -104,6 +104,11 @@ Json::Value Session::respond(const std::string& inputStr)
       Mirror::get().subscribeForRecords(boost::shared_ptr<Session>(this));
       return nullptr;
     }
+    else if (type == "SYN")
+    {
+      out["type"] = "success";
+      out["value"] = "ACK";
+    }
     else if (type == "success")
     {  // no need to reply
       Log::get().notice(std::to_string(id_) + ": Response: \"" +
@@ -111,7 +116,7 @@ Json::Value Session::respond(const std::string& inputStr)
       return nullptr;
     }
     else
-    {
+    { // todo: #78 might still be here
       out["type"] = "error";
       out["value"] = "Unknown type \"" + type + "\"";
     }
