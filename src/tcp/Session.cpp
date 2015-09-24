@@ -116,7 +116,7 @@ Json::Value Session::respond(const std::string& inputStr)
       return nullptr;
     }
     else
-    { // todo: #78 might still be here
+    {  // todo: #78 might still be here
       out["type"] = "error";
       out["value"] = "Unknown type \"" + type + "\"";
     }

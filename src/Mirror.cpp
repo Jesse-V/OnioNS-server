@@ -329,12 +329,24 @@ void Mirror::subscribeToQuorum(ushort socksPort)
   {
     try
     {
+      Log::get().notice("Connecting to Quorum node...");
+
       qStream_ = std::make_shared<AuthenticatedStream>(
           "127.0.0.1", socksPort, Q_ONION, REMOTE_PORT, Q_KEY);
+    }
+    catch (const std::runtime_error& re)
+    {
+      Log::get().warn("Failed to connect, " + std::string(re.what()));
+      std::this_thread::sleep_for(std::chrono::seconds(RECONNECT_DELAY));
+      continue;
+    }
+
+    try
+    {
+      Log::get().notice("Subscribing to Quorum node for events...");
+
       // todo, are we even using authStream?
       // we are just using TorStream to tunnel through SOCKS5!
-
-      Log::get().notice("Subscribing to events...");
       qStream_->getIO().reset();  // reset for new asynchronous calls
       qSession_ = boost::make_shared<Session>(qStream_->getSocket(), -1);
       qSession_->asyncWrite("waitForRecord", "");  // this calls asyncRead
@@ -342,63 +354,13 @@ void Mirror::subscribeToQuorum(ushort socksPort)
     }
     catch (const BoostSystemError& ex)
     {
-      Log::get().warn("Connection error, " + std::string(ex.what()));
+      Log::get().warn("Quorum connection error, " + std::string(ex.what()));
+      Log::get().warn("Lost connection to Quorum server.");
       std::this_thread::sleep_for(std::chrono::seconds(RECONNECT_DELAY));
       continue;
     }
 
-    Log::get().warn("Lost connection to Quorum server.");
-    std::this_thread::sleep_for(std::chrono::seconds(RECONNECT_DELAY));
-  }
-
-
-
-  /*
-  std::thread t(std::bind(
-      [&](ushort sp)
-      {
-        Mirror::get().receiveEvents(sp);
-      },
-      socksPort));
-  t.detach();*/
-}
-
-
-/*
-void Mirror::receiveEvents(ushort socksPort)
-{
-  const static int RECONNECT_DELAY = 10;
-  const auto Q_NODE = Config::getQuorumNode()[0];
-  const auto Q_ONION = Q_NODE["addr"].asString();
-  const auto Q_KEY = Q_NODE["key"].asString();
-
-  ED_KEY qPubKey;
-  std::copy(Q_KEY.begin(), Q_KEY.end(), qPubKey.data());
-
-  while (true)  // reestablish lost network connection
-  {
-    try
-    {
-      AuthenticatedStream authStream("127.0.0.1", socksPort, Q_ONION,
-                                     Const::SERVER_PORT, qPubKey);
-      // todo, are we even using authStream?
-      // we are just using TorStream to tunnel through SOCKS5!
-
-      Log::get().notice("Subscribing to events...");
-      authStream.getIO().reset();  // reset for new asynchronous calls
-      authSession_ = boost::make_shared<Session>(authStream.getSocket(), -1);
-      authSession_->asyncWrite("subscribe", "");  // this calls asyncRead
-      authStream.getIO().run();                   // run asynchronous calls
-    }
-    catch (const BoostSystemError& ex)
-    {
-      Log::get().warn("Connection error, " + std::string(ex.what()));
-      std::this_thread::sleep_for(std::chrono::seconds(RECONNECT_DELAY));
-      continue;
-    }
-
-    Log::get().warn("Lost connection to Quorum server.");
-    std::this_thread::sleep_for(std::chrono::seconds(RECONNECT_DELAY));
+    // the code is never expected to get here
+    Log::get().error("General networking failure!");
   }
 }
-*/

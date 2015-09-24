@@ -61,7 +61,7 @@ void Server::handleAccept(boost::shared_ptr<Session> session,
     return;
   }
 
-  Log::get().notice("Connection accepted (#" + std::to_string(id - 1) + ")");
+  Log::get().notice("Connection accepted (" + std::to_string(id - 1) + ")");
 
   session->asyncRead();
 
