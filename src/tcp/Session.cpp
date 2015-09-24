@@ -73,12 +73,14 @@ void Session::asyncWrite(const Json::Value& val)
 
 
 
-Json::Value Session::respond(const std::string& inputStr)
+void Session::processMessage(const std::string& inputStr)
 {
   Json::Value in, out;
   Json::Reader reader;
   out["type"] = "error";
   out["value"] = "";
+
+  std::cout << inputStr << std::endl;
 
   if (!reader.parse(inputStr, in))
     out["value"] = "Failed to parse message!";
@@ -86,40 +88,10 @@ Json::Value Session::respond(const std::string& inputStr)
     out["value"] = "Message is missing the \"type\" field!";
   else if (!in.isMember("value"))
     out["value"] = "Message is missing the \"value\" field!";
-  else
+  else if (!respond(in, out))
   {
-    std::string type(in["type"].asString());
-    Log::get().notice(std::to_string(id_) + ": Received " + type);
-
-    if (type == "putRecord")
-      out = respondToPutRecord(in);
-    else if (type == "domainQuery")
-      out = respondToDomainQuery(in);
-    else if (type == "getMerkleSubtree")
-      out = respondToGetMerkleSubtree(in);
-    else if (type == "getRootSignature")
-      out = Mirror::get().getRootSignature();
-    else if (type == "waitForRecord")
-    {
-      Mirror::get().subscribeForRecords(boost::shared_ptr<Session>(this));
-      return nullptr;
-    }
-    else if (type == "SYN")
-    {
-      out["type"] = "success";
-      out["value"] = "ACK";
-    }
-    else if (type == "success")
-    {  // no need to reply
-      Log::get().notice(std::to_string(id_) + ": Response: \"" +
-                        in["value"].asString() + "\"");
-      return nullptr;
-    }
-    else
-    {  // todo: #78 might still be here
-      out["type"] = "error";
-      out["value"] = "Unknown type \"" + type + "\"";
-    }
+    asyncRead();  // no reply need, so read again
+    return;
   }
 
   if (out["type"].asString() == "error")
@@ -129,7 +101,44 @@ Json::Value Session::respond(const std::string& inputStr)
   }
 
   out["signature"] = Mirror::get().signTransmission(out);
-  return out;
+  asyncWrite(out);
+}
+
+
+
+bool Session::respond(const Json::Value& in, Json::Value& out)
+{
+  std::string type(in["type"].asString());
+  Log::get().notice(std::to_string(id_) + ": Received " + type);
+
+  if (type == "putRecord")
+    out = respondToPutRecord(in);
+  else if (type == "domainQuery")
+    out = respondToDomainQuery(in);
+  else if (type == "getMerkleSubtree")
+    out = respondToGetMerkleSubtree(in);
+  else if (type == "getRootSignature")
+    out = Mirror::get().getRootSignature();
+  else if (type == "SYN")
+  {
+    out["type"] = "success";
+    out["value"] = "ACK";
+  }
+  else if (type == "waitForRecord")
+  {
+    Mirror::get().subscribeForRecords(boost::shared_ptr<Session>(this));
+    Log::get().notice(std::to_string(id_) + ": is waiting for Records.");
+    return false;
+  }
+  else if (type == "success")
+    return false;
+  else
+  {  // todo: #78 might still be here
+    out["type"] = "error";
+    out["value"] = "Unknown type \"" + type + "\"";
+  }
+
+  return true;
 }
 
 
@@ -246,13 +255,7 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
     // cut out word
     std::string input = inBuffer_.substr(0, delimiter);
     inBuffer_.erase(0, delimiter + 1);
-
-    // process message
-    auto response = respond(input);
-    if (!response)
-      asyncRead();  // no reply need, so read again
-    else
-      asyncWrite(response);
+    processMessage(input);
   }
 }
 

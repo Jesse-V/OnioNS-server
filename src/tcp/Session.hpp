@@ -18,13 +18,14 @@ class Session : public boost::enable_shared_from_this<Session>
   Session(const SocketPtr&, int);
   ~Session();
   int getID() const;
-  Json::Value respond(const std::string&);
 
   void asyncRead();
   void asyncWrite(const std::string&, const std::string&);
   void asyncWrite(const Json::Value&);
 
  private:
+  void processMessage(const std::string&);
+  bool respond(const Json::Value&, Json::Value&);
   Json::Value respondToPutRecord(const Json::Value&) const;
   Json::Value respondToDomainQuery(const Json::Value&) const;
   Json::Value respondToGetMerkleSubtree(const Json::Value&) const;
