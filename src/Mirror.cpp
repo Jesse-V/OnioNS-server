@@ -319,7 +319,7 @@ ED_KEY Mirror::loadSecretKey(const std::string& workingDir)
 
 void Mirror::subscribeToQuorum(ushort socksPort)
 {
-  const static int RECONNECT_DELAY = 10;
+  const static int RECONNECT_DELAY = 20;
   const static auto REMOTE_PORT = Const::SERVER_PORT;
   const auto Q_NODE = Config::getQuorumNode()[0];
   const auto Q_ONION = Q_NODE["addr"].asString();
