@@ -98,7 +98,7 @@ Json::Value Session::respond(const std::string& inputStr)
     else if (type == "getMerkleSubtree")
       out = respondToGetMerkleSubtree(in);
     else if (type == "getRootSignature")
-      out = respondToGetRootSignature(in);
+      out = Mirror::get().getRootSignature();
     else if (type == "waitForRecord")
     {
       Mirror::get().subscribeForRecords(boost::shared_ptr<Session>(this));
@@ -217,36 +217,6 @@ Json::Value Session::respondToGetMerkleSubtree(const Json::Value& in) const
 
 
 
-Json::Value Session::respondToGetRootSignature(const Json::Value& in) const
-{
-  return Mirror::get().getRootSignature();
-
-  /*
-  Log::get().notice(std::to_string(id_) + " received Merkle tree signature.");
-
-  Json::Value response;
-  response["type"] = "success";
-  response["value"] = "";
-
-  int status = Mirror::get().verifyRootSignature(in["value"].asString());
-  if (status == 0)
-    Log::get().notice(std::to_string(id_) + " good Merkle root signature.");
-  else if (status == 1)
-  {
-    response["type"] = "error";
-    response["value"] = "Bad Ed25519 signature on Merkle root.";
-  }
-  else if (status == -1)
-  {
-    response["type"] = "error";
-    response["value"] = "General Ed25519 failure on Merkle root.";
-  }
-
-  return response;*/
-}
-
-
-
 // called by Asio whenever the socket has been read into the buffer
 void Session::processRead(const boost::system::error_code& error, size_t n)
 {
@@ -275,11 +245,11 @@ void Session::processRead(const boost::system::error_code& error, size_t n)
   {
     // cut out word
     std::string input = inBuffer_.substr(0, delimiter);
-    inBuffer_.erase(0, delimiter);
+    inBuffer_.erase(0, delimiter + 1);
 
     // process message
     auto response = respond(input);
-    if (response == nullptr)
+    if (!response)
       asyncRead();  // no reply need, so read again
     else
       asyncWrite(response);

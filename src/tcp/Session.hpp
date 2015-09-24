@@ -28,7 +28,6 @@ class Session : public boost::enable_shared_from_this<Session>
   Json::Value respondToPutRecord(const Json::Value&) const;
   Json::Value respondToDomainQuery(const Json::Value&) const;
   Json::Value respondToGetMerkleSubtree(const Json::Value&) const;
-  Json::Value respondToGetRootSignature(const Json::Value&) const;
 
   void processRead(const boost::system::error_code&, size_t);
   void processWrite(const boost::system::error_code&,

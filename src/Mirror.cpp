@@ -355,12 +355,13 @@ void Mirror::subscribeToQuorum(ushort socksPort)
     catch (const BoostSystemError& ex)
     {
       Log::get().warn("Quorum connection error, " + std::string(ex.what()));
-      Log::get().warn("Lost connection to Quorum server.");
-      std::this_thread::sleep_for(std::chrono::seconds(RECONNECT_DELAY));
-      continue;
+    }
+    catch (const std::runtime_error& re)
+    {
+      Log::get().warn("Lost Quorum connection, " + std::string(re.what()));
     }
 
-    // the code is never expected to get here
-    Log::get().error("General networking failure!");
+    std::this_thread::sleep_for(std::chrono::seconds(RECONNECT_DELAY));
+    continue;
   }
 }
