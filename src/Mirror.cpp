@@ -34,12 +34,10 @@ void Mirror::startServer(const std::string& bindIP,
   {
     if (!isQNode)
     {
-      std::thread t(std::bind(
-          [&](ushort sp)
-          {
-            subscribeToQuorum(socksPort);
-          },
-          socksPort));
+      std::thread t([&]()
+                    {
+                      subscribeToQuorum(socksPort);
+                    });
       t.detach();
     }
 
@@ -116,7 +114,7 @@ std::string Mirror::signTransmission(const Json::Value& trans) const
 Json::Value Mirror::getRootSignature() const
 {
   Json::Value sigObj;
-  sigObj["count"] = std::to_string(Cache::getRecordCount());
+  sigObj["count"] = (int)Cache::getRecordCount();
   sigObj["signature"] =
       isQuorumNode_ ? signMerkleRoot()
                     : Botan::base64_encode(qRootSig_.data(), qRootSig_.size());
@@ -138,7 +136,7 @@ ED_SIGNATURE Mirror::fetchQuorumRootSignature()
 
   auto response = qStream_->sendReceive("getRootSignature", "");
   if (response["type"] == "error")
-  {
+  {  // todo: bug: we return a blank sig in this case
     Log::get().warn("Error when getting root signature from Quorum node: " +
                     response["value"].asString());
   }
