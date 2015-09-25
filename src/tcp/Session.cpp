@@ -28,6 +28,7 @@ Session::Session(const SocketPtr& socket, int id) : socket_(socket), id_(id)
 Session::~Session()
 {
   Log::get().notice("Session " + std::to_string(id_) + " deallocating.");
+  Mirror::get().removeSubscriber(this);
 }
 
 
@@ -124,7 +125,7 @@ bool Session::respond(const Json::Value& in, Json::Value& out)
   }
   else if (type == "waitForRecord")
   {
-    Mirror::get().subscribeForRecords(this);
+    Mirror::get().addSubscriber(this);
     Log::get().notice(std::to_string(id_) + ": is waiting for Records.");
     return false;
   }

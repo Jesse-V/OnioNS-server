@@ -52,9 +52,19 @@ void Mirror::startServer(const std::string& bindIP,
 
 
 
-void Mirror::subscribeForRecords(Session* session)
+void Mirror::addSubscriber(Session* session)
 {
-  waitingForRecords_.push_back(session);
+  subscribers_.push_back(session);
+}
+
+
+
+void Mirror::removeSubscriber(Session* session)
+{
+  // todo: bug: possible race condition with tellSubscribers
+  auto location = std::find(subscribers_.begin(), subscribers_.end(), session);
+  if (location != subscribers_.end())
+    subscribers_.erase(location);
 }
 
 
@@ -83,17 +93,17 @@ bool Mirror::processNewRecord(int sessionID, const RecordPtr& record)
 void Mirror::tellSubscribers(const RecordPtr& record)
 {
   Log::get().notice("Broadcasting Record to " +
-                    std::to_string(waitingForRecords_.size()) + " servers...");
+                    std::to_string(subscribers_.size()) + " servers...");
 
   // send the Record
   Json::Value rEvent;
   rEvent["type"] = "putRecord";
   rEvent["value"] = record->asJSON();
-  for (auto session : waitingForRecords_)
+  for (auto session : subscribers_)
     if (session)
       session->asyncWrite(rEvent);
 
-  waitingForRecords_.clear();
+  subscribers_.clear();
   Log::get().notice("Broadcast complete.");
 }
 
