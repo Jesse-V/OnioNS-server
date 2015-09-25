@@ -80,8 +80,6 @@ void Session::processMessage(const std::string& inputStr)
   out["type"] = "error";
   out["value"] = "";
 
-  std::cout << inputStr << std::endl;
-
   if (!reader.parse(inputStr, in))
     out["value"] = "Failed to parse message!";
   else if (!in.isMember("type"))
@@ -126,7 +124,7 @@ bool Session::respond(const Json::Value& in, Json::Value& out)
   }
   else if (type == "waitForRecord")
   {
-    Mirror::get().subscribeForRecords(boost::shared_ptr<Session>(this));
+    Mirror::get().subscribeForRecords(this);
     Log::get().notice(std::to_string(id_) + ": is waiting for Records.");
     return false;
   }

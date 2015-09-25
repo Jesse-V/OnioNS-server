@@ -19,7 +19,7 @@ class Mirror
   }
 
   void startServer(const std::string&, ushort, bool);
-  void subscribeForRecords(const boost::shared_ptr<Session>&);
+  void subscribeForRecords(Session*);
   bool processNewRecord(int, const RecordPtr&);
   void tellSubscribers(const RecordPtr&);
 
@@ -47,7 +47,7 @@ class Mirror
   ED_SIGNATURE qRootSig_;
   std::shared_ptr<Page> page_;
   std::shared_ptr<MerkleTree> merkleTree_;
-  std::vector<boost::shared_ptr<Session>> waitingForRecords_;
+  std::vector<Session*> waitingForRecords_;
   std::pair<ED_KEY, ED_KEY> keypair_;
   bool isQuorumNode_;
 };

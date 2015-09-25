@@ -48,7 +48,7 @@ void Mirror::startServer(const std::string& bindIP,
 
 
 
-void Mirror::subscribeForRecords(const boost::shared_ptr<Session>& session)
+void Mirror::subscribeForRecords(Session* session)
 {
   waitingForRecords_.push_back(session);
 }
@@ -86,7 +86,8 @@ void Mirror::tellSubscribers(const RecordPtr& record)
   rEvent["type"] = "putRecord";
   rEvent["value"] = record->asJSON();
   for (auto session : waitingForRecords_)
-    session->asyncWrite(rEvent);
+    if (session)
+      session->asyncWrite(rEvent);
 
   waitingForRecords_.clear();
   Log::get().notice("Broadcast complete.");
