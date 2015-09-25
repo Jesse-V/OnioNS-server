@@ -71,19 +71,30 @@ void Mirror::removeSubscriber(Session* session)
 
 bool Mirror::processNewRecord(int sessionID, const RecordPtr& record)
 {
-  if (!Cache::add(record))
-    return false;  // if already exists in cache
+  if (!isQuorumNode_)
+  {
+    if (sessionID == qSession_->getID())
+    {
+      Log::get().notice("Record came from Quorum. Requesting signature.");
+      qRootSig_ = fetchQuorumRootSignature();
+    }
+    else
+    {
+      Log::get().warn("Only Quorum nodes can accept Records.");
+      return false;
+    }
+  }
 
-  page_->addRecord(record);
-  tellSubscribers(record);
+  if (!Cache::add(record))
+  {
+    Log::get().warn("Record already exists.");
+    return false;
+  }
 
   merkleTree_ = std::make_shared<MerkleTree>(Cache::getSortedList());
+  page_->addRecord(record);
 
-  if (!isQuorumNode_ && sessionID == qSession_->getID())
-  {
-    Log::get().notice("Record came from Quorum. Requesting signature.");
-    qRootSig_ = fetchQuorumRootSignature();
-  }
+  tellSubscribers(record);
 
   return true;
 }

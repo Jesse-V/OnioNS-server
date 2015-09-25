@@ -158,7 +158,7 @@ Json::Value Session::respondToPutRecord(const Json::Value& in) const
   else
   {
     response["type"] = "error";
-    response["value"] = "Name already taken.";
+    response["value"] = "Cannot accept Record.";
   }
 
   return response;
