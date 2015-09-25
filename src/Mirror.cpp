@@ -23,19 +23,25 @@ void Mirror::startServer(const std::string& bindIP,
                          bool isQNode)
 {
   isQuorumNode_ = isQNode;
-  resumeState();
+  resumeState();  // todo: differentiate between loadState and resumeState
 
   if (isQNode)
     Log::get().notice("Running as a Quorum server.");
   else
     Log::get().notice("Running as normal server.");
 
-  // auto mt = std::make_shared<MerkleTree>(Cache::get().getSortedList());
-
   try
   {
     if (!isQNode)
-      subscribeToQuorum(socksPort);
+    {
+      std::thread t(std::bind(
+          [&](ushort sp)
+          {
+            subscribeToQuorum(socksPort);
+          },
+          socksPort));
+      t.detach();
+    }
 
     Server s(bindIP);
     s.start();
