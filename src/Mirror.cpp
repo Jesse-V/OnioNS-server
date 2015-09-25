@@ -22,10 +22,10 @@ void Mirror::startServer(const std::string& bindIP,
                          ushort socksPort,
                          bool isQNode)
 {
-  resumeState();
   isQuorumNode_ = isQNode;
+  resumeState();
 
-  if (isQuorumNode_)
+  if (isQNode)
     Log::get().notice("Running as a Quorum server.");
   else
     Log::get().notice("Running as normal server.");
@@ -34,7 +34,7 @@ void Mirror::startServer(const std::string& bindIP,
 
   try
   {
-    if (!isQuorumNode_)
+    if (!isQNode)
       subscribeToQuorum(socksPort);
 
     Server s(bindIP);
@@ -65,7 +65,7 @@ bool Mirror::processNewRecord(int sessionID, const RecordPtr& record)
 
   merkleTree_ = std::make_shared<MerkleTree>(Cache::getSortedList());
 
-  if (sessionID == qSession_->getID())
+  if (!isQuorumNode_ && sessionID == qSession_->getID())
   {
     Log::get().notice("Record came from Quorum. Requesting signature.");
     qRootSig_ = fetchQuorumRootSignature();
@@ -95,10 +95,11 @@ void Mirror::tellSubscribers(const RecordPtr& record)
 
 
 
-std::string Mirror::signTransmission(const Json::Value& value) const
+std::string Mirror::signTransmission(const Json::Value& trans) const
 {
   ED_SIGNATURE signature;
-  std::string data = value["type"].asString() + value["value"].asString();
+  std::string data =
+      trans["type"].toStyledString() + trans["value"].toStyledString();
   ed25519_sign(reinterpret_cast<const uint8_t*>(data.c_str()), data.length(),
                keypair_.first.data(), keypair_.second.data(), signature.data());
   return Botan::base64_encode(signature.data(), signature.size());
@@ -108,13 +109,11 @@ std::string Mirror::signTransmission(const Json::Value& value) const
 
 Json::Value Mirror::getRootSignature() const
 {
-  // todo: if Q, return my own, otherwise archived
-
   Json::Value sigObj;
+  sigObj["count"] = std::to_string(Cache::getRecordCount());
   sigObj["signature"] =
       isQuorumNode_ ? signMerkleRoot()
                     : Botan::base64_encode(qRootSig_.data(), qRootSig_.size());
-  sigObj["count"] = std::to_string(Cache::getRecordCount());
 
   Json::Value response;
   response["type"] = "merkleSignature";
@@ -127,6 +126,9 @@ Json::Value Mirror::getRootSignature() const
 ED_SIGNATURE Mirror::fetchQuorumRootSignature()
 {
   ED_SIGNATURE sig;
+
+  if (isQuorumNode_)
+    Log::get().error("Quorum nodes cannot _yet_ fetch root signatures.");
 
   auto response = qStream_->sendReceive("getRootSignature", "");
   if (response["type"] == "error")
@@ -156,7 +158,8 @@ ED_SIGNATURE Mirror::fetchQuorumRootSignature()
     // get public key
     ED_KEY qPubKey;
     static auto Q_KEY = Config::getQuorumNode()[0]["key"].asString();
-    std::copy(Q_KEY.begin(), Q_KEY.end(), qPubKey.data());
+    if (Botan::base64_decode(qPubKey.data(), Q_KEY) != Const::ED25519_KEY_LEN)
+      Log::get().warn("Quorum node key has an invalid length.");
 
     // check signature
     int status =
