@@ -27,7 +27,7 @@ class Mirror
   std::string signTransmission(const Json::Value& value) const;
   Json::Value getRootSignature() const;
   std::string signMerkleRoot() const;
-  ED_SIGNATURE fetchQuorumRootSignature();
+  bool fetchQuorumRootSignature();
   static std::string getWorkingDir();
   std::shared_ptr<MerkleTree> getMerkleTree() const;
 

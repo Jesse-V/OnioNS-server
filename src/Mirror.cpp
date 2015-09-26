@@ -1,6 +1,7 @@
 
 #include "Mirror.hpp"
 #include "tcp/Server.hpp"
+#include <onions-common/Common.hpp>
 #include <onions-common/containers/Cache.hpp>
 #include <onions-common/Log.hpp>
 #include <onions-common/Config.hpp>
@@ -76,7 +77,8 @@ bool Mirror::processNewRecord(int sessionID, const RecordPtr& record)
     if (sessionID == qSession_->getID())
     {
       Log::get().notice("Record came from Quorum. Requesting signature.");
-      qRootSig_ = fetchQuorumRootSignature();
+      if (!fetchQuorumRootSignature())
+        return false;
     }
     else
     {
@@ -148,57 +150,34 @@ Json::Value Mirror::getRootSignature() const
 
 
 
-ED_SIGNATURE Mirror::fetchQuorumRootSignature()
+bool Mirror::fetchQuorumRootSignature()
 {
-  ED_SIGNATURE sig;
-
   if (isQuorumNode_)
     Log::get().error("Quorum nodes cannot _yet_ fetch root signatures.");
 
   auto response = qStream_->sendReceive("getRootSignature", "");
   if (response["type"] == "error")
-  {  // todo: bug: we return a blank sig in this case
+  {
     Log::get().warn("Error when getting root signature from Quorum node: " +
                     response["value"].asString());
+    return false;
   }
   else
   {
-    Json::Value sigObj = response["value"];
+    static auto Q_KEY = Config::getQuorumNode()[0]["key"].asString();
+    auto result = Common::verifyRootSignature(response["value"], qRootSig_,
+                                              merkleTree_->getRoot(), Q_KEY);
 
-    if (!sigObj.isMember("signature") || !sigObj.isMember("count"))
-      Log::get().error("Invalid root signature response from server.");
-
-    // check number of Records
-    if (sigObj["count"].asInt() != Cache::getRecordCount())
-      Log::get().warn("Quorum has " + sigObj["count"].asString() +
+    if (result.first && result.second != Cache::getRecordCount())
+    {
+      Log::get().warn("Quorum has " + std::to_string(result.second) +
                       " records, we have " +
                       std::to_string(Cache::getRecordCount()));
-    // todo: we are out of date
+      // todo, we need to update
+    }
 
-    // decode signature
-    if (Botan::base64_decode(sig.data(), sigObj["signature"].asString()) !=
-        sig.size())
-      Log::get().warn("Invalid root signature length from Quorum node.");
-
-    // get public key
-    ED_KEY qPubKey;
-    static auto Q_KEY = Config::getQuorumNode()[0]["key"].asString();
-    if (Botan::base64_decode(qPubKey.data(), Q_KEY) != Const::ED25519_KEY_LEN)
-      Log::get().warn("Quorum node key has an invalid length.");
-
-    // check signature
-    int status =
-        ed25519_sign_open(merkleTree_->getRoot().data(), Const::SHA384_LEN,
-                          qPubKey.data(), sig.data());
-    if (status == 0)
-      Log::get().notice("Valid Ed25519 Quorum signature on root.");
-    else if (status == 1)
-      Log::get().warn("Invalid Ed25519 Quorum signature on root.");
-    else
-      Log::get().warn("General Ed25519 signature failure on root.");
+    return result.first;
   }
-
-  return sig;
 }
 
 
