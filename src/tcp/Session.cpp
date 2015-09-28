@@ -208,7 +208,7 @@ Json::Value Session::respondToGetMerkleSubtree(const Json::Value& in) const
   if (Utils::strEndsWith(domain, ".tor"))
   {
     response["type"] = "success";
-    response["value"] = Mirror::get().getMerkleTree()->getPathTo(domain);
+    response["value"] = Mirror::get().getMerkleTree()->generateSubtree(domain);
     Log::get().notice(std::to_string(id_) + ": Assembled subtree for \"" +
                       domain + "\"");
   }

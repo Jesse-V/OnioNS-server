@@ -15,7 +15,7 @@
 
 
 typedef boost::exception_detail::clone_impl<
-    boost::exception_detail::error_info_injector<boost::system::system_error>>
+    boost::exception_detail::error_info_injector<boost::system::system_error> >
     BoostSystemError;
 
 
@@ -165,8 +165,8 @@ bool Mirror::fetchQuorumRootSignature()
   else
   {
     static auto Q_KEY = Config::getQuorumNode()[0]["key"].asString();
-    auto result = Common::verifyRootSignature(response["value"], qRootSig_,
-                                              merkleTree_->getRoot(), Q_KEY);
+    auto result = Common::verifyRootSignature(
+        response["value"], qRootSig_, merkleTree_->getRootHash(), Q_KEY);
 
     if (result.first && result.second != Cache::getRecordCount())
     {
@@ -185,7 +185,7 @@ bool Mirror::fetchQuorumRootSignature()
 std::string Mirror::signMerkleRoot() const
 {
   ED_SIGNATURE signature;
-  ed25519_sign(merkleTree_->getRoot().data(), Const::SHA384_LEN,
+  ed25519_sign(merkleTree_->getRootHash().data(), Const::SHA384_LEN,
                keypair_.first.data(), keypair_.second.data(), signature.data());
   return Botan::base64_encode(signature.data(), signature.size());
 }

@@ -6,9 +6,9 @@ find_package(Boost COMPONENTS system REQUIRED)
 
 #compiler options for Clang and GCC/G++
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS "-g -O3 --std=c++11 -Wno-c++98-compat-pedantic -pedantic -Weverything -Wno-exit-time-destructors -Wno-weak-vtables -Wno-padded -Wno-deprecated -Wno-documentation -Wno-documentation-unknown-command -Wno-reserved-id-macro -Wno-missing-noreturn")
+  set(CMAKE_CXX_FLAGS "-g -O3 -std=c++11 -Wno-c++98-compat-pedantic -pedantic -Weverything -Wno-exit-time-destructors -Wno-weak-vtables -Wno-padded -Wno-deprecated -Wno-documentation -Wno-documentation-unknown-command -Wno-reserved-id-macro -Wno-missing-noreturn")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  set(CMAKE_CXX_FLAGS "-g -O3 --std=c++11 -Wall -Wextra -pedantic -Wdouble-promotion -Wfloat-equal -Wunsafe-loop-optimizations")
+  set(CMAKE_CXX_FLAGS "-g -O3 -std=c++11 -Wall -Wextra -pedantic -Wdouble-promotion -Wfloat-equal -Wunsafe-loop-optimizations")
 endif()
 
 include_directories(${CMAKE_INSTALL_PREFIX}/include/onions-common/ /usr/include/botan-1.10)
