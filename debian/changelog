@@ -1,5 +1,14 @@
-//0.6.1.0: link against libscrypt included with OnioNS-common.
-* Link against system installation of libjsoncpp.
+tor-onions-server (0.7.0.0~trusty) trusty; urgency=medium
+
+  * Refactored all communication to a pure request-response model.
+  * Updated communications format.
+  * Normal name servers pass Merkle root signatures to clients.
+  * Sign all outbound communication using Ed25519 key.
+  * Add Clang's scan-build static analysis tool to build scripts.
+  * Install to /usr/local/ when compiled from source.
+  * Many bug fixes.
+
+ -- Jesse Victors <kernelcorn@riseup.net>  Mon, 28 Sept 2015 13:00:00 -0800
 
 tor-onions-server (0.6.0.3~trusty) trusty; urgency=medium
 
