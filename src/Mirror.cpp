@@ -72,6 +72,15 @@ void Mirror::removeSubscriber(Session* session)
 
 bool Mirror::processNewRecord(int sessionID, const RecordPtr& record)
 {
+  if (!Cache::add(record))
+  {
+    Log::get().warn("Record already exists.");
+    return false;
+  }
+
+  merkleTree_ = std::make_shared<MerkleTree>(Cache::getSortedList());
+  page_->addRecord(record);
+
   if (!isQuorumNode_)
   {
     if (sessionID == qSession_->getID())
@@ -86,15 +95,6 @@ bool Mirror::processNewRecord(int sessionID, const RecordPtr& record)
       return false;
     }
   }
-
-  if (!Cache::add(record))
-  {
-    Log::get().warn("Record already exists.");
-    return false;
-  }
-
-  merkleTree_ = std::make_shared<MerkleTree>(Cache::getSortedList());
-  page_->addRecord(record);
 
   tellSubscribers(record);
 
