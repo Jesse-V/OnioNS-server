@@ -13,6 +13,11 @@ endif()
 
 include_directories(${CMAKE_INSTALL_PREFIX}/include/onions-common/ /usr/include/botan-1.10)
 
+#http://www.cmake.org/Wiki/CMake_RPATH_handling
+SET(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib/onions-common)
+message(STATUS ${CMAKE_INSTALL_PREFIX}/lib/onions-common/)
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 add_executable(onions-server
   main.cpp
 
@@ -54,10 +59,6 @@ if (${onions-scrypt} MATCHES ".*-NOTFOUND")
 else()
   message(STATUS "Found OnioNS-common's libscrypt component")
 endif()
-
-#http://www.cmake.org/Wiki/CMake_RPATH_handling
-SET(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib/onions-common)
-message(STATUS ${CMAKE_INSTALL_PREFIX}/lib/onions-common/)
 
 target_link_libraries(onions-server ${onions-common} ${onions-cyoencode}
   ${onions-jsoncpp} ${onions-scrypt} popt botan-1.10 pthread

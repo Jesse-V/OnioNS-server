@@ -1,3 +1,9 @@
+tor-onions-server (0.7.1.0~trusty) trusty; urgency=medium
+
+  * Fix RPATH assignment to allow the Linux loader to find OnioNS-common.
+
+ -- Jesse Victors <kernelcorn@riseup.net>  Wed, 30 Sep 2015 19:00:00 -0800
+
 tor-onions-server (0.7.0.4~trusty) trusty; urgency=medium
 
   * Refactored all communication to a pure request-response model.
