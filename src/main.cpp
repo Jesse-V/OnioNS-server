@@ -1,5 +1,35 @@
 
-#include "Mirror.hpp"
+#include <iostream>
+
+#include <spec/AbstractSpecClient.h>
+#include <jsonrpccpp/client/connectors/socks5client.h>
+
+int main()
+{
+    jsonrpc::Socks5Client transport("localhost", "9050", "http://198.50.200.131:9443");
+    AbstractSpecClient client(transport);
+
+    try
+    {
+        std::cout << client.getData("key", 9) << std::endl;
+        std::cout << client.basicGet() << std::endl;
+        client.noArgNotification();
+
+        Json::Value array;
+        array.append(7);
+        array.append(8);
+        array.append(9);
+        client.tellServer(array, false);
+    }
+    catch (jsonrpc::JsonRpcException e)
+    {
+        std::cerr << "Client aborted! " << e.what() << std::endl;
+    }
+}
+
+
+/*
+//#include "Mirror.hpp"
 #include <onions-common/Log.hpp>
 #include <onions-common/Utils.hpp>
 #include <botan/botan.h>
@@ -10,6 +40,7 @@
 
 int main(int argc, char** argv)
 {
+
   // do not rearrange or compact these declarations or strange popt errors occur
   bool quorumNode = false;
   char* logPath = NULL;
@@ -74,6 +105,6 @@ int main(int argc, char** argv)
     Log::setLogPath(std::string(logPath));
 
   Mirror::get().startServer(std::string(bindIP), socksPort, quorumNode);
-
+  
   return EXIT_SUCCESS;
-}
+}*/
