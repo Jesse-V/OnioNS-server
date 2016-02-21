@@ -1,4 +1,51 @@
 
+#include <spec/AbstractSpecServer.h>
+#include <jsonrpccpp/server/connectors/httpserver.h>
+#include <iostream>
+
+class SpecServer : public AbstractSpecServer
+{
+    public:
+        SpecServer(jsonrpc::AbstractServerConnector& connector) :
+          AbstractSpecServer(connector) {};
+        
+        virtual int getData(const std::string& arg1, int arg2);
+        virtual std::string basicGet();
+        virtual void noArgNotification();
+        virtual void tellServer(const Json::Value& arg3, bool arg4);
+};
+
+int SpecServer::getData(const std::string& arg1, int arg2)
+{
+  return arg2;
+}
+
+std::string SpecServer::basicGet()
+{
+  return "hi!";
+}
+
+void SpecServer::noArgNotification()
+{
+  std::cout << "Got notified!" << std::endl;
+}
+
+void SpecServer::tellServer(const Json::Value& arg3, bool arg4)
+{
+  std::cout << "received info" << std::endl;
+}
+
+int main()
+{
+    jsonrpc::HttpServer httpserver(9443);
+    SpecServer s(httpserver);
+    s.StartListening();
+    getchar();
+    s.StopListening();
+    return 0;
+}
+
+/*
 #include <iostream>
 
 #include <spec/AbstractSpecClient.h>
@@ -25,7 +72,7 @@ int main()
     {
         std::cerr << "Client aborted! " << e.what() << std::endl;
     }
-}
+}*/
 
 
 /*
