@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 project(onions-server)
 
 #compiler options for Clang and GCC/G++
-SET(COMMON_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++11 -DED25519_CUSTOMHASH -DED25519_CUSTOMRANDOM -fstack-protector -D_FORTIFY_SOURCE=1")
+SET(COMMON_FLAGS "${CMAKE_CXX_FLAGS} -O2 -std=c++11 -DED25519_CUSTOMHASH -DED25519_CUSTOMRANDOM -fstack-protector -D_FORTIFY_SOURCE=1")
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set(CMAKE_CXX_FLAGS "${COMMON_FLAGS} -Wno-c++98-compat-pedantic -pedantic -Weverything -Wno-exit-time-destructors -Wno-weak-vtables -Wno-padded -Wno-deprecated -Wno-documentation -Wno-documentation-unknown-command -Wno-reserved-id-macro -Wno-missing-noreturn")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -15,7 +15,7 @@ include_directories(${ONIONS_INCLUDE} /usr/include/botan-1.10)
 
 add_executable(onions-server
   main.cpp
-
+  SpecServer.cpp
   #Mirror.cpp
   Page.cpp
 )
@@ -33,8 +33,6 @@ FIND_LIBRARY(jsonrpccpp-common NAMES "libjsonrpccpp-common.so" REQUIRED
 FIND_LIBRARY(jsonrpccpp-client NAMES "libjsonrpccpp-client.so" REQUIRED
   PATHS ${CMAKE_INSTALL_PREFIX}/lib/onions-common NO_DEFAULT_PATH)
 FIND_LIBRARY(jsonrpccpp-server NAMES "libjsonrpccpp-server.so" REQUIRED
-  PATHS ${CMAKE_INSTALL_PREFIX}/lib/onions-common NO_DEFAULT_PATH)
-FIND_LIBRARY(jsonrpccpp-stub NAMES "libjsonrpccpp-stub.so" REQUIRED
   PATHS ${CMAKE_INSTALL_PREFIX}/lib/onions-common NO_DEFAULT_PATH)
 
 if (${onions-common} MATCHES ".*-NOTFOUND")
@@ -79,18 +77,7 @@ else()
   message(STATUS "Found JSON-RPC-CPP's Server component")
 endif()
 
-if (${jsonrpccpp-stub} MATCHES ".*-NOTFOUND")
-  message(FATAL_ERROR "OnioNS-common's JSON-RPC-CPP's Stub component was not found!")
-else()
-  message(STATUS "Found JSON-RPC-CPP's Stub component")
-endif()
-
-#http://www.cmake.org/Wiki/CMake_RPATH_handling
-SET(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib/onions-common)
-message(STATUS ${CMAKE_INSTALL_PREFIX}/lib/onions-common/)
-
-# todo: do I need all of the jsonrpccpp components?
-target_link_libraries(onions-server ${jsonrpccpp-common} ${jsonrpccpp-client} ${jsonrpccpp-server} ${jsonrpccpp-stub} ${onions-common} ${onions-cyoencode} ${onions-jsoncpp} ${onions-scrypt} popt botan-1.10 pthread)
+target_link_libraries(onions-server ${jsonrpccpp-common} ${jsonrpccpp-client} ${jsonrpccpp-server} ${onions-common} ${onions-cyoencode} ${onions-jsoncpp} ${onions-scrypt} argtable2 botan-1.10 pthread)
 
 #installation of files
 set(DEB_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/assets")

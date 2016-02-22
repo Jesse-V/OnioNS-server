@@ -1,140 +1,86 @@
 
-#include <spec/AbstractSpecServer.h>
-#include <jsonrpccpp/server/connectors/httpserver.h>
-#include <iostream>
-
-class SpecServer : public AbstractSpecServer
-{
-    public:
-        SpecServer(jsonrpc::AbstractServerConnector& connector) :
-          AbstractSpecServer(connector) {};
-        
-        virtual int getData(const std::string& arg1, int arg2);
-        virtual std::string basicGet();
-        virtual void noArgNotification();
-        virtual void tellServer(const Json::Value& arg3, bool arg4);
-};
-
-int SpecServer::getData(const std::string& arg1, int arg2)
-{
-  return arg2;
-}
-
-std::string SpecServer::basicGet()
-{
-  return "hi!";
-}
-
-void SpecServer::noArgNotification()
-{
-  std::cout << "Got notified!" << std::endl;
-}
-
-void SpecServer::tellServer(const Json::Value& arg3, bool arg4)
-{
-  std::cout << "received info" << std::endl;
-}
-
-int main()
-{
-    jsonrpc::HttpServer httpserver(9443);
-    SpecServer s(httpserver);
-    s.StartListening();
-    getchar();
-    s.StopListening();
-    return 0;
-}
-
-/*
-#include <iostream>
-
-#include <spec/AbstractSpecClient.h>
-#include <jsonrpccpp/client/connectors/socks5client.h>
-
-int main()
-{
-    jsonrpc::Socks5Client transport("localhost", "9050", "http://198.50.200.131:9443");
-    AbstractSpecClient client(transport);
-
-    try
-    {
-        std::cout << client.getData("key", 9) << std::endl;
-        std::cout << client.basicGet() << std::endl;
-        client.noArgNotification();
-
-        Json::Value array;
-        array.append(7);
-        array.append(8);
-        array.append(9);
-        client.tellServer(array, false);
-    }
-    catch (jsonrpc::JsonRpcException e)
-    {
-        std::cerr << "Client aborted! " << e.what() << std::endl;
-    }
-}*/
-
-
-/*
 //#include "Mirror.hpp"
 #include <onions-common/Log.hpp>
 #include <onions-common/Utils.hpp>
 #include <botan/botan.h>
-#include <popt.h>
+#include <argtable2.h>
 #include <iostream>
 
-// Botan::LibraryInitializer init("thread_safe");
+Botan::LibraryInitializer init("thread_safe");
 
 int main(int argc, char** argv)
 {
+  // http://argtable.sourceforge.net/doc/argtable2.html, http://argtable.sourceforge.net/example/myprog.c
+  struct arg_str* bindIP = arg_str0("a", "address", "<IPv4>", "TCP IPv4 address to bind to.");
+  struct arg_lit* help    = arg_lit0("h", "help",                    "Print this help and exit");
+  struct arg_lit* license = arg_lit0("L", "license", "Prints software license and exits.");
+  struct arg_file* logFile = arg_file0("o", "output", "<path>", "The filepath for event logging.");
+  struct arg_int* socksPort  = arg_int0("p", "port", "integer", "Tor's SOCKS5 port.");
+  struct arg_lit* qNode = arg_lit0("q", "quorum", "Runs the server as an authoritative Quorum server.");
+  struct arg_end  *end     = arg_end(20);
+  void* argtable[] = {bindIP, help, license, logFile, socksPort, qNode, end};
+  const char* progname = "myprog";
+  int nerrors;
+  int exitcode=0;
 
-  // do not rearrange or compact these declarations or strange popt errors occur
-  bool quorumNode = false;
-  char* logPath = NULL;
-  char* bindIP = const_cast<char*>("127.53.53.53");
-  bool license = false;
-  ushort socksPort = 9050;
+  /* verify the argtable[] entries were allocated sucessfully */
+  if (arg_nullcheck(argtable) != 0)
+  {
+    /* NULL entries were detected, some allocations must have failed */
+    printf("%s: insufficient memory\n",progname);
+    exitcode=1;
+    goto exit;
+  }
 
-  struct poptOption po[] = {
-      {"address",
-       'a',
-       POPT_ARG_STRING,
-       &bindIP,
-       0,
-       "A TCP IPv4 address to bind to.",
-       "<address>"},
-      {"license",
-       'L',
-       POPT_ARG_NONE,
-       &license,
-       0,
-       "Prints software license and exit.",
-       NULL},
-      {
-       "output",
-       'o',
-       POPT_ARG_STRING,
-       &logPath,
-       0,
-       "The filepath for event logging.",
-       "<path>",
-      },
-      {"port",
-       'p',
-       POPT_ARG_SHORT,
-       &socksPort,
-       0,
-       "SOCKS5 port for anonymous communication.",
-       "<port>"},
-      {"quorum",
-       'q',
-       POPT_ARG_NONE,
-       &quorumNode,
-       0,
-       "Runs the server as an authoritative Quorum server.",
-       NULL},
-      POPT_AUTOHELP{NULL, 0, 0, NULL, 0, NULL, NULL}};
+  /* set any command line default values prior to parsing */
+  bindIP->sval[0] = "127.53.53.53";
+  socksPort->ival[0] = 9050;
 
+  /* Parse the command line as defined by argtable[] */
+  nerrors = arg_parse(argc,argv,argtable);
+
+  /* special case: '--help' takes precedence over error reporting */
+  if (help->count > 0)
+  {
+    printf("Usage: %s", progname);
+    arg_print_syntax(stdout,argtable,"\n");
+    printf("Sample output!");
+    arg_print_glossary(stdout,argtable,"  %-25s %s\n");
+    exitcode=0;
+    goto exit;
+  }
+
+  /* If the parser returned any errors then display them and exit */
+  if (nerrors > 0)
+  {
+    /* Display the error details contained in the arg_end struct.*/
+    arg_print_errors(stdout,end,progname);
+    printf("Try '%s --help' for more information.\n",progname);
+    exitcode=1;
+    goto exit;
+  }
+
+  /* special case: uname with no command line options induces brief help */
+  if (argc==1)
+  {
+    printf("Try '%s --help' for more information.\n",progname);
+    exitcode=0;
+    goto exit;
+  }
+
+  /* normal case: take the command line options at face value */
+  //exitcode = mymain(list->count, recurse->count, repeat->ival[0],
+  //    defines->sval, defines->count,
+  //    outfile->filename[0], verbose->count,
+   //   infiles->filename, infiles->count);
+
+  exit:
+    /* deallocate each non-null entry in argtable[] */
+    arg_freetable(argtable,sizeof(argtable)/sizeof(argtable[0]));
+
+  return exitcode;
+
+/*
   if (!Utils::parse(
           poptGetContext(NULL, argc, const_cast<const char**>(argv), po, 0)))
   {
@@ -152,6 +98,7 @@ int main(int argc, char** argv)
     Log::setLogPath(std::string(logPath));
 
   Mirror::get().startServer(std::string(bindIP), socksPort, quorumNode);
-  
+  */
   return EXIT_SUCCESS;
-}*/
+}
+
