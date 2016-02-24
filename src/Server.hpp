@@ -10,7 +10,7 @@ class Server : public AbstractSpecServer
 {
   public:
     Server(jsonrpc::AbstractServerConnector& connector, short socksPort, bool qNode) :
-      AbstractSpecServer(connector), socksPort(socksPort), qNode(qNode)
+      AbstractSpecServer(connector), socksPort_(socksPort), qNode_(qNode), lastPoll_(0)
     {};
 
     virtual std::string getSpecVersion();
@@ -20,10 +20,13 @@ class Server : public AbstractSpecServer
     virtual Json::Value getRecordsSince(int time);
     
     void start();
+    void pollQuorumAsync();
+    std::string getWorkingDir();
     
   private:
-    short socksPort;
-    bool qNode;
+    short socksPort_;
+    bool qNode_;
+    long lastPoll_;
 };
 
 #endif
