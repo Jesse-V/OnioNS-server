@@ -15,8 +15,7 @@ include_directories(${ONIONS_INCLUDE} /usr/include/botan-1.10)
 
 add_executable(onions-server
   main.cpp
-  SpecServer.cpp
-  #Mirror.cpp
+  Server.cpp
   Page.cpp
 )
 
