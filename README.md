@@ -47,7 +47,7 @@ It is expected that you are maintaining an active Tor relay or exit. This softwa
 
 > * pw="$(dd if=/dev/urandom bs=32 count=1 | base64)"
 > * mkdir ~/.OnioNS; echo $pw > ~/.OnioNS/control.auth_pw
-> * echo HashedControlPassword `tor --hash-password $pw`
+> * echo HashedControlPassword $(tor --hash-password $pw)
 
 2. Copy the output of the last command to your clipboard. Then set the following options in Tor's configuration, typically found at /etc/tor/torrc:
 
