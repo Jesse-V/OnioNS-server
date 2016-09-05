@@ -7,7 +7,7 @@ This is the software implementation of the system described in "The Onion Name S
 
 ### Repository Details [![Build Status](https://travis-ci.org/Jesse-V/OnioNS-server.svg)](https://travis-ci.org/Jesse-V/OnioNS-server)
 
-This repository provides the networking code for OnioNS nodes. Each OnioNS node, or mirror, maintains an up-to-date version of name records and other miscellaneous data. Qualified mirrors can be randomly selected to be in the Quorum, a group of mirrors that is "in charge" for a period of time. OnioNS-server implements the server response to client queries and server-server communication.
+This software is intended for Tor relay operators who would like to contribute to the OnioNS network. Each OnioNS node, or mirror, maintains an up-to-date version of name records and other miscellaneous data. Qualified mirrors can be randomly selected to be in the Quorum, a group of mirrors that is "in charge" for a period of time. This repository implements the server-side domain resolution, name registration protocols, and server-server communication.
 
 ### Supported Systems
 
@@ -41,7 +41,7 @@ You can cleanup your build with **rm -rf build**
 
 ### Setup
 
-There are some necessary setup procedures to ensure proper inter-process communication between onion-server and the Tor binary.
+It is expected that you are maintaining an active Tor relay or exit. This software *will not* work if you are running a relay or bridge. If you are maintaining a relay, there are some necessary setup procedures to ensure proper inter-process communication between onion-server and the Tor binary.
 
 1. First, enable communication to your server by adding the following to your Tor's configuration file (torrc), typically found at /etc/tor/torrc:
 
@@ -50,30 +50,28 @@ There are some necessary setup procedures to ensure proper inter-process communi
 > * ControlPort 9151
 > * CookieAuthentication 1
 
-2. Reload or restart Tor, typically via **sudo systemctl reload tor**
+2. Reload or restart Tor via **sudo systemctl reload tor** or equivalent command.
 
 3. Grant onions-server access to the Tor authentication cookie and HS hostname via these commands:
 
-> * **sudo cp /var/run/tor/control.authcookie ~/.OnioNS/control.authcookie**
-> * **sudo cp /var/lib/tor/OnioNS_Mirror/hostname ~/.OnioNS/hostname**
+> * **sudo cp -u /var/run/tor/control.authcookie ~/.OnioNS/control.authcookie**
+> * **sudo cp -u /var/lib/tor/OnioNS_Mirror/hostname ~/.OnioNS/hostname**
 > * **w=$(sudo echo `whoami`) && sudo chown $w:$w ~/.OnioNS/control.authcookie ~/.OnioNS/hostname**
 
-4. Launch the onions-server executable. It can run under a normal user; root is not necessary. No additional incoming firewall rules are needed; if Tor can work correctly, then you're set.
+You may have to run these commands again whenever you restart Tor.
+
+4. Launch the onions-server executable. It can run under a normal user as root is not necessary. No additional incoming firewall rules are needed; if Tor can work correctly, then you're set.
 
 > **onions-server --output server_info.log**
 
 The --output flag is optional. Your server should now be online. No user interaction should be necessary, but you can keep an eye on the log in case anything goes wrong. A manpage is available for your convenience. You can also type **onions-server --help** for a list of flags and usage examples. Contact me on IRC or by email (see below) if you need further assistance.
 
-### Bug Reporting
-
-Please open a ticket on Github. If you do not have a Github account, please contact kernelcorn on #tor-dev on OFTC IRC, or email kernelcorn at riseup dot net. Please follow the same process for filing enhancement requests. I use PGP key 0xC20BEC80. I accept pull requests if you want to contribute.
-
 ### How to Contribute
 
-I need more testers to verify that the software is stable and reliable. If you find an issue, please report it on Github. Developers should use Clang 3.8 as it will compile faster and provide cleaner error messages. Feel check out the devBuild.sh and scanBuild.sh scripts as they can helpful to you. If you would like to contribute code, please fork this repo, sign your commits, and file a pull request.
+I need more testers to verify that the software is stable and reliable. If you find an issue, please report it on Github. If you do not have a Github account, please contact kernelcorn on #tor-dev on OFTC IRC, or email kernelcorn at torproject dot org. Please follow the same process for filing enhancement requests.
 
-I develop using Clang 3.8 on Debian Testing amd64.
+Developers should use Clang 3.8 as it will compile faster and provide cleaner error messages. Feel check out the devBuild.sh and scanBuild.sh scripts as they can helpful to you. If you would like to contribute code, please fork this repo, sign your commits, and file a pull request. I develop using Clang 3.8 on Debian Testing amd64.
 
 ### Security Vulnerabilities
 
-Usually, security vulnerabilities may be reported through the same communication channels as bug reports. However, if the impact is significant and you wish to report it privately, please contact me on IRC and I'll open a private conversation with you, or you can send me an email (PGP 0xC20BEC80). Please allow me time to respond, patch, and push out an update before reporting it publicly, which shouldn't take long.
+Usually, security vulnerabilities may be reported through the same communication channels as bug reports. However, if the impact is significant and you wish to report it privately, please contact me on IRC and I'll open a private conversation with you, or you can send me an email. I use PGP key 0xAD97364FC20BEC80. Please allow me time to respond, patch, and push out an update before reporting it publicly, which shouldn't take long.
