@@ -24,12 +24,12 @@ Server::Server(jsonrpc::AbstractServerConnector& connector,
   try
   {
     TorController control("127.0.0.1", controlPort);
-    control.authenticateToTor(Common::getWorkingDirectory() +
-                              "control.authcookie");
+    control.authenticateToTor(true);
     control.waitForBootstrap();
 
     std::string hostname = getHostname();
-    Log::get().notice("Server is reachable at " + hostname + ":" + std::to_string(Const::SERVER_PORT));
+    Log::get().notice("Server is reachable at " + hostname + ":" +
+                      std::to_string(Const::SERVER_PORT));
 
     SHA256_HASH hash;
     memset(hash.data(), 0, Const::SHA256_LEN);
@@ -37,26 +37,28 @@ Server::Server(jsonrpc::AbstractServerConnector& connector,
     Log::get().notice("Announced server availability via Contact field.");
 
 
-/*
-    SHA256_HASH hash;
-    memset(hash.data(), 0, Const::SHA256_LEN);
-    updateContactData(control, false, hash, "3g2upl4pq6kufc4m.onion");
-    Log::get().notice("contact: \"" + control.getSetting("ContactInfo") + "\"");
+    /*
+        SHA256_HASH hash;
+        memset(hash.data(), 0, Const::SHA256_LEN);
+        updateContactData(control, false, hash, "3g2upl4pq6kufc4m.onion");
+        Log::get().notice("contact: \"" + control.getSetting("ContactInfo") +
+       "\"");
 
-    ContactData cd;
-    auto data = getContactData(control.getSetting("ContactInfo"), cd);
-    Log::get().notice(std::string("cd: ") + (cd.onDebugNetwork_ ? "true" : "false") + " - " + cd.addr_);
-*/
+        ContactData cd;
+        auto data = getContactData(control.getSetting("ContactInfo"), cd);
+        Log::get().notice(std::string("cd: ") + (cd.onDebugNetwork_ ? "true" :
+       "false") + " - " + cd.addr_);
+    */
 
     // shutting down: control.reloadSettings(); // reload from file
 
-/*
-    auto socket = control.getSocket();
-    *socket << "GETCONF HiddenServiceOptions\r\n";
-    std::string resp;
-    *socket >> resp;
-Log::get().notice("response: \"" + resp + "\"");
-*/
+    /*
+        auto socket = control.getSocket();
+        *socket << "GETCONF HiddenServiceOptions\r\n";
+        std::string resp;
+        *socket >> resp;
+    Log::get().notice("response: \"" + resp + "\"");
+    */
     /*
         auto socket = control.getSocket();
         *socket << "GETCONF Contact\r\n";
@@ -126,23 +128,27 @@ Json::Value Server::getRecordsSince(int time, int version)
 
 
 // arguments: controller, <true/false>, hash, <address>.onion
-bool Server::updateContactData(TorController& control, bool testNetwork, const SHA256_HASH& rootHash, const std::string& onionAddr)
+bool Server::updateContactData(TorController& control,
+                               bool testNetwork,
+                               const SHA256_HASH& rootHash,
+                               const std::string& onionAddr)
 {
-  //initialize binary
+  // initialize binary
   uint8_t bin[BIN_SIZE];
   memset(bin, 0, BIN_SIZE);
 
   // add root hash and onion address
   memcpy(bin, rootHash.data(), Const::SHA256_LEN);
   CyoDecode::Base32::Decode(&bin[Const::SHA256_LEN], onionAddr.c_str(), 16);
-  return updateContactString(control, (testNetwork ? "1" : "0") + Botan::base64_encode(bin, BIN_SIZE));
+  return updateContactString(
+      control, (testNetwork ? "1" : "0") + Botan::base64_encode(bin, BIN_SIZE));
 }
 
 
 
 bool Server::updateContactString(TorController& control, const std::string& str)
 {
-  control.reloadSettings(); // reload from file
+  control.reloadSettings();  // reload from file
   std::string origContact = control.getSetting("ContactInfo");
 
   auto pos = origContact.find("=");
@@ -153,7 +159,8 @@ bool Server::updateContactString(TorController& control, const std::string& str)
 
 
 
-bool Server::getContactData(const std::string& contactStr, Server::ContactData& cd)
+bool Server::getContactData(const std::string& contactStr,
+                            Server::ContactData& cd)
 {
   // check for OnioNS delimiter and the proper length
   std::size_t pos = contactStr.find_last_of('|');
@@ -169,7 +176,7 @@ bool Server::getContactData(const std::string& contactStr, Server::ContactData& 
   }
 
   // decode base64 and confirm validity
-  uint8_t bin[BIN_SIZE]; // safe as I already check the length
+  uint8_t bin[BIN_SIZE];  // safe as I already check the length
   memset(bin, 0, BIN_SIZE);
   auto decodedSize = Botan::base64_decode(bin, contactStr.substr(pos + 2));
   if (decodedSize != BIN_SIZE)
@@ -197,12 +204,12 @@ std::string Server::getHostname()
 {
   std::ifstream file(Common::getWorkingDirectory() + "hostname");
   if (!file)
-    Log::get().error("Unable to open hostname file!");
+    Log::get().error("Unable to open hostname file! See \"Setup\" in README.");
 
   std::string hostname;
   file >> hostname;
 
-  if (hostname.size() != 22) // 16 chars + .onion = 22 chars
+  if (hostname.size() != 22)  // 16 chars + .onion = 22 chars
     Log::get().error("Invalid length of hostname file!");
   return hostname;
 }

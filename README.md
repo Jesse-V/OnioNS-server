@@ -41,30 +41,34 @@ You can cleanup your build with **rm -rf build**
 
 ### Setup
 
-It is expected that you are maintaining an active Tor relay or exit. This software *will not* work if you are running a relay or bridge. If you are maintaining a relay, there are some necessary setup procedures to ensure proper inter-process communication between onion-server and the Tor binary.
+It is expected that you are maintaining an active Tor relay or exit. This software *will not* work if you are running a relay or bridge. If you are maintaining a relay, there are some necessary setup procedures to ensure proper inter-process communication (IPC) between onion-server and the Tor binary.
 
-1. First, enable communication to your server by adding the following to your Tor's configuration file (torrc), typically found at /etc/tor/torrc:
+1. Allow onions-server to authenticate to Tor's control port:
 
-> * HiddenServiceDir OnioNS_Mirror
+> * pw="$(dd if=/dev/urandom bs=32 count=1 | base64)"
+> * mkdir ~/.OnioNS; echo $pw > ~/.OnioNS/control.auth_pw
+> * echo HashedControlPassword `tor --hash-password $pw`
+
+2. Copy the output of the last command to your clipboard. Then set the following options in Tor's configuration, typically found at /etc/tor/torrc:
+
+> * HiddenServiceDir OnioNS_mirror
 > * HiddenServicePort 10053 127.9.0.53:10053
-> * ControlPort 9151
-> * CookieAuthentication 1
+> * ControlPort 9051
 
-2. Reload or restart Tor via **sudo systemctl reload tor** or equivalent command.
+Also paste the contents of your clipboard so that the HashedControlPassword option is included in the torrc file.
 
-3. Grant onions-server access to the Tor authentication cookie and HS hostname via these commands:
+3. Reload or restart Tor via **sudo systemctl reload tor** or equivalent command.
 
-> * **sudo cp -u /var/run/tor/control.authcookie ~/.OnioNS/control.authcookie**
-> * **sudo cp -u /var/lib/tor/OnioNS_Mirror/hostname ~/.OnioNS/hostname**
-> * **w=$(sudo echo `whoami`) && sudo chown $w:$w ~/.OnioNS/control.authcookie ~/.OnioNS/hostname**
+4. Give onion-server the address of the onion service that you set up in step 2.
 
-You may have to run these commands again whenever you restart Tor.
+> * **sudo cp -u /var/lib/tor/OnioNS_mirror/hostname ~/.OnioNS/hostname**
+> * **w=$(sudo echo $(whoami)) && sudo chown $w:$w ~/.OnioNS/hostname**
 
-4. Launch the onions-server executable. It can run under a normal user as root is not necessary. No additional incoming firewall rules are needed; if Tor can work correctly, then you're set.
+5. Launch the onions-server executable. It can run under a normal user as root is not necessary. No additional incoming firewall rules are needed; if Tor can work correctly, then you're set.
 
-> **onions-server --output server_info.log**
+> **onions-server --output server_info.log &**
 
-The --output flag is optional. Your server should now be online. No user interaction should be necessary, but you can keep an eye on the log in case anything goes wrong. A manpage is available for your convenience. You can also type **onions-server --help** for a list of flags and usage examples. Contact me on IRC or by email (see below) if you need further assistance.
+The --output flag is optional. No user interaction should be necessary, but you can keep an eye on the log in case anything goes wrong. A manpage is available for your convenience. You can also type **onions-server --help** for a list of flags and usage examples. Contact me (see below) if you need further assistance.
 
 ### How to Contribute
 

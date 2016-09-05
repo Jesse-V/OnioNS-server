@@ -11,12 +11,12 @@
 class Server : public NetworkServerInterface
 {
  public:
-   struct ContactData
-   {
-     bool onDebugNetwork_;
-     SHA256_HASH rootHash_;
-     std::string addr_;
-   };
+  struct ContactData
+  {
+    bool onDebugNetwork_;
+    SHA256_HASH rootHash_;
+    std::string addr_;
+  };
 
   Server(jsonrpc::AbstractServerConnector&, short, short, bool);
 
@@ -27,7 +27,10 @@ class Server : public NetworkServerInterface
   virtual std::string getDomain(const std::string&, int);
   virtual Json::Value getRecordsSince(int, int);
 
-  bool updateContactData(TorController&, bool, const SHA256_HASH&, const std::string&);
+  bool updateContactData(TorController&,
+                         bool,
+                         const SHA256_HASH&,
+                         const std::string&);
   bool updateContactString(TorController&, const std::string&);
   bool getContactData(const std::string&, ContactData&);
   std::string getHostname();
@@ -37,7 +40,6 @@ class Server : public NetworkServerInterface
 
   const unsigned long HS_ADDR_BYTES = 10;
   const unsigned long BIN_SIZE = Const::SHA256_LEN + HS_ADDR_BYTES;
-
 };
 
 #endif
