@@ -3,17 +3,18 @@ compiler:
   - gcc
 
 os: linux
+dist: trusty
+sudo: required
+language: cpp
 
 before_install:
-  - sudo add-apt-repository "deb mirror://mirrors.ubuntu.com/mirrors.txt trusty main restricted universe" # switch to Ubuntu Trusty
   - sudo apt-get update -qq
-  - sudo apt-get install -qq g++ clang cmake libpopt-dev botan1.10-dev libasio-dev libboost-system-dev # install dependencies
+  - sudo apt-get install -qq build-essential dh-make dpkg-dev libbotan1.10-dev libcurl4-openssl-dev libargtable2-dev libmicrohttpd-dev
 
 before_script:
   # compile and install OnioNS-common library from source
-  - git clone https://github.com/Jesse-V/OnioNS-common.git
+  - git clone --branch json-rpc --recursive --depth=25 https://github.com/Jesse-V/OnioNS-common.git
   - cd OnioNS-common
-  - (cd src/libs/libscrypt && make)
   - package=tor-onions-common_$(grep -m 1 -o '(.*)' debian/changelog | cut -c 2- | rev | cut -c 2- | rev)
   - tar -czf $package.orig.tar.gz src/
   - cp -rl debian src/debian
@@ -31,8 +32,7 @@ script:
 
 after_success:
   - sudo dpkg -i ../$package\_amd64.deb  # install .deb
-
-language: cpp
+  - sha256sum ../$package\_amd64.deb
 
 notifications:
   email: false

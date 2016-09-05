@@ -1,4 +1,5 @@
-tor-onions-common (0.8.1.0~trusty) trusty; urgency=medium
+tor-onions-server (0.8.1.0~trusty) trusty; urgency=medium
+
   * Update JSON-RPC server implementation.
   * Use Tor's control port to read and write Contact field data.
   * Import Merkle tree code from onions-common.
