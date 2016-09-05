@@ -1,4 +1,12 @@
-tor-onions-server (0.7.0.4~trusty) trusty; urgency=medium
+tor-onions-common (0.8.1.0~trusty) trusty; urgency=medium
+  * Update JSON-RPC server implementation.
+  * Use Tor's control port to read and write Contact field data.
+  * Import Merkle tree code from onions-common.
+  * Revise README.
+
+ -- Jesse Victors <kernelcorn@torproject.org>  Sun, 04 Sep 2016 23:30:00 -0500
+
+ tor-onions-server (0.7.0.4~trusty) trusty; urgency=medium
 
   * Refactored all communication to a pure request-response model.
   * Updated communications format.
@@ -8,7 +16,7 @@ tor-onions-server (0.7.0.4~trusty) trusty; urgency=medium
   * Install to /usr/local/ when compiled from source.
   * Many bug fixes.
 
- -- Jesse Victors <kernelcorn@riseup.net>  Mon, 28 Sep 2015 13:00:00 -0800
+ -- Jesse Victors <kernelcorn@torproject.org>  Mon, 28 Sep 2015 13:00:00 -0800
 
 tor-onions-server (0.6.0.3~trusty) trusty; urgency=medium
 
@@ -19,7 +27,7 @@ tor-onions-server (0.6.0.3~trusty) trusty; urgency=medium
   * Automatic timestamped signing of Merkle tree root. (#50, #58)
   * Introduced Page data structure. (#18)
 
- -- Jesse Victors <kernelcorn@riseup.net>  Wed, 26 Aug 2015 23:00:00 -0800
+ -- Jesse Victors <kernelcorn@torproject.org>  Wed, 26 Aug 2015 23:00:00 -0800
 
 tor-onions-server (0.5.0.1~trusty) trusty; urgency=medium
 
@@ -28,7 +36,7 @@ tor-onions-server (0.5.0.1~trusty) trusty; urgency=medium
   * Updated network protocol.
   * Workaround for a communications issue. (#68)
 
- -- Jesse Victors <kernelcorn@riseup.net>  Fri, 07 Aug 2015 16:00:00 -0800
+ -- Jesse Victors <kernelcorn@torproject.org>  Fri, 07 Aug 2015 16:00:00 -0800
 
 tor-onions-server (0.4.0.2~trusty) trusty; urgency=medium
 
@@ -45,25 +53,25 @@ tor-onions-server (0.4.0.2~trusty) trusty; urgency=medium
   * Clarified README.
   * Many bug fixes.
 
- -- Jesse Victors <kernelcorn@riseup.net>  Tues, 04 Aug 2015 09:00:00 -0800
+ -- Jesse Victors <kernelcorn@torproject.org>  Tues, 04 Aug 2015 09:00:00 -0800
 
 tor-onions-server (0.3.2.6~trusty) trusty; urgency=medium
 
   * Fixed missing dependency on tor-onions-common.
   * Fixed missing linkage against pthread, necessary for armhf builds.
 
- -- Jesse Victors <kernelcorn@riseup.net>  Mon, 06 Jul 2015 01:00:00 -0400
+ -- Jesse Victors <kernelcorn@torproject.org>  Mon, 06 Jul 2015 01:00:00 -0400
 
 tor-onions-server (0.3.2.4~trusty) trusty; urgency=medium
 
   * Initial build against onions-common library.
   * Fixed compilation against onions-common headers.
 
- -- Jesse Victors <kernelcorn@riseup.net>  Sun, 05 Jul 2015 15:32:00 -0400
+ -- Jesse Victors <kernelcorn@torproject.org>  Sun, 05 Jul 2015 15:32:00 -0400
 
 tor-onions-server (0.3.1.1~trusty) trusty; urgency=medium
 
   * Initial build of server functionality.
   * Removed debugging symbols.
 
- -- Jesse Victors <kernelcorn@riseup.net>  Thur, 01 Jul 2015 22:45:00 -0400
+ -- Jesse Victors <kernelcorn@torproject.org>  Thur, 01 Jul 2015 22:45:00 -0400
