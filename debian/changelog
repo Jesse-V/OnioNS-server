@@ -7,7 +7,7 @@ tor-onions-server (0.8.1.0~trusty) trusty; urgency=medium
 
  -- Jesse Victors <kernelcorn@torproject.org>  Sun, 04 Sep 2016 23:30:00 -0500
 
- tor-onions-server (0.7.0.4~trusty) trusty; urgency=medium
+tor-onions-server (0.7.0.4~trusty) trusty; urgency=medium
 
   * Refactored all communication to a pure request-response model.
   * Updated communications format.

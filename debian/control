@@ -14,14 +14,14 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, tor-onions-common (>= 0.7)
 Recommends: tor (>= 0.2.6)
 Conflicts: tor-onions-server
 Description: Network aspect of the Onion Name System
-OnioNS is a privacy-enhanced, metadata-free, and highly-usable DNS for Tor
-onion services. Administrators can use the Onion Name System to anonymously
-register a meaningful and globally-unique domain name for their site. Users
-can then load the site just by typing "example.tor" into the Tor Browser.
-OnioNS is backwards-compatible with traditional .onion addresses, does not
-require any modifications to the Tor binary or network, and there are no
-central authorities in charge of the domain names. This project was
-specifically engineered to solve the usability problem with onion services.
+ OnioNS is a privacy-enhanced, metadata-free, and highly-usable DNS for Tor
+ onion services. Administrators can use the Onion Name System to anonymously
+ register a meaningful and globally-unique domain name for their site. Users
+ can then load the site just by typing "example.tor" into the Tor Browser.
+ OnioNS is backwards-compatible with traditional .onion addresses, does not
+ require any modifications to the Tor binary or network, and there are no
+ central authorities in charge of the domain names. This project was
+ specifically engineered to solve the usability problem with onion services.
  .
  This package provides an OnioNS server and related networking infrastructure.
  Administrators who manage Tor relays should also install and run this software
