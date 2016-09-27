@@ -2,7 +2,7 @@ Source: tor-onions-server
 Section: net
 Priority: optional
 Maintainer: Jesse Victors <kernelcorn@torproject.org>
-Build-Depends: debhelper (>= 7), cmake, dpkg-dev, libbotan1.10-dev, libcurl4-openssl-dev, libargtable2-dev, libmicrohttpd-dev, tor-onions-common (>= 1.1)
+Build-Depends: debhelper (>= 7), cmake, dpkg-dev, libbotan1.10-dev, libjsoncpp-dev, libcurl4-openssl-dev, libargtable2-dev, libmicrohttpd-dev, tor-onions-common (>= 1.1)
 Standards-Version: 3.9.5
 Bugs: https://github.com/Jesse-V/OnioNS-server/issues
 Vcs-Git: https://github.com/Jesse-V/OnioNS-server.git
