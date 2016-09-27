@@ -3,7 +3,7 @@
 #define SERVER_HPP
 
 #include <onions-common/api/NetworkServerInterface.h>
-#include <onions-common/tor_ipc/TorController.hpp>
+#include <onions-common/ipc/TorController.hpp>
 #include <onions-common/Constants.hpp>
 //#include <onions-common/containers/MerkleTree.hpp>
 //#include <onions-common/containers/records/Record.hpp>

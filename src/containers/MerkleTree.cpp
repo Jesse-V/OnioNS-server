@@ -336,7 +336,7 @@ Json::Value MerkleTree::Node::asValue() const
 
 
 MerkleTree::Leaf::Leaf(const RecordPtr& record, const NodePtr& parent)
-    : Node(parent, record->getHash()), name_(record->getName())
+    : Node(parent, record->hash()), name_(record->getName())
 {
 }
 

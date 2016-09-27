@@ -47,7 +47,7 @@ RecordPtr Cache::get(const std::string& name)
       return r;
 
     // check subdomain
-    NameList list = r->getSubdomains();
+    StringMap list = r->getSubdomains();
     for (auto subdomain : list)
       if (subdomain.first + "." + r->getName() == name)
         return r;
