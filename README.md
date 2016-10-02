@@ -15,6 +15,8 @@ I am currently supporting Debian, Ubuntu, Mint, and Fedora. I provide builds for
 
 ### Installation
 
+**The software is not quite ready for release yet. This is an experimental branch and let everyone know when it is ready. The below instructions are for my own reference. The packages currently represent older releases, so please do not use them.**
+
 * **Ubuntu/Mint? Install using Personal Package Archive (PPA)**
 
 > 1. **sudo add-apt-repository ppa:jvictors/tor-dev**
