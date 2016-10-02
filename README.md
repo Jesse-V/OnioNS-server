@@ -7,6 +7,12 @@ OnioNS is a distributed, privacy-enhanced, metadata-free, and highly usable DNS 
 
 This repository provides the networking infrastructure for OnioNS nodes.
 
+This repository is a much older version of the software. The work continues on the json-rpc branch on all four repositories. The json-rpc branch contains a major but experimental network protocol that uses JSON-RPC-CPP as the underlying transport. That branch also contains the latest design specifications, as described in OnioNS-literature.
+
+I will ask for volunteers when the software is ready to go. In the meantime, please feel to examine my latest commits for any security issues or other concerns.
+
+Yes, I know the network is down. It's currently private because the code is moving around. Once the dust settles, the nodes will come back online.
+
 ### Supported Systems
 
 **Debian 7 and 8, Ubuntu 14.04 - 15.10, Mint 17 - 17.2, Fedora 21 - 23**
@@ -15,57 +21,4 @@ Please see the [OnioNS-common README](https://github.com/Jesse-V/OnioNS-common#s
 
 ### Installation
 
-There are several methods to install the OnioNS software. The method of choice depends on your system. If you are on Ubuntu or an Ubuntu-based system (Lubuntu, Kubuntu, Mint) please use the PPA method. If you are running Debian Wheezy, please use the .deb method. Otherwise, for all other distributions, please install from source.
-
-* **Install from PPA**
-
-> 1. **sudo add-apt-repository ppa:jvictors/tor-dev**
-> 2. **sudo apt-get update**
-> 3. **sudo apt-get install tor-onions-server**
-
-This is the recommended method as it's very easy to stay up-to-date with my releases.
-
-* **Install from .deb file**
-
-I provide builds for Debian Wheezy in the [Releases section](https://github.com/Jesse-V/OnioNS-server/releases) for several architectures. For other architectures, you may download from [my PPA](https://launchpad.net/~jvictors/+archive/tor-dev/+packages).
-
-* **Install from source**
-
-> 1. Install tor-onions-common by following [these instructions](https://github.com/Jesse-V/OnioNS-common#installation).
-> 2. Download and extract the latest release from the [Releases page](https://github.com/Jesse-V/OnioNS-server/releases).
-> 3. **(mkdir build; cd build; cmake ../src; make; sudo make install)**
-
-The rebuild.sh script is available if you are actively developing OnioNS. You will need to install *clang-3.5*, *clang-format-3.5*, and *cppcheck* as the script also styles the code and performs a static analysis check.
-
-You can cleanup your build with **rm -rf build**
-
-### Administration
-
-First, enable communication to your server by adding the following to your Tor's configuration file (torrc), typically found at /etc/tor/torrc:
-
-> * HiddenServiceDir OnioNS_Mirror
-> * HiddenServicePort 10053 127.53.53.53:10053
-
-Reload or restart Tor, then get your server's address with:
-
-> **cat /var/lib/tor/OnioNS_Mirror/hostname**
-
-Send it to me if you want to contribute to the network. Otherwise, replace the address in /var/lib/tor-onions/mirrors.json with your value to allow your client to perform lookups against your server.
-
-Launch the onions-server executable in the following way. Root is not necessary and the --output flag is optional. No additional incoming firewall rules are needed; if Tor can reach the Internet, you're set.
-
-> **onions-server --output onions.log**
-
-Your server should now be online. No user interaction should be necessary, but you can keep an eye on the log in case anything goes wrong.
-
-### Getting Help
-
-A manpage is available for your convenience. You can also type **onions-server --help** for a list of flags and usage examples. Contact me on IRC or by email (see below) if you need further assistance.
-
-### Bug Reporting
-
-Please open a ticket on Github. If you do not have a Github account, please contact kernelcorn on #tor-dev on OFTC IRC, or email kernelcorn at riseup dot net. Please follow the same process for filing enhancement requests. I use PGP key 0xC20BEC80. I accept pull requests if you want to contribute.
-
-### Security Vulnerabilities
-
-Usually, security vulnerabilities may be reported through the same communication channels as bug reports. However, if the impact is significant and you wish to report it privately, please contact me on IRC and I'll open a private conversation with you, or you can send me an email (PGP 0xC20BEC80). Please allow me time to respond, patch, and push out an update before reporting it publicly, which shouldn't take long.
+Please do not install the software from this branch as it is likely obsolete and will not be supported. See the json-rpc branch instead.
